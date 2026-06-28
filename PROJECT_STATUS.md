@@ -6,11 +6,11 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 1 — Authentication, Users, Roles, and Permissions
+Phase 2 — Campus Locations and Equipment Categories
 
 ## Current Branch
 
-phase-1-authentication-and-roles
+dev
 
 ## Technical Stack
 
@@ -65,9 +65,56 @@ phase-1-authentication-and-roles
 - Added focused tests for role and permission seeding, idempotency, role permission assignments, Filament panel access, user-management access, self-delete protection, last-Administrator protection, and permanent-delete denial for Staff and Technician.
 - Results: Targeted Phase 1 tests passed; complete test suite passed.
 
+## Phase 2 Status
+
+- [x] Locations table and model added
+- [x] Equipment categories table and model added
+- [x] Default campus location hierarchy seeded
+- [x] Default equipment categories seeded
+- [x] Location and EquipmentCategory policies added
+- [x] Filament LocationResource added
+- [x] Filament EquipmentCategoryResource added
+- [x] Records can be deactivated with Active status fields
+- [x] Staff and Technician cannot manage master data
+- [x] Focused Phase 2 tests added and passing
+
+## Phase 2 Default Locations
+
+- SNSU Del Carmen Campus
+- Climate Field School Building under SNSU Del Carmen Campus
+- Climate Field School Main Room under Climate Field School Building
+- Climate Field School Storage Area under Climate Field School Building
+- Other Campus Location under SNSU Del Carmen Campus
+
+## Phase 2 Default Equipment Categories
+
+- Weather monitoring equipment
+- Agricultural equipment
+- Laboratory equipment
+- Computers
+- Air-conditioning units
+- Office equipment
+- Water systems
+- Other equipment
+
+## Phase 2 Policies
+
+- LocationPolicy
+- EquipmentCategoryPolicy
+
+## Phase 2 Filament Resources
+
+- LocationResource under Master Data
+- EquipmentCategoryResource under Master Data
+
+## Phase 2 Tests
+
+- Added focused tests for default master-data seeding, seeder idempotency, location parent-child relationships, active scopes, master-data authorization, active data viewing, and Filament resource access.
+- Results: Targeted Phase 2 tests passed; complete test suite passed.
+
 ## Next Phase
 
-Phase 2 — Campus Locations and Equipment Categories
+Phase 3 — Equipment Inventory
 
 ## Known Risks
 
