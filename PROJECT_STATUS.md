@@ -6,11 +6,11 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 0 — Project Foundation and Baseline
+Phase 1 — Authentication, Users, Roles, and Permissions
 
 ## Current Branch
 
-phase-0-project-foundation
+phase-1-authentication-and-roles
 
 ## Technical Stack
 
@@ -41,9 +41,33 @@ phase-0-project-foundation
 - [x] Automated tests passing
 - [x] Git repository connected
 
+## Phase 1 Status
+
+- [x] User model uses Spatie roles and Filament panel authorization
+- [x] Roles created: Administrator, Staff, Technician
+- [x] Permissions created for user management, admin panel access, and future modules
+- [x] Administrator receives every permission
+- [x] Staff and Technician receive only intended non-user-management permissions
+- [x] Idempotent role and permission seeder added
+- [x] Existing oldest user receives Administrator on fresh installs when no Administrator exists
+- [x] User policy added for user management and last-Administrator protection
+- [x] Filament UserResource added for user management
+- [x] Focused Phase 1 tests added
+
+## Phase 1 Permissions
+
+- User management: users.viewAny, users.view, users.create, users.update, users.delete, users.assignRoles
+- System access: access admin panel
+- Future modules: equipment.view, equipment.create, equipment.update, equipment.archive, master-data.manage, maintenance-schedules.manage, maintenance-requests.submit, maintenance-requests.review, work-orders.view, work-orders.assign, work-orders.accept, work-orders.update-assigned, work-orders.upload-evidence, work-orders.verify, beyond-repair.recommend, beyond-repair.approve, recommendations.view, recommendations.review, reports.view
+
+## Phase 1 Tests
+
+- Added focused tests for role and permission seeding, idempotency, role permission assignments, Filament panel access, user-management access, self-delete protection, last-Administrator protection, and permanent-delete denial for Staff and Technician.
+- Results: Targeted Phase 1 tests passed; complete test suite passed.
+
 ## Next Phase
 
-Phase 1 — Authentication, Users, Roles, and Permissions
+Phase 2 — Campus Locations and Equipment Categories
 
 ## Known Risks
 
