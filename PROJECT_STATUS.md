@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 2 — Campus Locations and Equipment Categories
+Phase 3A — Equipment Inventory Database Foundation
 
 ## Current Branch
 
@@ -112,9 +112,38 @@ dev
 - Added focused tests for default master-data seeding, seeder idempotency, location parent-child relationships, active scopes, master-data authorization, active data viewing, and Filament resource access.
 - Results: Targeted Phase 2 tests passed; complete test suite passed.
 
+## Phase 3A Status
+
+- [x] Equipment table added with archive fields
+- [x] Equipment model added with relationships, casts, condition options, operational status options, active scope, and archived scope
+- [x] Equipment location history table added
+- [x] EquipmentLocationHistory model added with transfer relationships
+- [x] EquipmentPolicy added for view, create, update, archive, and permanent-delete denial
+- [x] Optional sample equipment seeder added
+- [x] Focused Phase 3A tests added and passing
+
+## Phase 3A Equipment Foundation
+
+- Equipment records link to equipment categories and current locations
+- Equipment archive fields: is_archived, archived_at, archived_by
+- Location history records movement from one location to another
+- Permanent delete is denied by policy for this MVP
+
+## Phase 3A Sample Equipment Seeder
+
+- Seeds EQ-CFS-0001 Automatic Weather Station Console
+- Seeds EQ-CFS-0002 Training Laptop
+- Seeds EQ-CFS-0003 Office Printer
+- Skips safely when required Phase 2 master data is missing
+
+## Phase 3A Tests
+
+- Added focused tests for equipment persistence, unique equipment codes, relationships, archiving, scopes, location history, policy permissions, and sample seeder idempotency.
+- Results: Targeted Phase 3A tests passed; complete test suite passed.
+
 ## Next Phase
 
-Phase 3 — Equipment Inventory
+Phase 3B — Equipment Filament Resource
 
 ## Known Risks
 

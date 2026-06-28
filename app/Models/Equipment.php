@@ -1,0 +1,121 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+#[Fillable([
+    'equipment_code',
+    'property_number',
+    'equipment_name',
+    'equipment_category_id',
+    'description',
+    'brand',
+    'model',
+    'serial_number',
+    'acquisition_date',
+    'acquisition_cost',
+    'current_location_id',
+    'custodian',
+    'condition',
+    'operational_status',
+    'maintenance_frequency',
+    'last_maintenance_date',
+    'next_maintenance_date',
+    'warranty_expiration_date',
+    'photo_path',
+    'remarks',
+    'is_archived',
+    'archived_at',
+    'archived_by',
+])]
+class Equipment extends Model
+{
+    use HasFactory;
+
+    protected $table = 'equipment';
+
+    public const CONDITIONS = [
+        'New',
+        'Good',
+        'Fair',
+        'Needs inspection',
+        'Needs maintenance',
+        'Defective',
+        'Beyond repair',
+    ];
+
+    public const OPERATIONAL_STATUSES = [
+        'Available',
+        'In use',
+        'Under inspection',
+        'Under maintenance',
+        'Unavailable',
+        'Retired',
+        'Disposed',
+        'Transferred',
+    ];
+
+    public static function conditionOptions(): array
+    {
+        return array_combine(self::CONDITIONS, self::CONDITIONS);
+    }
+
+    public static function operationalStatusOptions(): array
+    {
+        return array_combine(self::OPERATIONAL_STATUSES, self::OPERATIONAL_STATUSES);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(EquipmentCategory::class, 'equipment_category_id');
+    }
+
+    public function currentLocation(): BelongsTo
+    {
+        return $this->belongsTo(Location::class, 'current_location_id');
+    }
+
+    public function archivedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    public function locationHistories(): HasMany
+    {
+        return $this->hasMany(EquipmentLocationHistory::class);
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_archived', false);
+    }
+
+    public function scopeArchived(Builder $query): Builder
+    {
+        return $query->where('is_archived', true);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'acquisition_date' => 'date',
+            'acquisition_cost' => 'decimal:2',
+            'last_maintenance_date' => 'date',
+            'next_maintenance_date' => 'date',
+            'warranty_expiration_date' => 'date',
+            'is_archived' => 'boolean',
+            'archived_at' => 'datetime',
+        ];
+    }
+}
