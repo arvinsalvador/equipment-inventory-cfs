@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 5A - Preventive Maintenance Scheduling Database Foundation
+Phase 5 - Preventive Maintenance Scheduling Complete
 
 ## Current Branch
 
@@ -307,9 +307,61 @@ dev
 - No Filament maintenance schedule CRUD was added; this is reserved for Phase 5B.
 - Recurring schedule UI and automatic next-schedule creation were not added in Phase 5A.
 
+## Phase 5 Completion Status
+
+- [x] MaintenanceScheduleResource added under Maintenance Management
+- [x] Maintenance schedule list, create, view, and edit pages added
+- [x] Schedule table columns, search, sorting, and filters added
+- [x] Schedule form added with required validation and model constant-backed options
+- [x] Complete action added with authorization and completion remarks
+- [x] Completing schedules updates related equipment maintenance dates
+- [x] Completing recurring schedules creates the next schedule safely
+- [x] As needed schedules do not generate next schedules
+- [x] Duplicate next schedules are prevented with generated_from_schedule_id
+- [x] Reschedule action added with authorization and old-date tracking
+- [x] Cancel action added with authorization and required cancellation reason
+- [x] Due soon, due today, and overdue status display added dynamically
+- [x] Equipment view includes a simple related maintenance schedules section
+- [x] Staff and Technician can view schedules but cannot manage them by default
+- [x] Focused remaining Phase 5 tests added and passing
+
+## Phase 5 MaintenanceScheduleResource
+
+- Navigation group: Maintenance Management
+- Label: Maintenance Schedules
+- Pages: List, Create, View, Edit
+- Navigation is hidden from users who cannot view or manage schedules
+- Permanent delete remains unavailable
+
+## Phase 5 Table And Form
+
+- Table includes equipment, maintenance type, frequency, scheduled date, assigned user, priority, status, completed date, created date, and updated date.
+- Search covers equipment code, equipment name, maintenance type, assigned user name, and remarks where supported by the table configuration.
+- Filters cover equipment, assigned user, frequency, priority, status, and due group.
+- Form requires equipment, maintenance type, frequency, scheduled date, priority, and status.
+- Form supports optional assigned user, checklist/instructions, and remarks.
+
+## Phase 5 Actions
+
+- Complete action sets Completed status, completed_at, completed_by, completion remarks, and equipment maintenance dates.
+- Complete action creates one next schedule for recurring frequencies and skips As needed schedules.
+- Reschedule action stores rescheduled_from, updates scheduled_date, sets Rescheduled status, and stores remarks.
+- Cancel action requires a reason and sets Cancelled status, cancelled_at, cancelled_by, and cancellation_reason.
+- Completed and cancelled schedules cannot be completed, rescheduled, or cancelled again through the resource actions.
+
+## Phase 5 Tests
+
+- Added focused tests for Filament access, schedule creation and validation, complete/reschedule/cancel actions, recurring next-schedule creation, duplicate prevention, As needed handling, dynamic due status display, and Staff/Technician action restrictions.
+- Results: Targeted Phase 5 tests passed; complete test suite passed.
+
+## Phase 5 Remaining Risks
+
+- Work orders, evidence, AI recommendations, reports, and PWA were not implemented in Phase 5.
+- Background status updates and scheduler/cron automation were not added; due/overdue display is dynamic.
+
 ## Next Phase
 
-Phase 5B - Maintenance Schedule Filament Resource and Recurring Schedule UI
+Phase 6A - Maintenance Requests Database Foundation
 
 ## Known Risks
 

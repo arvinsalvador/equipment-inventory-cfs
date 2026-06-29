@@ -27,6 +27,7 @@ use InvalidArgumentException;
     'cancelled_by',
     'cancellation_reason',
     'remarks',
+    'generated_from_schedule_id',
 ])]
 class MaintenanceSchedule extends Model
 {
@@ -78,6 +79,47 @@ class MaintenanceSchedule extends Model
     public function cancelledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function generatedFromSchedule(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'generated_from_schedule_id');
+    }
+
+    public static function frequencyOptions(): array
+    {
+        return array_combine(self::FREQUENCIES, self::FREQUENCIES);
+    }
+
+    public static function statusOptions(): array
+    {
+        return array_combine(self::STATUSES, self::STATUSES);
+    }
+
+    public static function priorityOptions(): array
+    {
+        return array_combine(self::PRIORITIES, self::PRIORITIES);
+    }
+
+    public function displayStatus(): string
+    {
+        if ($this->isCompleted() || $this->isCancelled()) {
+            return $this->status;
+        }
+
+        if ($this->scheduled_date->isBefore(today())) {
+            return 'Overdue';
+        }
+
+        if ($this->scheduled_date->isToday()) {
+            return 'Due today';
+        }
+
+        if ($this->scheduled_date->lte(today()->addDays(7))) {
+            return 'Due soon';
+        }
+
+        return $this->status;
     }
 
     public function scopeUpcoming(Builder $query): Builder
@@ -149,6 +191,14 @@ class MaintenanceSchedule extends Model
 
     public function complete(?User $user = null, ?string $remarks = null): self
     {
+        if ($this->isCompleted()) {
+            throw new InvalidArgumentException('Completed schedules cannot be completed again.');
+        }
+
+        if ($this->isCancelled()) {
+            throw new InvalidArgumentException('Cancelled schedules cannot be completed.');
+        }
+
         $completedAt = now();
         $nextScheduledDate = $this->calculateNextScheduledDate();
 
@@ -164,11 +214,36 @@ class MaintenanceSchedule extends Model
             'next_maintenance_date' => $nextScheduledDate?->toDateString(),
         ]);
 
+        if ($nextScheduledDate !== null) {
+            self::firstOrCreate(
+                ['generated_from_schedule_id' => $this->id],
+                [
+                    'equipment_id' => $this->equipment_id,
+                    'maintenance_type' => $this->maintenance_type,
+                    'maintenance_frequency' => $this->maintenance_frequency,
+                    'scheduled_date' => $nextScheduledDate->toDateString(),
+                    'assigned_user_id' => $this->assigned_user_id,
+                    'priority' => $this->priority,
+                    'checklist_instructions' => $this->checklist_instructions,
+                    'status' => 'Upcoming',
+                    'remarks' => 'Generated from completed schedule #'.$this->id.'.',
+                ]
+            );
+        }
+
         return $this->refresh();
     }
 
     public function reschedule(CarbonInterface|string $newDate, ?string $remarks = null): self
     {
+        if ($this->isCompleted()) {
+            throw new InvalidArgumentException('Completed schedules cannot be rescheduled.');
+        }
+
+        if ($this->isCancelled()) {
+            throw new InvalidArgumentException('Cancelled schedules cannot be rescheduled.');
+        }
+
         $this->forceFill([
             'rescheduled_from' => $this->scheduled_date,
             'scheduled_date' => $newDate,
@@ -181,6 +256,14 @@ class MaintenanceSchedule extends Model
 
     public function cancel(string $reason, ?User $user = null): self
     {
+        if ($this->isCompleted()) {
+            throw new InvalidArgumentException('Completed schedules cannot be cancelled.');
+        }
+
+        if ($this->isCancelled()) {
+            throw new InvalidArgumentException('Cancelled schedules cannot be cancelled again.');
+        }
+
         if (trim($reason) === '') {
             throw new InvalidArgumentException('Cancellation reason is required.');
         }

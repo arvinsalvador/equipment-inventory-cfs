@@ -195,6 +195,20 @@ class EquipmentResource extends Resource
                         TextEntry::make('archivedBy.name')->label('Archived by')->placeholder('Not archived'),
                         TextEntry::make('remarks')->placeholder('None')->columnSpanFull(),
                     ]),
+                Section::make('Maintenance schedules')
+                    ->schema([
+                        RepeatableEntry::make('maintenanceSchedules')
+                            ->label('Schedules')
+                            ->schema([
+                                TextEntry::make('maintenance_type')->label('Maintenance type'),
+                                TextEntry::make('maintenance_frequency')->label('Frequency'),
+                                TextEntry::make('scheduled_date')->label('Scheduled date')->date(),
+                                TextEntry::make('priority')->badge(),
+                                TextEntry::make('status')->badge(),
+                                TextEntry::make('assignedUser.name')->label('Assigned user')->placeholder('Unassigned'),
+                            ])
+                            ->columnSpanFull(),
+                    ]),
                 Section::make('Location transfer history')
                     ->schema([
                         RepeatableEntry::make('locationHistories')
