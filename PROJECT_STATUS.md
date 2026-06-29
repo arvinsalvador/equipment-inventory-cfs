@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 4A — QR Code Generation
+Phase 4 ? QR Code Management Complete
 
 ## Current Branch
 
@@ -210,50 +210,54 @@ dev
 - Added focused tests for photo upload, image validation, Staff photo updates, Technician restrictions, location transfer history, transfer remarks, relationship coverage, archive regression, and access regression.
 - Results: Targeted Phase 3C tests passed; complete test suite passed.
 
-## Phase 4A Status
+## Phase 4 Status
 
-- [x] QR identifier fields added to equipment
-- [x] Existing equipment records receive unique QR identifiers
-- [x] New equipment records automatically receive unique QR identifiers
-- [x] QR identifiers remain stable across equipment updates and location transfers
-- [x] QR code SVG generation added using the existing chillerlan/php-qrcode package
-- [x] QR code generation action added to EquipmentResource
-- [x] QR information added to equipment table and view page
-- [x] Technician can view QR information but cannot generate QR codes
-- [x] Focused Phase 4A tests added and passing
+- [x] Phase 4A QR Code Generation fully completed
+- [x] Phase 4B QR Lookup and Browser Camera Scanning fully completed
+- [x] QR identifiers are generated automatically and remain stable across equipment updates and location transfers
+- [x] QR code SVG files are generated using the existing chillerlan/php-qrcode package
+- [x] QR code files are stored on the public disk under equipment/qr-codes
+- [x] QR code paths remain relative to the public disk
+- [x] QR images display in the EquipmentResource view and table when the file exists
+- [x] Missing QR images show friendly UI instead of broken links
+- [x] QR lookup route is protected and displays equipment details by qr_identifier
+- [x] Browser scanner page is protected, mobile responsive, and includes manual fallback
+- [x] Administrator and Staff can generate/regenerate QR codes when authorized to update equipment
+- [x] Technician can view QR information but cannot generate/regenerate QR codes
+- [x] Existing equipment create, update, archive, and location-transfer history behavior remains covered
+- [x] Phase 4 workflow validated with focused tests and the complete test suite
 
-## Phase 4A QR Identifier
+## Phase 4 QR Workflow
 
-- qr_identifier is unique and not based on equipment_code
-- qr_code_path stores the generated QR file path
-- qr_code_generated_at stores the generation timestamp
+- Equipment creation assigns a non-predictable qr_identifier
+- Generate QR Code stores an SVG containing the lookup URL
+- Regenerate QR Code updates the generated timestamp without changing the QR identifier
+- Equipment view and table display QR information when the file exists
 - QR lookup URL format: /equipment/lookup/{qr_identifier}
+- Lookup pages display equipment photo, QR image, category, current location, condition, operational status, maintenance dates, warranty date, and remarks
+- Invalid QR identifiers return a friendly Equipment not found page
+- Guests are redirected to the Filament login page and unauthorized users receive 403 responses
+- Scanner accepts QR lookup URLs or raw QR identifiers and redirects to the lookup page
 
-## Phase 4A QR Code Generation
+## Phase 4 Scanner Limitations
 
-- QR code files are stored on the public disk under equipment/qr-codes
-- QR code images are generated as SVG files containing the equipment lookup URL
-- QR code generation is manual through the EquipmentResource action
-- QR code generation does not change qr_identifier
+- Browser camera scanning depends on BarcodeDetector support, camera permissions, and HTTPS or localhost secure-context requirements
+- Manual QR identifier or lookup URL entry remains available when camera scanning is unavailable
+- Offline scanning was not added in Phase 4
+- No frontend scanner package was added
 
-## Phase 4A Filament QR Action And Authorization
+## Phase 4 Tests
 
-- Generate QR Code / Regenerate QR Code action is visible to users who can update equipment
-- Staff can generate QR codes through equipment.update
-- Technician cannot generate or regenerate QR codes
-- QR download/open-link action was skipped for Phase 4A to keep scope focused
-
-## Phase 4A Tests
-
-- Added focused tests for QR identifier backfill/generation, identifier stability, lookup URL, QR image generation, QR file storage, Staff/Admin generation, Technician restriction, view-page QR info, and Phase 3 regression behavior.
-- Results: Targeted Phase 4A tests passed; complete test suite passed.
+- Added focused tests for QR generation, regeneration, public-disk file storage, QR URL generation, missing QR files, lookup display, scanner access, manual fallback, QR actions, Technician restrictions, archive regression, and location-history regression.
+- Results: Targeted Phase 4 tests passed; complete test suite passed.
 
 ## Next Phase
 
-Phase 4B — QR Lookup and Browser Camera Scanning
+Phase 5A ? Preventive Maintenance Scheduling Database Foundation
 
 ## Known Risks
 
 - Shared-hosting PHP extensions must be verified before deployment.
 - Image upload limits must be designed before the evidence module.
 - Protected maintenance evidence must not be exposed through public URLs.
+- Browser camera QR scanning depends on BarcodeDetector support, camera permissions, and HTTPS or localhost secure-context requirements; manual lookup remains available as fallback.

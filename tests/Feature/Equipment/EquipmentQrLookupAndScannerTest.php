@@ -134,6 +134,7 @@ class EquipmentQrLookupAndScannerTest extends TestCase
                 ->assertOk()
                 ->assertSee('Start camera scanner')
                 ->assertSee('Manual QR identifier or lookup URL')
+                ->assertSee('Camera scanning requires HTTPS or localhost')
                 ->assertSee('Open equipment');
         }
     }

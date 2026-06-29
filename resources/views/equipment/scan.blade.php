@@ -22,7 +22,7 @@
 <main>
     <section class="panel">
         <h1>Scan Equipment</h1>
-        <p class="hint">Allow camera access and point the rear camera at an equipment QR code. You can also enter a QR identifier manually.</p>
+        <p class="hint">Allow camera access and point the rear camera at an equipment QR code. Camera scanning requires HTTPS or localhost in most browsers. You can also enter a QR identifier manually.</p>
         <video id="scanner-preview" playsinline muted></video>
         <p id="scanner-message" class="error"></p>
         <button id="start-scanner" type="button">Start camera scanner</button>
@@ -87,6 +87,11 @@
 
     startButton.addEventListener('click', async () => {
         message.textContent = '';
+
+        if (!window.isSecureContext) {
+            message.textContent = 'Camera scanning requires HTTPS or localhost. Use manual entry below.';
+            return;
+        }
 
         if (!('BarcodeDetector' in window)) {
             message.textContent = 'Camera QR scanning is not supported by this browser. Use manual entry below.';

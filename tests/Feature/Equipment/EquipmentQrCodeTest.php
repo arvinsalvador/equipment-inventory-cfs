@@ -196,6 +196,23 @@ class EquipmentQrCodeTest extends TestCase
         $this->assertNull($equipment->fresh()->getQrCodeUrl());
     }
 
+    public function test_regenerating_qr_code_updates_generated_timestamp_without_changing_identifier(): void
+    {
+        $equipment = app(EquipmentQrCodeGenerator::class)->generate($this->createEquipment());
+        $identifier = $equipment->qr_identifier;
+        $path = $equipment->qr_code_path;
+        $generatedAt = $equipment->qr_code_generated_at;
+
+        $equipment->forceFill(['qr_code_generated_at' => now()->subDay()])->save();
+
+        $regenerated = app(EquipmentQrCodeGenerator::class)->generate($equipment->fresh());
+
+        $this->assertSame($identifier, $regenerated->qr_identifier);
+        $this->assertSame($path, $regenerated->qr_code_path);
+        $this->assertTrue($regenerated->qr_code_generated_at->greaterThan($generatedAt->subMinute()));
+        Storage::disk('public')->assertExists($regenerated->qr_code_path);
+    }
+
     public function test_regression_existing_equipment_create_update_archive_and_location_history_still_work(): void
     {
         $administrator = $this->userWithRole('Administrator');
