@@ -9,6 +9,7 @@ use App\Filament\Resources\Equipment\Pages\ViewEquipment;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Location;
+use App\Services\EquipmentQrCodeGenerator;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -21,6 +22,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -164,6 +166,18 @@ class EquipmentResource extends Resource
                         TextEntry::make('equipment_name')->label('Equipment name'),
                         TextEntry::make('category.name')->label('Category'),
                         TextEntry::make('currentLocation.name')->label('Current location'),
+                        TextEntry::make('qr_identifier')->label('QR identifier')->placeholder('Not assigned'),
+                        TextEntry::make('qr_lookup_url')
+                            ->label('QR lookup URL')
+                            ->state(fn (Equipment $record): string => $record->getQrLookupUrl()),
+                        ImageEntry::make('qr_code_path')
+                            ->label('QR code')
+                            ->disk('public')
+                            ->height(180),
+                        TextEntry::make('qr_code_generated_at')
+                            ->label('QR generated at')
+                            ->dateTime()
+                            ->placeholder('Not generated'),
                         TextEntry::make('condition')->badge(),
                         TextEntry::make('operational_status')->label('Operational status')->badge(),
                     ]),
@@ -231,6 +245,10 @@ class EquipmentResource extends Resource
                     ->label('Next maintenance date')
                     ->date()
                     ->sortable(),
+                TextColumn::make('qr_code_path')
+                    ->label('QR status')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => filled($state) ? 'Generated' : 'Missing'),
                 TextColumn::make('is_archived')
                     ->label('Archived status')
                     ->badge()
@@ -262,6 +280,7 @@ class EquipmentResource extends Resource
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                self::generateQrCodeAction(),
                 Action::make('archive')
                     ->label('Archive')
                     ->icon('heroicon-o-archive-box')
@@ -275,6 +294,23 @@ class EquipmentResource extends Resource
                         ]);
                     }),
             ]);
+    }
+
+    public static function generateQrCodeAction(): Action
+    {
+        return Action::make('generateQrCode')
+            ->label(fn (Equipment $record): string => $record->qr_code_path ? 'Regenerate QR Code' : 'Generate QR Code')
+            ->icon('heroicon-o-qr-code')
+            ->requiresConfirmation()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('update', $record) ?? false)
+            ->action(function (Equipment $record): void {
+                app(EquipmentQrCodeGenerator::class)->generate($record);
+
+                Notification::make()
+                    ->title('QR code generated')
+                    ->success()
+                    ->send();
+            });
     }
 
     public static function shouldRegisterNavigation(): bool

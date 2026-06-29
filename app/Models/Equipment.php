@@ -9,9 +9,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 #[Fillable([
     'equipment_code',
+    'qr_identifier',
+    'qr_code_path',
+    'qr_code_generated_at',
     'property_number',
     'equipment_name',
     'equipment_category_id',
@@ -62,6 +67,22 @@ class Equipment extends Model
         'Transferred',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Equipment $equipment): void {
+            $equipment->qr_identifier ??= self::makeQrIdentifier();
+        });
+    }
+
+    public static function makeQrIdentifier(): string
+    {
+        do {
+            $identifier = (string) Str::uuid();
+        } while (self::where('qr_identifier', $identifier)->exists());
+
+        return $identifier;
+    }
+
     public static function conditionOptions(): array
     {
         return array_combine(self::CONDITIONS, self::CONDITIONS);
@@ -70,6 +91,20 @@ class Equipment extends Model
     public static function operationalStatusOptions(): array
     {
         return array_combine(self::OPERATIONAL_STATUSES, self::OPERATIONAL_STATUSES);
+    }
+
+    public function getQrLookupUrl(): string
+    {
+        return url("/equipment/lookup/{$this->qr_identifier}");
+    }
+
+    public function getQrCodeUrl(): ?string
+    {
+        if (! $this->qr_code_path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->qr_code_path);
     }
 
     public function category(): BelongsTo
@@ -122,6 +157,7 @@ class Equipment extends Model
             'warranty_expiration_date' => 'date',
             'is_archived' => 'boolean',
             'archived_at' => 'datetime',
+            'qr_code_generated_at' => 'datetime',
         ];
     }
 }

@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 3C — Equipment Photos and Location Transfer History
+Phase 4A — QR Code Generation
 
 ## Current Branch
 
@@ -210,9 +210,47 @@ dev
 - Added focused tests for photo upload, image validation, Staff photo updates, Technician restrictions, location transfer history, transfer remarks, relationship coverage, archive regression, and access regression.
 - Results: Targeted Phase 3C tests passed; complete test suite passed.
 
+## Phase 4A Status
+
+- [x] QR identifier fields added to equipment
+- [x] Existing equipment records receive unique QR identifiers
+- [x] New equipment records automatically receive unique QR identifiers
+- [x] QR identifiers remain stable across equipment updates and location transfers
+- [x] QR code SVG generation added using the existing chillerlan/php-qrcode package
+- [x] QR code generation action added to EquipmentResource
+- [x] QR information added to equipment table and view page
+- [x] Technician can view QR information but cannot generate QR codes
+- [x] Focused Phase 4A tests added and passing
+
+## Phase 4A QR Identifier
+
+- qr_identifier is unique and not based on equipment_code
+- qr_code_path stores the generated QR file path
+- qr_code_generated_at stores the generation timestamp
+- QR lookup URL format: /equipment/lookup/{qr_identifier}
+
+## Phase 4A QR Code Generation
+
+- QR code files are stored on the public disk under equipment/qr-codes
+- QR code images are generated as SVG files containing the equipment lookup URL
+- QR code generation is manual through the EquipmentResource action
+- QR code generation does not change qr_identifier
+
+## Phase 4A Filament QR Action And Authorization
+
+- Generate QR Code / Regenerate QR Code action is visible to users who can update equipment
+- Staff can generate QR codes through equipment.update
+- Technician cannot generate or regenerate QR codes
+- QR download/open-link action was skipped for Phase 4A to keep scope focused
+
+## Phase 4A Tests
+
+- Added focused tests for QR identifier backfill/generation, identifier stability, lookup URL, QR image generation, QR file storage, Staff/Admin generation, Technician restriction, view-page QR info, and Phase 3 regression behavior.
+- Results: Targeted Phase 4A tests passed; complete test suite passed.
+
 ## Next Phase
 
-Phase 4A — QR Code Generation
+Phase 4B — QR Lookup and Browser Camera Scanning
 
 ## Known Risks
 

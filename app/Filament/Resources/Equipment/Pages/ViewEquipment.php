@@ -13,6 +13,7 @@ class ViewEquipment extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            EquipmentResource::generateQrCodeAction(),
             EditAction::make(),
         ];
     }
