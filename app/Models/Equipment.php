@@ -127,6 +127,24 @@ class Equipment extends Model
         return $this->hasMany(EquipmentLocationHistory::class)->latest('transferred_at');
     }
 
+    public function maintenanceSchedules(): HasMany
+    {
+        return $this->hasMany(MaintenanceSchedule::class)->latest('scheduled_date');
+    }
+
+    public function latestMaintenanceSchedule(): HasOne
+    {
+        return $this->hasOne(MaintenanceSchedule::class)->latestOfMany('scheduled_date');
+    }
+
+    public function dueMaintenanceSchedules(): HasMany
+    {
+        return $this->hasMany(MaintenanceSchedule::class)
+            ->incomplete()
+            ->whereDate('scheduled_date', '<=', today()->addDays(7))
+            ->orderBy('scheduled_date');
+    }
+
     public function latestLocationHistory(): HasOne
     {
         return $this->hasOne(EquipmentLocationHistory::class)->latestOfMany('transferred_at');

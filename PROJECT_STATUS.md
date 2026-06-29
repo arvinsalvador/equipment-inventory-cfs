@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 4 ? QR Code Management Complete
+Phase 5A - Preventive Maintenance Scheduling Database Foundation
 
 ## Current Branch
 
@@ -251,9 +251,65 @@ dev
 - Added focused tests for QR generation, regeneration, public-disk file storage, QR URL generation, missing QR files, lookup display, scanner access, manual fallback, QR actions, Technician restrictions, archive regression, and location-history regression.
 - Results: Targeted Phase 4 tests passed; complete test suite passed.
 
+## Phase 5A Status
+
+- [x] maintenance_schedules table added
+- [x] MaintenanceSchedule model added
+- [x] Allowed maintenance frequency, status, and priority constants added
+- [x] Equipment maintenance schedule relationships added
+- [x] Completion logic foundation added
+- [x] Reschedule logic foundation added
+- [x] Cancellation logic foundation added
+- [x] MaintenanceSchedulePolicy added
+- [x] Optional idempotent MaintenanceScheduleSeeder added
+- [x] Focused Phase 5A tests added and passing
+
+## Phase 5A Maintenance Schedule Table
+
+- Stores equipment, maintenance type, frequency, scheduled date, assigned user, priority, checklist instructions, status, completion fields, reschedule source date, cancellation fields, remarks, and timestamps.
+- equipment_id cascades only when equipment is deleted.
+- assigned_user_id, completed_by, and cancelled_by are nullable and set null when the user is deleted.
+
+## Phase 5A MaintenanceSchedule Model
+
+- Relationships: equipment, assignedUser, completedBy, cancelledBy.
+- Scopes: upcoming, dueSoon, dueToday, overdue, incomplete, completed, and cancelled.
+- Helpers: isCompleted, isCancelled, isOverdue, and calculateNextScheduledDate.
+- Date calculation supports Daily, Weekly, Monthly, Quarterly, Semi-annually, Annually, and As needed.
+
+## Phase 5A Schedule Logic
+
+- Completing a schedule sets Completed status, completed_at, completed_by, and optional completion remarks.
+- Completing a schedule updates equipment last_maintenance_date and next_maintenance_date when the frequency supports a next date.
+- Rescheduling stores the old scheduled date, updates scheduled_date, sets Rescheduled status, and stores optional remarks.
+- Cancelling requires a reason, sets Cancelled status, cancelled_at, cancelled_by, and cancellation_reason.
+- Recurring next schedule creation was not added in Phase 5A.
+
+## Phase 5A Policy
+
+- Users with maintenance-schedules.manage can view, create, update, complete, reschedule, cancel, and delete maintenance schedules.
+- Users with equipment.view can view maintenance schedules related to viewable equipment.
+- Staff and Technician can view schedules through equipment.view but cannot manage schedules by default.
+- Permanent delete remains denied.
+
+## Phase 5A Seeder
+
+- MaintenanceScheduleSeeder adds two sample schedules when sample equipment exists.
+- Seeder is idempotent and skips safely when no matching equipment exists.
+
+## Phase 5A Tests
+
+- Added focused tests for schedule creation, relationships, constants, scopes, next-date calculations, completion, rescheduling, cancellation, policy authorization, seeder behavior, and existing equipment/QR/archive regression.
+- Results: Targeted Phase 5A tests passed; complete test suite passed.
+
+## Phase 5A Remaining Risks
+
+- No Filament maintenance schedule CRUD was added; this is reserved for Phase 5B.
+- Recurring schedule UI and automatic next-schedule creation were not added in Phase 5A.
+
 ## Next Phase
 
-Phase 5A ? Preventive Maintenance Scheduling Database Foundation
+Phase 5B - Maintenance Schedule Filament Resource and Recurring Schedule UI
 
 ## Known Risks
 
