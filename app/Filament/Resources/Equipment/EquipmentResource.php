@@ -280,6 +280,8 @@ class EquipmentResource extends Resource
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                self::openQrLookupAction(),
+                self::openQrCodeFileAction(),
                 self::generateQrCodeAction(),
                 Action::make('archive')
                     ->label('Archive')
@@ -311,6 +313,26 @@ class EquipmentResource extends Resource
                     ->success()
                     ->send();
             });
+    }
+
+    public static function openQrLookupAction(): Action
+    {
+        return Action::make('openQrLookup')
+            ->label('Open QR Lookup')
+            ->icon('heroicon-o-arrow-top-right-on-square')
+            ->url(fn (Equipment $record): string => $record->getQrLookupUrl())
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
+    public static function openQrCodeFileAction(): Action
+    {
+        return Action::make('openQrCodeFile')
+            ->label('Open QR Code File')
+            ->icon('heroicon-o-document-arrow-down')
+            ->url(fn (Equipment $record): string => $record->getQrCodeUrl() ?? '#')
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => filled($record->qr_code_path) && (auth()->user()?->can('view', $record) ?? false));
     }
 
     public static function shouldRegisterNavigation(): bool
