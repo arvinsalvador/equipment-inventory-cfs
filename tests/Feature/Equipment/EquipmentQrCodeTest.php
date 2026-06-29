@@ -130,8 +130,13 @@ class EquipmentQrCodeTest extends TestCase
 
         $this->assertSame($identifier, $equipment->qr_identifier);
         $this->assertNotNull($equipment->qr_code_path);
+        $this->assertStringStartsWith('equipment/qr-codes/', $equipment->qr_code_path);
+        $this->assertStringEndsWith('.svg', $equipment->qr_code_path);
+        $this->assertStringNotContainsString('storage/app/public', $equipment->qr_code_path);
         $this->assertNotNull($equipment->qr_code_generated_at);
         Storage::disk('public')->assertExists($equipment->qr_code_path);
+        $this->assertNotEmpty($equipment->getQrCodeUrl());
+        $this->assertStringContainsString('/storage/equipment/qr-codes/', $equipment->getQrCodeUrl());
     }
 
     public function test_staff_can_generate_qr_code_when_allowed_to_update_equipment(): void
@@ -164,8 +169,31 @@ class EquipmentQrCodeTest extends TestCase
         $this->actingAs($this->userWithRole('Technician'));
 
         Livewire::test(ViewEquipment::class, ['record' => $equipment->getRouteKey()])
+            ->assertSee('QR code')
             ->assertSee($equipment->qr_identifier)
             ->assertSee('/equipment/lookup/'.$equipment->qr_identifier);
+    }
+
+    public function test_lookup_page_displays_qr_image_when_available(): void
+    {
+        $equipment = app(EquipmentQrCodeGenerator::class)->generate($this->createEquipment());
+
+        $this->actingAs($this->userWithRole('Technician'));
+
+        $this->get(route('equipment.lookup', $equipment->qr_identifier))
+            ->assertOk()
+            ->assertSee('QR code')
+            ->assertSee('Equipment QR code', false)
+            ->assertSee($equipment->getQrCodeUrl(), false)
+            ->assertDontSee('QR code not generated');
+    }
+
+    public function test_qr_code_url_is_empty_when_saved_file_is_missing(): void
+    {
+        $equipment = app(EquipmentQrCodeGenerator::class)->generate($this->createEquipment());
+        Storage::disk('public')->delete($equipment->qr_code_path);
+
+        $this->assertNull($equipment->fresh()->getQrCodeUrl());
     }
 
     public function test_regression_existing_equipment_create_update_archive_and_location_history_still_work(): void

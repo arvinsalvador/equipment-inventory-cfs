@@ -100,7 +100,7 @@ class Equipment extends Model
 
     public function getQrCodeUrl(): ?string
     {
-        if (! $this->qr_code_path) {
+        if (! $this->qr_code_path || ! Storage::disk('public')->exists($this->qr_code_path)) {
             return null;
         }
 

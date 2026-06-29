@@ -10,9 +10,13 @@
         .actions { margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
         .button { background: #111827; color: #fff; padding: 10px 14px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; }
         .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; }
-        .summary { display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 1fr); gap: 20px; align-items: start; }
-        .photo { width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; object-fit: cover; }
-        .placeholder { display: grid; place-items: center; min-height: 180px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background: #f8fafc; }
+        .summary { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 20px; align-items: start; }
+        .media-stack { display: grid; gap: 14px; }
+        .media-card { display: grid; gap: 8px; }
+        .photo, .qr-code { width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; object-fit: contain; background: #fff; }
+        .photo { object-fit: cover; }
+        .qr-code { padding: 12px; box-sizing: border-box; }
+        .placeholder { display: grid; place-items: center; min-height: 180px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; background: #f8fafc; text-align: center; padding: 12px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 18px; }
         .item { border-top: 1px solid #f1f5f9; padding-top: 10px; }
         .label { color: #64748b; font-size: 13px; }
@@ -35,12 +39,24 @@
     @else
         <section class="panel">
             <div class="summary">
-                <div>
-                    @if ($equipment->photo_path)
-                        <img class="photo" src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($equipment->photo_path) }}" alt="Equipment photo">
-                    @else
-                        <div class="placeholder">No photo available</div>
-                    @endif
+                <div class="media-stack">
+                    <div class="media-card">
+                        <div class="label">Equipment photo</div>
+                        @if ($equipment->photo_path)
+                            <img class="photo" src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($equipment->photo_path) }}" alt="Equipment photo">
+                        @else
+                            <div class="placeholder">No photo available</div>
+                        @endif
+                    </div>
+
+                    <div class="media-card">
+                        <div class="label">QR code</div>
+                        @if ($equipment->getQrCodeUrl())
+                            <img class="qr-code" src="{{ $equipment->getQrCodeUrl() }}" alt="Equipment QR code">
+                        @else
+                            <div class="placeholder">QR code not generated</div>
+                        @endif
+                    </div>
                 </div>
                 <div>
                     <h1>{{ $equipment->equipment_name }}</h1>
