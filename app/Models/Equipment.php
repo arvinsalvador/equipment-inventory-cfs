@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'equipment_code',
@@ -88,7 +89,12 @@ class Equipment extends Model
 
     public function locationHistories(): HasMany
     {
-        return $this->hasMany(EquipmentLocationHistory::class);
+        return $this->hasMany(EquipmentLocationHistory::class)->latest('transferred_at');
+    }
+
+    public function latestLocationHistory(): HasOne
+    {
+        return $this->hasOne(EquipmentLocationHistory::class)->latestOfMany('transferred_at');
     }
 
     public function scopeActive(Builder $query): Builder

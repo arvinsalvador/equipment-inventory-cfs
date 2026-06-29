@@ -13,13 +13,18 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -49,6 +54,17 @@ class EquipmentResource extends Resource
             ->components([
                 Section::make('Basic details')
                     ->schema([
+                        FileUpload::make('photo_path')
+                            ->label('Equipment photo')
+                            ->disk('public')
+                            ->directory('equipment/photos')
+                            ->image()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(2048)
+                            ->imagePreviewHeight('160')
+                            ->openable()
+                            ->downloadable()
+                            ->columnSpanFull(),
                         TextInput::make('equipment_code')
                             ->label('Equipment code')
                             ->required()
@@ -85,6 +101,9 @@ class EquipmentResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required(),
+                        Textarea::make('location_transfer_remarks')
+                            ->label('Location transfer remarks')
+                            ->columnSpanFull(),
                         TextInput::make('custodian')
                             ->maxLength(255),
                         Select::make('condition')
@@ -100,8 +119,12 @@ class EquipmentResource extends Resource
                             ->label('Is archived')
                             ->required()
                             ->default(false)
-                            ->disabled(fn (?Equipment $record): bool => $record !== null && Gate::denies('archive', $record))
-                            ->dehydrated(fn (?Equipment $record): bool => $record === null || Gate::allows('archive', $record)),
+                            ->disabled(fn (?Equipment $record): bool => $record === null
+                                ? ! auth()->user()?->can('equipment.archive')
+                                : Gate::denies('archive', $record))
+                            ->dehydrated(fn (?Equipment $record): bool => $record === null
+                                ? auth()->user()?->can('equipment.archive') ?? false
+                                : Gate::allows('archive', $record)),
                     ]),
                 Section::make('Acquisition and maintenance')
                     ->schema([
@@ -126,11 +149,63 @@ class EquipmentResource extends Resource
             ]);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make('Basic equipment details')
+                    ->schema([
+                        ImageEntry::make('photo_path')
+                            ->label('Equipment photo')
+                            ->disk('public')
+                            ->height(180),
+                        TextEntry::make('equipment_code')->label('Equipment code'),
+                        TextEntry::make('property_number')->label('Property number')->placeholder('None'),
+                        TextEntry::make('equipment_name')->label('Equipment name'),
+                        TextEntry::make('category.name')->label('Category'),
+                        TextEntry::make('currentLocation.name')->label('Current location'),
+                        TextEntry::make('condition')->badge(),
+                        TextEntry::make('operational_status')->label('Operational status')->badge(),
+                    ]),
+                Section::make('Maintenance and archive details')
+                    ->schema([
+                        TextEntry::make('last_maintenance_date')->label('Last maintenance date')->date()->placeholder('None'),
+                        TextEntry::make('next_maintenance_date')->label('Next maintenance date')->date()->placeholder('None'),
+                        TextEntry::make('warranty_expiration_date')->label('Warranty expiration date')->date()->placeholder('None'),
+                        TextEntry::make('is_archived')
+                            ->label('Archive status')
+                            ->formatStateUsing(fn (bool $state): string => $state ? 'Archived' : 'Active')
+                            ->badge(),
+                        TextEntry::make('archived_at')->label('Archived at')->dateTime()->placeholder('Not archived'),
+                        TextEntry::make('archivedBy.name')->label('Archived by')->placeholder('Not archived'),
+                        TextEntry::make('remarks')->placeholder('None')->columnSpanFull(),
+                    ]),
+                Section::make('Location transfer history')
+                    ->schema([
+                        RepeatableEntry::make('locationHistories')
+                            ->label('Transfers')
+                            ->schema([
+                                TextEntry::make('fromLocation.name')->label('From location')->placeholder('None'),
+                                TextEntry::make('toLocation.name')->label('To location'),
+                                TextEntry::make('transferredBy.name')->label('Transferred by')->placeholder('Unknown'),
+                                TextEntry::make('transferred_at')->label('Transfer date/time')->dateTime(),
+                                TextEntry::make('remarks')->placeholder('None')->columnSpanFull(),
+                            ])
+                            ->columnSpanFull(),
+                    ]),
+            ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('is_archived')->latest('created_at'))
             ->columns([
+                ImageColumn::make('photo_path')
+                    ->label('Photo')
+                    ->disk('public')
+                    ->height(44)
+                    ->square(),
                 TextColumn::make('equipment_code')
                     ->label('Equipment code')
                     ->searchable()

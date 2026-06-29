@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 3B — Equipment Filament Resource
+Phase 3C — Equipment Photos and Location Transfer History
 
 ## Current Branch
 
@@ -178,9 +178,41 @@ dev
 - Added focused tests for Filament page access, create/edit authorization, form validation, Staff creation rules, Technician restrictions, archive action behavior, and archive persistence.
 - Results: Targeted Phase 3B tests passed; complete test suite passed.
 
+## Phase 3C Status
+
+- [x] Equipment photo upload added to EquipmentResource
+- [x] Equipment photo thumbnails added to equipment table
+- [x] Equipment photo display added to equipment view page
+- [x] Location transfer history is recorded when current location changes
+- [x] Transfer remarks field added and stored in location history
+- [x] Equipment view page includes location transfer history
+- [x] Technician cannot update equipment photo or location
+- [x] Existing archive behavior preserved
+- [x] Focused Phase 3C tests added and passing
+
+## Phase 3C Equipment Photo Upload
+
+- Uses Filament file upload for photo_path
+- Stores images on the public disk under equipment/photos
+- Accepts JPEG, PNG, and WebP images
+- Limits image uploads to 2 MB for the MVP
+- Image resizing/compression was not added because no image processing package is currently installed
+
+## Phase 3C Location Transfer History
+
+- Equipment location changes create equipment_location_histories records
+- History stores from location, to location, transferred by, transfer date/time, and remarks
+- Updates without location changes do not create history records
+- Location history remains visible from the equipment view page
+
+## Phase 3C Tests
+
+- Added focused tests for photo upload, image validation, Staff photo updates, Technician restrictions, location transfer history, transfer remarks, relationship coverage, archive regression, and access regression.
+- Results: Targeted Phase 3C tests passed; complete test suite passed.
+
 ## Next Phase
 
-Phase 3C — Equipment Photos and Location Transfer History
+Phase 4A — QR Code Generation
 
 ## Known Risks
 
