@@ -132,6 +132,16 @@ class Equipment extends Model
         return $this->hasMany(MaintenanceSchedule::class)->latest('scheduled_date');
     }
 
+    public function maintenanceRequests(): HasMany
+    {
+        return $this->hasMany(MaintenanceRequest::class)->latest();
+    }
+
+    public function openMaintenanceRequests(): HasMany
+    {
+        return $this->hasMany(MaintenanceRequest::class)->open()->latest();
+    }
+
     public function latestMaintenanceSchedule(): HasOne
     {
         return $this->hasOne(MaintenanceSchedule::class)->latestOfMany('scheduled_date');

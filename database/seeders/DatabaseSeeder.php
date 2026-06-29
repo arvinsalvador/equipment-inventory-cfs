@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             MasterDataSeeder::class,
             SampleEquipmentSeeder::class,
             MaintenanceScheduleSeeder::class,
+            MaintenanceRequestSeeder::class,
         ]);
     }
 }
