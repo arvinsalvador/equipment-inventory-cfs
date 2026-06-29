@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 3A — Equipment Inventory Database Foundation
+Phase 3B — Equipment Filament Resource
 
 ## Current Branch
 
@@ -141,9 +141,46 @@ dev
 - Added focused tests for equipment persistence, unique equipment codes, relationships, archiving, scopes, location history, policy permissions, and sample seeder idempotency.
 - Results: Targeted Phase 3A tests passed; complete test suite passed.
 
+## Phase 3B Status
+
+- [x] EquipmentResource added under Inventory Management
+- [x] Equipment list, create, view, and edit pages added
+- [x] Equipment table columns, sorting, search, and filters added
+- [x] Equipment form added with required validation and active category/location selects
+- [x] Archive action added with confirmation and archive metadata updates
+- [x] Permanent delete is not exposed as a normal action
+- [x] Policy-backed Filament authorization added
+- [x] Focused Phase 3B tests added and passing
+
+## Phase 3B EquipmentResource
+
+- Navigation group: Inventory Management
+- Label: Equipment
+- Pages: List, Create, View, Edit
+- Actions: View, Edit, Archive when authorized and not already archived
+
+## Phase 3B Table, Search, And Filters
+
+- Columns include equipment code, property number, equipment name, category, current location, condition, operational status, next maintenance date, archived status, created date, and updated date.
+- Search covers equipment code, property number, equipment name, brand, model, serial number, and custodian.
+- Filters cover category, current location, condition, operational status, and archived status.
+
+## Phase 3B Form And Archive Rules
+
+- Equipment code, equipment name, category, current location, condition, and operational status are required.
+- Equipment code is unique with edit-record exclusion.
+- Acquisition cost must be numeric and non-negative.
+- Staff cannot mark equipment archived during create or edit.
+- Archive action sets is_archived, archived_at, and archived_by.
+
+## Phase 3B Tests
+
+- Added focused tests for Filament page access, create/edit authorization, form validation, Staff creation rules, Technician restrictions, archive action behavior, and archive persistence.
+- Results: Targeted Phase 3B tests passed; complete test suite passed.
+
 ## Next Phase
 
-Phase 3B — Equipment Filament Resource
+Phase 3C — Equipment Photos and Location Transfer History
 
 ## Known Risks
 
