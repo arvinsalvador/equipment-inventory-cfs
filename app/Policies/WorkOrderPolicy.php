@@ -49,7 +49,14 @@ class WorkOrderPolicy
 
     public function uploadEvidence(User $user, WorkOrder $workOrder): bool
     {
-        return $this->updateAssigned($user, $workOrder) && $user->can('work-orders.upload-evidence');
+        if ($user->can('work-orders.assign')) {
+            return ! $workOrder->isCancelled();
+        }
+
+        return ! $workOrder->isCompleted()
+            && ! $workOrder->isCancelled()
+            && $this->updateAssigned($user, $workOrder)
+            && $user->can('work-orders.upload-evidence');
     }
 
     public function verify(User $user, WorkOrder $workOrder): bool

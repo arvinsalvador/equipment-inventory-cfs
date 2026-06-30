@@ -5,6 +5,7 @@ namespace App\Filament\Resources\WorkOrders;
 use App\Filament\Resources\WorkOrders\Pages\EditWorkOrder;
 use App\Filament\Resources\WorkOrders\Pages\ListWorkOrders;
 use App\Filament\Resources\WorkOrders\Pages\ViewWorkOrder;
+use App\Filament\Resources\WorkOrders\RelationManagers\EvidencesRelationManager;
 use App\Models\Equipment;
 use App\Models\User;
 use App\Models\WorkOrder;
@@ -15,6 +16,8 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -167,6 +170,22 @@ class WorkOrderResource extends Resource
                         TextEntry::make('verified_at')->label('Verified at')->dateTime()->placeholder('Not verified'),
                         TextEntry::make('reopened_at')->label('Reopened at')->dateTime()->placeholder('Not reopened'),
                         TextEntry::make('cancelled_at')->label('Cancelled at')->dateTime()->placeholder('Not cancelled'),
+                    ]),
+                Section::make('Evidence')
+                    ->schema([
+                        RepeatableEntry::make('evidences')
+                            ->label('Evidence')
+                            ->schema([
+                                ImageEntry::make('image_path')
+                                    ->label('Image')
+                                    ->disk('public')
+                                    ->height(120),
+                                TextEntry::make('evidence_type')->label('Evidence type')->badge(),
+                                TextEntry::make('caption')->placeholder('None')->columnSpanFull(),
+                                TextEntry::make('uploadedBy.name')->label('Uploaded by')->placeholder('Unknown'),
+                                TextEntry::make('uploaded_at')->label('Uploaded date')->dateTime(),
+                            ])
+                            ->columnSpanFull(),
                     ]),
             ]);
     }
@@ -518,6 +537,13 @@ class WorkOrderResource extends Resource
     public static function canDelete(Model $record): bool
     {
         return false;
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            EvidencesRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

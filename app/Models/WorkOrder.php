@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
 
 #[Fillable([
@@ -141,6 +142,21 @@ class WorkOrder extends Model
     public function verifiedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function evidences(): HasMany
+    {
+        return $this->hasMany(WorkOrderEvidence::class)->latest('uploaded_at')->latest();
+    }
+
+    public function afterMaintenanceEvidences(): HasMany
+    {
+        return $this->hasMany(WorkOrderEvidence::class)->byType('After maintenance')->latest('uploaded_at')->latest();
+    }
+
+    public function beyondRepairEvidences(): HasMany
+    {
+        return $this->hasMany(WorkOrderEvidence::class)->byType('Beyond-repair evidence')->latest('uploaded_at')->latest();
     }
 
     public function scopeOpen(Builder $query): Builder

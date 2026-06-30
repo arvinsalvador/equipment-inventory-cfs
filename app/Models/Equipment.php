@@ -142,6 +142,11 @@ class Equipment extends Model
         return $this->hasMany(WorkOrder::class)->latest();
     }
 
+    public function workOrderEvidences(): HasMany
+    {
+        return $this->hasMany(WorkOrderEvidence::class)->latest('uploaded_at')->latest();
+    }
+
     public function openMaintenanceRequests(): HasMany
     {
         return $this->hasMany(MaintenanceRequest::class)->open()->latest();
