@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReportController;
 use App\Models\Equipment;
 use App\Models\MaintenanceRecommendation;
 use Illuminate\Http\Request;
@@ -65,3 +66,9 @@ Route::post('/equipment/scan/manual', function (Request $request) {
 
     return redirect()->route('equipment.lookup', ['qr_identifier' => $value]);
 })->name('equipment.scan.manual');
+
+Route::middleware('auth')->prefix('reports')->name('reports.')->group(function (): void {
+    Route::get('/{report}', [ReportController::class, 'show'])->name('show');
+    Route::get('/{report}/print', [ReportController::class, 'print'])->name('print');
+    Route::get('/{report}/csv', [ReportController::class, 'csv'])->name('csv');
+});
