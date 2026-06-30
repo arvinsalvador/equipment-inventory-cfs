@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 5 - Preventive Maintenance Scheduling Complete
+Phase 6B - Work Orders Database Foundation Complete
 
 ## Current Branch
 
@@ -356,12 +356,76 @@ dev
 
 ## Phase 5 Remaining Risks
 
-- Work orders, evidence, AI recommendations, reports, and PWA were not implemented in Phase 5.
+- Evidence, AI recommendations, reports, and PWA were not implemented in Phase 5.
 - Background status updates and scheduler/cron automation were not added; due/overdue display is dynamic.
+
+## Phase 6B Status
+
+- [x] work_orders table added
+- [x] WorkOrder model added
+- [x] Work order number generation added
+- [x] Work order status and priority constants added
+- [x] Equipment work order relationships added
+- [x] Maintenance request work order relationships added
+- [x] Approved maintenance request conversion foundation added
+- [x] Duplicate work orders from the same maintenance request are prevented
+- [x] WorkOrderPolicy added
+- [x] Status transition foundation added
+- [x] Optional idempotent WorkOrderSeeder added
+- [x] Focused Phase 6B tests added and passing
+
+## Phase 6B Work Orders Table
+
+- Stores work order number, optional maintenance request link, equipment, creator, assigned/accepted/verified users, title, problem description, priority, status, findings, action performed, completion remarks, final condition/status, beyond-repair fields, hold/parts/cancellation reasons, lifecycle timestamps, due date, remarks, and timestamps.
+- maintenance_request_id is nullable, unique when present, and set null when the request is deleted.
+- equipment_id and created_by restrict deletion when used.
+- assigned_to, accepted_by, and verified_by are nullable and set null when the user is deleted.
+
+## Phase 6B WorkOrder Model
+
+- Relationships: maintenanceRequest, equipment, createdBy, assignedTo, acceptedBy, and verifiedBy.
+- Scopes: open, closed, available, assigned, accepted, inProgress, forVerification, completed, beyondRepair, and cancelled.
+- Helpers cover open/closed/status checks plus assign, available, accept, start, hold, await parts, submit for verification, complete, beyond repair, verify, reopen, and cancel transitions.
+- Work order numbers are generated automatically in the WO-YYYYMMDD-0001 format and remain unique.
+
+## Phase 6B Relationships And Conversion
+
+- Equipment now exposes workOrders, openWorkOrders, and activeWorkOrders relationships.
+- MaintenanceRequest now exposes workOrders and latestWorkOrder relationships.
+- Approved maintenance requests can create one linked available work order, using request equipment, problem description, converting user, severity-to-priority mapping, and available_at.
+- Maintenance requests are marked converted after work order creation through the existing markAsConverted method.
+
+## Phase 6B WorkOrderPolicy
+
+- work-orders.view allows viewing work orders.
+- work-orders.assign allows creating, assigning, and manager-style updates.
+- work-orders.accept allows accepting available work orders.
+- work-orders.update-assigned allows updates only when assigned_to or accepted_by matches the user.
+- work-orders.verify allows verification, but users cannot verify their own accepted work.
+- beyond-repair.recommend allows assigned/accepted users to recommend beyond-repair status.
+- beyond-repair.approve allows approval/verification authority for beyond-repair status.
+- Permanent delete remains denied.
+
+## Phase 6B Seeder
+
+- WorkOrderSeeder adds two sample work orders when sample equipment and a user exist.
+- Seeder is idempotent and skips safely when equipment or users are missing.
+
+## Phase 6B Tests
+
+- Added focused tests for work order creation, relationships, number generation, status and priority constants, scopes, maintenance request conversion, duplicate prevention, transition methods, policy authorization, seeder behavior, and regression coverage through the complete suite.
+- Results: Targeted Phase 6B tests passed, 25 tests and 111 assertions.
+- Results: Complete test suite passed, 185 tests and 735 assertions.
+
+## Phase 6B Remaining Risks
+
+- Filament work order CRUD was not implemented; this is reserved for Phase 6C.
+- Evidence uploads and evidence-based status validation were not implemented; these are reserved for a later evidence phase.
+- AI recommendations, reports, and PWA work were not implemented.
 
 ## Next Phase
 
-Phase 6A - Maintenance Requests Database Foundation
+Phase 6C - Maintenance Requests and Work Orders Filament Resources
 
 ## Known Risks
 

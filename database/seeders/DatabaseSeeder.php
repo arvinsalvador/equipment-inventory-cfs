@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             SampleEquipmentSeeder::class,
             MaintenanceScheduleSeeder::class,
             MaintenanceRequestSeeder::class,
+            WorkOrderSeeder::class,
         ]);
     }
 }

@@ -137,9 +137,24 @@ class Equipment extends Model
         return $this->hasMany(MaintenanceRequest::class)->latest();
     }
 
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class)->latest();
+    }
+
     public function openMaintenanceRequests(): HasMany
     {
         return $this->hasMany(MaintenanceRequest::class)->open()->latest();
+    }
+
+    public function openWorkOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class)->open()->latest();
+    }
+
+    public function activeWorkOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class)->open()->latest();
     }
 
     public function latestMaintenanceSchedule(): HasOne

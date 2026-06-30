@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use InvalidArgumentException;
 
 #[Fillable([
@@ -105,6 +107,16 @@ class MaintenanceRequest extends Model
     public function convertedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'converted_by');
+    }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class)->latest();
+    }
+
+    public function latestWorkOrder(): HasOne
+    {
+        return $this->hasOne(WorkOrder::class)->latestOfMany();
     }
 
     public function scopeSubmitted(Builder $query): Builder
@@ -228,6 +240,32 @@ class MaintenanceRequest extends Model
         return $this->refresh();
     }
 
+    public function createWorkOrder(User $user): WorkOrder
+    {
+        if (! $this->isApproved()) {
+            throw new InvalidArgumentException('Only approved requests can be converted to work orders.');
+        }
+
+        if ($this->workOrders()->exists()) {
+            return $this->latestWorkOrder()->first();
+        }
+
+        $workOrder = WorkOrder::create([
+            'maintenance_request_id' => $this->id,
+            'equipment_id' => $this->equipment_id,
+            'created_by' => $user->id,
+            'title' => 'Work order for '.$this->request_number,
+            'problem_description' => $this->problem_description,
+            'priority' => $this->workOrderPriority(),
+            'status' => 'Available',
+            'available_at' => now(),
+        ]);
+
+        $this->markAsConverted($user);
+
+        return $workOrder->refresh();
+    }
+
     public function cancel(?string $remarks = null): self
     {
         if ($this->isClosed() || $this->isApproved()) {
@@ -240,6 +278,16 @@ class MaintenanceRequest extends Model
         ])->save();
 
         return $this->refresh();
+    }
+
+    private function workOrderPriority(): string
+    {
+        return match ($this->severity) {
+            'Low' => 'Low',
+            'High' => 'High',
+            'Critical' => 'Critical',
+            default => 'Normal',
+        };
     }
 
     /**
