@@ -29,6 +29,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class WorkOrderResource extends Resource
@@ -159,6 +160,31 @@ class WorkOrderResource extends Resource
                         TextEntry::make('beyond_repair_reason')->label('Beyond repair reason')->placeholder('None')->columnSpanFull(),
                         TextEntry::make('recommended_action')->label('Recommended action')->placeholder('None')->columnSpanFull(),
                         TextEntry::make('remarks')->placeholder('None')->columnSpanFull(),
+                    ]),
+                Section::make('Evidence validation')
+                    ->schema([
+                        TextEntry::make('after_maintenance_evidence_count')
+                            ->label('After-maintenance evidence count')
+                            ->state(fn (WorkOrder $record): int => $record->afterMaintenanceEvidenceCount()),
+                        TextEntry::make('beyond_repair_evidence_count')
+                            ->label('Beyond-repair evidence count')
+                            ->state(fn (WorkOrder $record): int => $record->beyondRepairEvidenceCount()),
+                        TextEntry::make('completion_requirements_status')
+                            ->label('Completion requirements status')
+                            ->badge()
+                            ->state(fn (WorkOrder $record): string => $record->hasRequiredCompletionEvidence() ? 'Complete' : 'Incomplete'),
+                        TextEntry::make('beyond_repair_requirements_status')
+                            ->label('Beyond-repair requirements status')
+                            ->badge()
+                            ->state(fn (WorkOrder $record): string => $record->hasRequiredBeyondRepairEvidence() ? 'Complete' : 'Incomplete'),
+                        TextEntry::make('missing_completion_requirements')
+                            ->label('Missing completion requirements')
+                            ->state(fn (WorkOrder $record): string => self::formatValidationMessages($record->completionValidationErrors()))
+                            ->columnSpanFull(),
+                        TextEntry::make('missing_beyond_repair_requirements')
+                            ->label('Missing beyond-repair requirements')
+                            ->state(fn (WorkOrder $record): string => self::formatValidationMessages($record->beyondRepairValidationErrors()))
+                            ->columnSpanFull(),
                     ]),
                 Section::make('Workflow dates')
                     ->schema([
@@ -376,6 +402,7 @@ class WorkOrderResource extends Resource
             ->form([
                 Textarea::make('action_performed')
                     ->label('Action performed')
+                    ->helperText('After-maintenance evidence is required before completion or verification.')
                     ->required(),
                 Select::make('final_equipment_condition')
                     ->label('Final equipment condition')
@@ -384,6 +411,7 @@ class WorkOrderResource extends Resource
                 Select::make('final_operational_status')
                     ->label('Final operational status')
                     ->options(Equipment::operationalStatusOptions())
+                    ->helperText('Upload After maintenance evidence before final completion.')
                     ->required(),
             ])
             ->visible(fn (WorkOrder $record): bool => ! $record->isClosed()
@@ -403,18 +431,49 @@ class WorkOrderResource extends Resource
         return Action::make('complete')
             ->label('Complete')
             ->icon('heroicon-o-check-circle')
+            ->fillForm(fn (WorkOrder $record): array => [
+                'action_performed' => $record->action_performed,
+                'completion_remarks' => $record->completion_remarks,
+                'final_equipment_condition' => $record->final_equipment_condition,
+                'final_operational_status' => $record->final_operational_status,
+            ])
             ->form([
+                Textarea::make('action_performed')
+                    ->label('Action performed')
+                    ->required(),
                 Textarea::make('completion_remarks')
-                    ->label('Completion remarks'),
+                    ->label('Completion remarks')
+                    ->helperText('At least one After maintenance evidence record is required.')
+                    ->rule(fn (WorkOrder $record): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($record): void {
+                        if (! $record->hasAfterMaintenanceEvidence()) {
+                            $fail('At least one After maintenance evidence is required.');
+                        }
+                    })
+                    ->required(),
+                Select::make('final_equipment_condition')
+                    ->label('Final equipment condition')
+                    ->options(Equipment::conditionOptions())
+                    ->required(),
+                Select::make('final_operational_status')
+                    ->label('Final operational status')
+                    ->options(Equipment::operationalStatusOptions())
+                    ->required(),
             ])
             ->visible(fn (WorkOrder $record): bool => in_array($record->status, ['For verification', 'In progress'], true)
                 && (auth()->user()?->can('updateAssigned', $record) ?? false))
             ->action(function (WorkOrder $record, array $data): void {
                 try {
-                    $record->complete($data['completion_remarks'] ?? null);
+                    $record->complete($data['completion_remarks'] ?? null, [
+                        'action_performed' => $data['action_performed'] ?? null,
+                        'final_equipment_condition' => $data['final_equipment_condition'] ?? null,
+                        'final_operational_status' => $data['final_operational_status'] ?? null,
+                    ]);
                     Notification::make()->title('Work order completed')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
+                    throw ValidationException::withMessages([
+                        'completion_remarks' => $exception->getMessage(),
+                    ]);
                 }
             });
     }
@@ -426,6 +485,12 @@ class WorkOrderResource extends Resource
             ->icon('heroicon-o-exclamation-triangle')
             ->form([
                 Textarea::make('findings')
+                    ->helperText('At least two Beyond-repair evidence records are required.')
+                    ->rule(fn (WorkOrder $record): \Closure => function (string $attribute, mixed $value, \Closure $fail) use ($record): void {
+                        if ($record->beyondRepairEvidenceCount() < 2) {
+                            $fail('At least two Beyond-repair evidence records are required.');
+                        }
+                    })
                     ->required(),
                 Textarea::make('beyond_repair_reason')
                     ->label('Beyond repair reason')
@@ -443,6 +508,9 @@ class WorkOrderResource extends Resource
                     Notification::make()->title('Work order marked beyond repair')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
+                    throw ValidationException::withMessages([
+                        'findings' => $exception->getMessage(),
+                    ]);
                 }
             });
     }
@@ -461,6 +529,9 @@ class WorkOrderResource extends Resource
                     Notification::make()->title('Work order verified')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
+                    throw ValidationException::withMessages([
+                        'verify' => $exception->getMessage(),
+                    ]);
                 }
             });
     }
@@ -537,6 +608,14 @@ class WorkOrderResource extends Resource
     public static function canDelete(Model $record): bool
     {
         return false;
+    }
+
+    /**
+     * @param  array<int, string>  $messages
+     */
+    private static function formatValidationMessages(array $messages): string
+    {
+        return $messages === [] ? 'None' : implode("\n", $messages);
     }
 
     public static function getRelations(): array

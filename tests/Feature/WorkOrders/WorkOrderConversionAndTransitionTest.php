@@ -8,6 +8,7 @@ use App\Models\Location;
 use App\Models\MaintenanceRequest;
 use App\Models\User;
 use App\Models\WorkOrder;
+use App\Models\WorkOrderEvidence;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
@@ -137,9 +138,11 @@ class WorkOrderConversionAndTransitionTest extends TestCase
     {
         $workOrder = $this->createWorkOrder([
             'status' => 'For verification',
+            'action_performed' => 'Repaired and tested.',
             'final_equipment_condition' => 'Needs maintenance',
             'final_operational_status' => 'Under maintenance',
         ]);
+        $this->createEvidence($workOrder, 'After maintenance');
 
         $completed = $workOrder->complete('Completed after verification.');
 
@@ -160,6 +163,9 @@ class WorkOrderConversionAndTransitionTest extends TestCase
             'recommended_action' => 'Replace unit.',
         ]));
 
+        $this->createEvidence($workOrder, 'Beyond-repair evidence', 'work-orders/evidence/beyond-1.jpg');
+        $this->createEvidence($workOrder, 'Beyond-repair evidence', 'work-orders/evidence/beyond-2.jpg');
+
         $beyondRepair = $workOrder->markBeyondRepair([
             'findings' => 'Failed inspection.',
             'beyond_repair_reason' => 'Repair costs exceed replacement.',
@@ -174,7 +180,14 @@ class WorkOrderConversionAndTransitionTest extends TestCase
     public function test_verify_reopen_and_cancel_transitions_work(): void
     {
         $verifier = User::factory()->create();
-        $workOrder = $this->createWorkOrder(['status' => 'For verification']);
+        $workOrder = $this->createWorkOrder([
+            'status' => 'For verification',
+            'action_performed' => 'Repaired and tested.',
+            'completion_remarks' => 'Ready for verification.',
+            'final_equipment_condition' => 'Good',
+            'final_operational_status' => 'Available',
+        ]);
+        $this->createEvidence($workOrder, 'After maintenance');
 
         $verified = $workOrder->verify($verifier);
         $this->assertTrue($verified->isCompleted());
@@ -227,6 +240,18 @@ class WorkOrderConversionAndTransitionTest extends TestCase
             'priority' => 'Normal',
             'status' => 'Available',
         ], $overrides));
+    }
+
+    private function createEvidence(WorkOrder $workOrder, string $type, string $path = 'work-orders/evidence/test.jpg'): WorkOrderEvidence
+    {
+        return WorkOrderEvidence::create([
+            'work_order_id' => $workOrder->id,
+            'equipment_id' => $workOrder->equipment_id,
+            'evidence_type' => $type,
+            'image_path' => $path,
+            'uploaded_by' => $this->creator->id,
+            'uploaded_at' => now(),
+        ]);
     }
 
     private function createMaintenanceRequest(array $overrides = []): MaintenanceRequest

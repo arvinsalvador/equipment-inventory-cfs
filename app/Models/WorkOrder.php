@@ -159,6 +159,87 @@ class WorkOrder extends Model
         return $this->hasMany(WorkOrderEvidence::class)->byType('Beyond-repair evidence')->latest('uploaded_at')->latest();
     }
 
+    public function afterMaintenanceEvidenceCount(): int
+    {
+        return $this->afterMaintenanceEvidences()->count();
+    }
+
+    public function beyondRepairEvidenceCount(): int
+    {
+        return $this->beyondRepairEvidences()->count();
+    }
+
+    public function hasAfterMaintenanceEvidence(): bool
+    {
+        return $this->afterMaintenanceEvidenceCount() > 0;
+    }
+
+    public function hasRequiredCompletionEvidence(array $attributes = []): bool
+    {
+        return $this->completionValidationErrors($attributes) === [];
+    }
+
+    public function hasRequiredBeyondRepairEvidence(array $attributes = []): bool
+    {
+        return $this->beyondRepairValidationErrors($attributes) === [];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function completionValidationErrors(array $attributes = []): array
+    {
+        $errors = [];
+
+        if (! filled($attributes['action_performed'] ?? $this->action_performed)) {
+            $errors[] = 'Action performed is required.';
+        }
+
+        if (! filled($attributes['final_equipment_condition'] ?? $this->final_equipment_condition)) {
+            $errors[] = 'Final equipment condition is required.';
+        }
+
+        if (! filled($attributes['final_operational_status'] ?? $this->final_operational_status)) {
+            $errors[] = 'Final operational status is required.';
+        }
+
+        if (! filled($attributes['completion_remarks'] ?? $this->completion_remarks)) {
+            $errors[] = 'Completion remarks are required.';
+        }
+
+        if (! $this->hasAfterMaintenanceEvidence()) {
+            $errors[] = 'At least one After maintenance evidence is required.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function beyondRepairValidationErrors(array $attributes = []): array
+    {
+        $errors = [];
+
+        if (! filled($attributes['findings'] ?? $this->findings)) {
+            $errors[] = 'Findings are required.';
+        }
+
+        if (! filled($attributes['beyond_repair_reason'] ?? $this->beyond_repair_reason)) {
+            $errors[] = 'Beyond-repair reason is required.';
+        }
+
+        if (! filled($attributes['recommended_action'] ?? $this->recommended_action)) {
+            $errors[] = 'Recommended action is required.';
+        }
+
+        if ($this->beyondRepairEvidenceCount() < 2) {
+            $errors[] = 'At least two Beyond-repair evidence records are required.';
+        }
+
+        return $errors;
+    }
+
     public function scopeOpen(Builder $query): Builder
     {
         return $query->whereNotIn('status', self::CLOSED_STATUSES);
@@ -350,17 +431,22 @@ class WorkOrder extends Model
         return $this->refresh();
     }
 
-    public function complete(?string $completionRemarks = null): self
+    public function complete(?string $completionRemarks = null, array $attributes = []): self
     {
         if (! in_array($this->status, ['For verification', 'In progress'], true)) {
             throw new InvalidArgumentException('Only in-progress or for-verification work orders can be completed.');
         }
 
-        $this->forceFill([
+        $attributes = array_merge($attributes, [
+            'completion_remarks' => $completionRemarks ?? $attributes['completion_remarks'] ?? $this->completion_remarks,
+        ]);
+
+        $this->requireNoValidationErrors($this->completionValidationErrors($attributes));
+
+        $this->forceFill(array_merge($attributes, [
             'status' => 'Completed',
             'completed_at' => now(),
-            'completion_remarks' => $completionRemarks,
-        ])->save();
+        ]))->save();
 
         $this->updateEquipmentFinalState();
 
@@ -369,13 +455,7 @@ class WorkOrder extends Model
 
     public function markBeyondRepair(array $attributes = []): self
     {
-        $findings = $attributes['findings'] ?? $this->findings;
-        $reason = $attributes['beyond_repair_reason'] ?? $this->beyond_repair_reason;
-        $recommendedAction = $attributes['recommended_action'] ?? $this->recommended_action;
-
-        $this->requireText($findings, 'Findings are required.');
-        $this->requireText($reason, 'Beyond-repair reason is required.');
-        $this->requireText($recommendedAction, 'Recommended action is required.');
+        $this->requireNoValidationErrors($this->beyondRepairValidationErrors($attributes));
 
         $this->forceFill(array_merge([
             'final_equipment_condition' => $this->final_equipment_condition ?: 'Beyond repair',
@@ -396,6 +476,14 @@ class WorkOrder extends Model
 
         if ($this->accepted_by === $user->id) {
             throw new InvalidArgumentException('Users cannot verify their own accepted work.');
+        }
+
+        if ($this->isForVerification()) {
+            $this->requireNoValidationErrors($this->completionValidationErrors());
+        }
+
+        if ($this->isBeyondRepair()) {
+            $this->requireNoValidationErrors($this->beyondRepairValidationErrors());
         }
 
         $this->forceFill([
@@ -454,6 +542,16 @@ class WorkOrder extends Model
     {
         if (! filled($value)) {
             throw new InvalidArgumentException($message);
+        }
+    }
+
+    /**
+     * @param  array<int, string>  $errors
+     */
+    private function requireNoValidationErrors(array $errors): void
+    {
+        if ($errors !== []) {
+            throw new InvalidArgumentException(implode("\n", $errors));
         }
     }
 
