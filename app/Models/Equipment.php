@@ -147,6 +147,24 @@ class Equipment extends Model
         return $this->hasMany(WorkOrderEvidence::class)->latest('uploaded_at')->latest();
     }
 
+    public function maintenanceRecommendations(): HasMany
+    {
+        return $this->hasMany(MaintenanceRecommendation::class)->latest('generated_at');
+    }
+
+    public function openMaintenanceRecommendations(): HasMany
+    {
+        return $this->hasMany(MaintenanceRecommendation::class)->open()->latest('generated_at');
+    }
+
+    public function highRiskRecommendations(): HasMany
+    {
+        return $this->hasMany(MaintenanceRecommendation::class)
+            ->whereIn('risk_level', ['High', 'Critical'])
+            ->unresolved()
+            ->latest('generated_at');
+    }
+
     public function openMaintenanceRequests(): HasMany
     {
         return $this->hasMany(MaintenanceRequest::class)->open()->latest();
