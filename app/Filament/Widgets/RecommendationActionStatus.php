@@ -11,6 +11,10 @@ class RecommendationActionStatus extends Widget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected static ?int $sort = 5;
+
+    protected static bool $isLazy = false;
+
     public static function canView(): bool
     {
         return auth()->user()?->can('viewAny', MaintenanceRecommendation::class) ?? false;

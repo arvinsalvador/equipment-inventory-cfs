@@ -6,13 +6,13 @@ use App\Models\MaintenanceRecommendation;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Collection;
 
-class RecentAiRecommendations extends Widget
+class PriorityAttention extends Widget
 {
-    protected string $view = 'filament.widgets.recent-ai-recommendations';
+    protected string $view = 'filament.widgets.priority-attention';
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = 11;
+    protected static ?int $sort = 3;
 
     protected static bool $isLazy = false;
 
@@ -28,10 +28,11 @@ class RecentAiRecommendations extends Widget
     {
         return MaintenanceRecommendation::query()
             ->with('equipment')
-            ->open()
+            ->where('status', 'Open')
+            ->where('risk_level', 'Critical')
             ->orderByRaw(MaintenanceRecommendation::riskRankSql())
             ->latest('generated_at')
-            ->limit(10)
+            ->limit(5)
             ->get();
     }
 }

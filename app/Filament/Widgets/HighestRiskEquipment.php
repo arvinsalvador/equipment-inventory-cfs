@@ -13,6 +13,10 @@ class HighestRiskEquipment extends Widget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected static ?int $sort = 4;
+
+    protected static bool $isLazy = false;
+
     public static function canView(): bool
     {
         return auth()->user()?->can('viewAny', MaintenanceRecommendation::class) ?? false;
@@ -26,6 +30,7 @@ class HighestRiskEquipment extends Widget
         return MaintenanceRecommendation::query()
             ->join('equipment', 'equipment.id', '=', 'maintenance_recommendations.equipment_id')
             ->select([
+                'equipment.id',
                 'equipment.equipment_code',
                 'equipment.equipment_name',
                 DB::raw('min('.MaintenanceRecommendation::riskRankSql('maintenance_recommendations.risk_level').') as risk_rank'),

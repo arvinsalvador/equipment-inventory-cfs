@@ -4,9 +4,15 @@ namespace Tests\Feature\MaintenanceRecommendations;
 
 use App\Filament\Widgets\HighestRiskEquipment;
 use App\Filament\Widgets\MaintenanceRecommendationSummary;
+use App\Filament\Widgets\OperationsCommandHeader;
+use App\Filament\Widgets\OperationsKpiOverview;
+use App\Filament\Widgets\PriorityAttention;
+use App\Filament\Widgets\QuickActions;
+use App\Filament\Widgets\RecentAiRecommendations;
 use App\Filament\Widgets\RecommendationActionStatus;
 use App\Filament\Widgets\RecommendationRuleDistribution;
 use App\Filament\Widgets\RecommendationsByRisk;
+use App\Filament\Widgets\RecommendationTimeline;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Location;
@@ -54,6 +60,45 @@ class MaintenanceRecommendationDashboardTest extends TestCase
         $this->assertSame(1, app(RecommendationRuleDistribution::class)->counts()['Due Soon']);
     }
 
+    public function test_dashboard_page_renders_operations_command_center(): void
+    {
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        $this->createRecommendation([
+            'title' => 'Critical equipment intervention',
+            'risk_level' => 'Critical',
+            'rule_key' => 'defective_without_work_order',
+        ]);
+
+        $this->get('/admin')
+            ->assertOk()
+            ->assertSee('Smart Maintenance Command Center')
+            ->assertSee('Equipment')
+            ->assertSee('Requires Immediate Attention')
+            ->assertSee('Critical equipment intervention')
+            ->assertSee('Quick Actions')
+            ->assertSee('Run Recommendation Scan');
+    }
+
+    public function test_operations_dashboard_kpis_and_header_use_existing_data(): void
+    {
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        $recommendation = $this->createRecommendation([
+            'risk_level' => 'Critical',
+            'action_status' => 'Pending',
+            'generated_at' => now(),
+        ]);
+
+        $stats = collect(app(OperationsKpiOverview::class)->stats())->keyBy('label');
+
+        $this->assertGreaterThanOrEqual(1, $stats['Equipment']['value']);
+        $this->assertSame(1, $stats['Critical Recommendations']['value']);
+        $this->assertSame(1, $stats['Pending Recommendation Actions']['value']);
+        $this->assertNotNull(app(OperationsCommandHeader::class)->lastRecommendationScan());
+        $this->assertSame($recommendation->fresh()->generated_at->toDayDateTimeString(), app(OperationsCommandHeader::class)->lastRecommendationScan());
+    }
+
     public function test_dashboard_action_status_counts_are_correct(): void
     {
         $this->actingAs($this->userWithRole('Administrator'));
@@ -88,6 +133,45 @@ class MaintenanceRecommendationDashboardTest extends TestCase
         $this->assertNotEmpty($rows->first()->suggested_action);
     }
 
+    public function test_priority_attention_and_recent_recommendation_cards_use_critical_records(): void
+    {
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        $critical = $this->createRecommendation([
+            'title' => 'Critical equipment intervention',
+            'risk_level' => 'Critical',
+            'rule_key' => 'defective_without_work_order',
+        ]);
+        $this->createRecommendation([
+            'title' => 'Moderate maintenance reminder',
+            'risk_level' => 'Moderate',
+            'rule_key' => 'due_soon',
+        ]);
+
+        $attentionRows = app(PriorityAttention::class)->records();
+        $recentRows = app(RecentAiRecommendations::class)->records();
+
+        $this->assertTrue($attentionRows->contains($critical));
+        $this->assertSame('Critical', $attentionRows->first()->risk_level);
+        $this->assertTrue($recentRows->contains($critical));
+        $this->assertSame('Generate Corrective Work Order', $critical->fresh()->getSuggestedActionLabel());
+    }
+
+    public function test_quick_actions_and_timeline_are_available(): void
+    {
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        $this->createRecommendation(['status' => 'Reviewed', 'reviewed_at' => now()]);
+
+        $actions = collect(app(QuickActions::class)->actions())->pluck('label')->all();
+
+        $this->assertContains('Run Recommendation Scan', $actions);
+        $this->assertContains('Create Work Order', $actions);
+        $this->assertContains('Create Maintenance Schedule', $actions);
+        $this->assertContains('View Critical Recommendations', $actions);
+        $this->assertNotEmpty(app(RecommendationTimeline::class)->records());
+    }
+
     public function test_dashboard_widgets_follow_recommendation_view_authorization(): void
     {
         $this->actingAs(User::factory()->create());
@@ -97,6 +181,12 @@ class MaintenanceRecommendationDashboardTest extends TestCase
         $this->assertFalse(RecommendationRuleDistribution::canView());
         $this->assertFalse(HighestRiskEquipment::canView());
         $this->assertFalse(RecommendationActionStatus::canView());
+        $this->assertFalse(OperationsCommandHeader::canView());
+        $this->assertFalse(OperationsKpiOverview::canView());
+        $this->assertFalse(PriorityAttention::canView());
+        $this->assertFalse(RecentAiRecommendations::canView());
+        $this->assertFalse(RecommendationTimeline::canView());
+        $this->assertFalse(QuickActions::canView());
     }
 
     private function createRecommendation(array $overrides = []): MaintenanceRecommendation

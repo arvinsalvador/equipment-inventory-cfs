@@ -11,6 +11,10 @@ class MaintenanceRecommendationSummary extends Widget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected static ?int $sort = 6;
+
+    protected static bool $isLazy = false;
+
     public static function canView(): bool
     {
         return auth()->user()?->can('viewAny', MaintenanceRecommendation::class) ?? false;
@@ -28,6 +32,8 @@ class MaintenanceRecommendationSummary extends Widget
             'Dismissed Recommendations' => MaintenanceRecommendation::query()->where('status', 'Dismissed')->count(),
             'Critical Recommendations' => MaintenanceRecommendation::query()->where('risk_level', 'Critical')->count(),
             'High Recommendations' => MaintenanceRecommendation::query()->where('risk_level', 'High')->count(),
+            'Moderate Recommendations' => MaintenanceRecommendation::query()->where('risk_level', 'Moderate')->count(),
+            'Low Recommendations' => MaintenanceRecommendation::query()->where('risk_level', 'Low')->count(),
         ];
     }
 }
