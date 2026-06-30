@@ -10,6 +10,7 @@ use App\Models\EquipmentCategory;
 use App\Models\Location;
 use App\Models\MaintenanceRecommendation;
 use App\Models\User;
+use App\Models\WorkOrder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -36,7 +37,17 @@ class MaintenanceRecommendationDisplayTest extends TestCase
             'rule_key' => 'defective_without_work_order',
             'risk_level' => 'High',
             'status' => 'Open',
+            'action_status' => 'Approved',
         ]);
+        $workOrder = WorkOrder::create([
+            'equipment_id' => $this->equipment->id,
+            'created_by' => User::factory()->create()->id,
+            'title' => 'Linked work order',
+            'problem_description' => 'Linked problem.',
+            'priority' => 'High',
+            'status' => 'Available',
+        ]);
+        $recommendation->update(['linked_work_order_id' => $workOrder->id]);
 
         $this->actingAs($this->userWithRole('Administrator'));
 
@@ -44,6 +55,8 @@ class MaintenanceRecommendationDisplayTest extends TestCase
             ->assertSee('Open recommendations')
             ->assertSee($recommendation->rule_key)
             ->assertSee('Generate Corrective Work Order')
+            ->assertSee('Approved')
+            ->assertSee($workOrder->work_order_number)
             ->assertSee('Open Recommendation');
     }
 
@@ -57,6 +70,7 @@ class MaintenanceRecommendationDisplayTest extends TestCase
         $this->createRecommendation([
             'rule_key' => 'beyond_repair_evidence_incomplete',
             'risk_level' => 'Critical',
+            'action_status' => 'Approved',
             'metadata' => ['hidden' => 'critical metadata'],
         ]);
 
@@ -65,8 +79,9 @@ class MaintenanceRecommendationDisplayTest extends TestCase
         $response = $this->get(route('equipment.lookup', $this->equipment->qr_identifier))
             ->assertOk()
             ->assertSee('Open Recommendations')
-            ->assertSee('Upload Additional Evidence')
-            ->assertSee('Prepare Preventive Maintenance')
+            ->assertSee('Upload Required Evidence')
+            ->assertSee('Schedule Preventive Maintenance')
+            ->assertSee('Approved')
             ->assertDontSee('critical metadata')
             ->assertDontSee('secret metadata');
 
@@ -94,6 +109,7 @@ class MaintenanceRecommendationDisplayTest extends TestCase
             ->assertSee('Why was this recommendation generated?')
             ->assertSee('Suggested Next Action')
             ->assertSee('Upload After-Maintenance Evidence')
+            ->assertSee('Action Workflow')
             ->assertSee('Recommendation History')
             ->assertSee('Generated')
             ->assertSee('Reviewed')

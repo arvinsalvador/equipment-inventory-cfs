@@ -4,6 +4,7 @@ namespace Tests\Feature\MaintenanceRecommendations;
 
 use App\Filament\Widgets\HighestRiskEquipment;
 use App\Filament\Widgets\MaintenanceRecommendationSummary;
+use App\Filament\Widgets\RecommendationActionStatus;
 use App\Filament\Widgets\RecommendationRuleDistribution;
 use App\Filament\Widgets\RecommendationsByRisk;
 use App\Models\Equipment;
@@ -39,18 +40,35 @@ class MaintenanceRecommendationDashboardTest extends TestCase
         $this->createRecommendation(['status' => 'Resolved', 'risk_level' => 'Moderate', 'rule_key' => 'repeated_repairs']);
         $this->createRecommendation(['status' => 'Dismissed', 'risk_level' => 'Low', 'rule_key' => 'expiring_warranty']);
 
-        $this->assertSame(1, app(MaintenanceRecommendationSummary::class)->counts()['Open']);
-        $this->assertSame(1, app(MaintenanceRecommendationSummary::class)->counts()['Reviewed']);
-        $this->assertSame(1, app(MaintenanceRecommendationSummary::class)->counts()['Resolved']);
-        $this->assertSame(1, app(MaintenanceRecommendationSummary::class)->counts()['Dismissed']);
+        $this->assertSame(1, app(MaintenanceRecommendationSummary::class)->counts()['Open Recommendations']);
+        $this->assertSame(1, app(MaintenanceRecommendationSummary::class)->counts()['Reviewed Recommendations']);
+        $this->assertSame(1, app(MaintenanceRecommendationSummary::class)->counts()['Resolved Recommendations']);
+        $this->assertSame(1, app(MaintenanceRecommendationSummary::class)->counts()['Dismissed Recommendations']);
 
         $this->assertSame(1, app(RecommendationsByRisk::class)->counts()['Critical']);
         $this->assertSame(1, app(RecommendationsByRisk::class)->counts()['High']);
         $this->assertSame(1, app(RecommendationsByRisk::class)->counts()['Moderate']);
         $this->assertSame(1, app(RecommendationsByRisk::class)->counts()['Low']);
 
-        $this->assertSame(1, app(RecommendationRuleDistribution::class)->counts()['overdue_maintenance']);
-        $this->assertSame(1, app(RecommendationRuleDistribution::class)->counts()['due_soon']);
+        $this->assertSame(1, app(RecommendationRuleDistribution::class)->counts()['Overdue Maintenance']);
+        $this->assertSame(1, app(RecommendationRuleDistribution::class)->counts()['Due Soon']);
+    }
+
+    public function test_dashboard_action_status_counts_are_correct(): void
+    {
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        foreach (['Pending', 'Approved', 'Executed', 'Rejected', 'Cancelled'] as $status) {
+            $this->createRecommendation(['action_status' => $status]);
+        }
+
+        $counts = app(RecommendationActionStatus::class)->counts();
+
+        $this->assertSame(1, $counts['Pending']);
+        $this->assertSame(1, $counts['Approved']);
+        $this->assertSame(1, $counts['Executed']);
+        $this->assertSame(1, $counts['Rejected']);
+        $this->assertSame(1, $counts['Cancelled']);
     }
 
     public function test_highest_risk_equipment_widget_lists_top_open_risk_equipment(): void
@@ -67,6 +85,7 @@ class MaintenanceRecommendationDashboardTest extends TestCase
         $this->assertSame($this->equipment->equipment_code, $rows->first()->equipment_code);
         $this->assertSame('Critical', $rows->first()->highest_risk);
         $this->assertSame(2, (int) $rows->first()->open_recommendation_count);
+        $this->assertNotEmpty($rows->first()->suggested_action);
     }
 
     public function test_dashboard_widgets_follow_recommendation_view_authorization(): void
@@ -77,6 +96,7 @@ class MaintenanceRecommendationDashboardTest extends TestCase
         $this->assertFalse(RecommendationsByRisk::canView());
         $this->assertFalse(RecommendationRuleDistribution::canView());
         $this->assertFalse(HighestRiskEquipment::canView());
+        $this->assertFalse(RecommendationActionStatus::canView());
     }
 
     private function createRecommendation(array $overrides = []): MaintenanceRecommendation

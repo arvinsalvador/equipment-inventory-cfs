@@ -86,6 +86,40 @@ class MaintenanceRecommendationResourceTest extends TestCase
         $this->assertSame($administrator->id, $this->recommendation->fresh()->resolved_by);
     }
 
+    public function test_recommendation_list_shows_suggested_action_and_action_status(): void
+    {
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        Livewire::test(ListMaintenanceRecommendations::class)
+            ->assertSee('Suggested action')
+            ->assertSee('Action status')
+            ->assertSee('Create Preventive Maintenance Schedule')
+            ->assertSee('Pending');
+    }
+
+    public function test_administrator_can_approve_and_execute_approved_action(): void
+    {
+        $administrator = $this->userWithRole('Administrator');
+        $this->actingAs($administrator);
+
+        Livewire::test(ListMaintenanceRecommendations::class)
+            ->callTableAction('approveAction', $this->recommendation, data: [
+                'action_notes' => 'Approved by admin.',
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertSame('Approved', $this->recommendation->fresh()->action_status);
+
+        Livewire::test(ListMaintenanceRecommendations::class)
+            ->callTableAction('executeAction', $this->recommendation->fresh(), data: [
+                'action_notes' => 'Executed by admin.',
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertSame('Executed', $this->recommendation->fresh()->action_status);
+        $this->assertNotNull($this->recommendation->fresh()->linked_maintenance_schedule_id);
+    }
+
     public function test_staff_and_technician_cannot_mark_recommendation_reviewed_by_default(): void
     {
         foreach (['Staff', 'Technician'] as $role) {
@@ -94,7 +128,11 @@ class MaintenanceRecommendationResourceTest extends TestCase
             Livewire::test(ListMaintenanceRecommendations::class)
                 ->assertTableActionHidden('markReviewed', $this->recommendation)
                 ->assertTableActionHidden('markResolved', $this->recommendation)
-                ->assertTableActionHidden('dismiss', $this->recommendation);
+                ->assertTableActionHidden('dismiss', $this->recommendation)
+                ->assertTableActionHidden('approveAction', $this->recommendation)
+                ->assertTableActionHidden('rejectAction', $this->recommendation)
+                ->assertTableActionHidden('executeAction', $this->recommendation)
+                ->assertTableActionHidden('cancelAction', $this->recommendation);
         }
     }
 

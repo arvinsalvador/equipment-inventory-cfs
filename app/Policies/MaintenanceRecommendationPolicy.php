@@ -32,6 +32,26 @@ class MaintenanceRecommendationPolicy
         return $user->can('recommendations.review');
     }
 
+    public function approveAction(User $user, MaintenanceRecommendation $maintenanceRecommendation): bool
+    {
+        return $user->can('recommendations.review');
+    }
+
+    public function rejectAction(User $user, MaintenanceRecommendation $maintenanceRecommendation): bool
+    {
+        return $user->can('recommendations.review');
+    }
+
+    public function executeAction(User $user, MaintenanceRecommendation $maintenanceRecommendation): bool
+    {
+        return $user->can('recommendations.review');
+    }
+
+    public function cancelAction(User $user, MaintenanceRecommendation $maintenanceRecommendation): bool
+    {
+        return $user->can('recommendations.review');
+    }
+
     public function create(User $user): bool
     {
         return false;

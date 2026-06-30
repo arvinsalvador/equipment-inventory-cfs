@@ -23,8 +23,23 @@ class RecommendationRuleDistribution extends Widget
     {
         return collect(MaintenanceRecommendation::RULE_KEYS)
             ->mapWithKeys(fn (string $rule): array => [
-                $rule => MaintenanceRecommendation::query()->where('rule_key', $rule)->count(),
+                $this->labelForRule($rule) => MaintenanceRecommendation::query()->where('rule_key', $rule)->count(),
             ])
             ->all();
+    }
+
+    private function labelForRule(string $rule): string
+    {
+        return match ($rule) {
+            'overdue_maintenance' => 'Overdue Maintenance',
+            'due_soon' => 'Due Soon',
+            'defective_without_work_order' => 'Defective Without Work Order',
+            'repeated_repairs' => 'Repeated Repairs',
+            'no_maintenance_history' => 'No Maintenance History',
+            'expiring_warranty' => 'Expiring Warranty',
+            'beyond_repair_evidence_incomplete' => 'Beyond-Repair Evidence Incomplete',
+            'completed_without_after_evidence' => 'Completed Without After Evidence',
+            default => str($rule)->replace('_', ' ')->title()->toString(),
+        };
     }
 }

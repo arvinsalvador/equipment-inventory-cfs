@@ -9,6 +9,7 @@ use App\Models\MaintenanceRecommendation;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -20,6 +21,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 class MaintenanceRecommendationResource extends Resource
 {
@@ -39,21 +42,16 @@ class MaintenanceRecommendationResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Equipment details')
+                Section::make('Recommendation Summary')
                     ->schema([
                         TextEntry::make('equipment.equipment_code')->label('Equipment code'),
                         TextEntry::make('equipment.equipment_name')->label('Equipment name'),
                         TextEntry::make('equipment.condition')->label('Condition')->badge(),
                         TextEntry::make('equipment.operational_status')->label('Operational status')->badge(),
-                    ]),
-                Section::make('Recommendation')
-                    ->schema([
                         TextEntry::make('rule_key')->label('Rule key')->badge(),
                         TextEntry::make('title'),
-                        TextEntry::make('explanation')->columnSpanFull(),
                         TextEntry::make('risk_level')->label('Risk level')->badge()->color(fn (string $state): string => self::riskColor($state)),
-                        TextEntry::make('status')->badge()->color(fn (string $state): string => self::statusColor($state)),
-                        TextEntry::make('recommended_action')->label('Recommended action')->columnSpanFull(),
+                        TextEntry::make('status')->label('Recommendation status')->badge()->color(fn (string $state): string => self::statusColor($state)),
                         TextEntry::make('generated_at')->label('Generated date')->dateTime(),
                     ]),
                 Section::make('Why was this recommendation generated?')
@@ -69,6 +67,33 @@ class MaintenanceRecommendationResource extends Resource
                             ->label('Suggested action')
                             ->state(fn (MaintenanceRecommendation $record): string => $record->suggestedAction())
                             ->badge(),
+                        TextEntry::make('suggested_action_type')
+                            ->label('Action type')
+                            ->state(fn (MaintenanceRecommendation $record): string => $record->getSuggestedActionType()),
+                        TextEntry::make('recommended_action')->label('Recommended action')->columnSpanFull(),
+                    ]),
+                Section::make('Action Workflow')
+                    ->schema([
+                        TextEntry::make('action_status')
+                            ->label('Action status')
+                            ->state(fn (MaintenanceRecommendation $record): string => $record->action_status ?: 'Pending')
+                            ->badge()
+                            ->color(fn (string $state): string => self::actionStatusColor($state)),
+                        TextEntry::make('actionedBy.name')->label('Actioned by')->placeholder('Not actioned'),
+                        TextEntry::make('actioned_at')->label('Actioned date')->dateTime()->placeholder('Not actioned'),
+                        TextEntry::make('action_notes')->label('Action notes')->placeholder('None')->columnSpanFull(),
+                    ]),
+                Section::make('Linked Work Order')
+                    ->schema([
+                        TextEntry::make('linkedWorkOrder.work_order_number')->label('Work order number')->placeholder('Not linked'),
+                        TextEntry::make('linkedWorkOrder.title')->label('Title')->placeholder('Not linked'),
+                        TextEntry::make('linkedWorkOrder.status')->label('Status')->placeholder('Not linked')->badge(),
+                    ]),
+                Section::make('Linked Maintenance Schedule')
+                    ->schema([
+                        TextEntry::make('linkedMaintenanceSchedule.maintenance_type')->label('Maintenance type')->placeholder('Not linked'),
+                        TextEntry::make('linkedMaintenanceSchedule.scheduled_date')->label('Scheduled date')->date()->placeholder('Not linked'),
+                        TextEntry::make('linkedMaintenanceSchedule.status')->label('Status')->placeholder('Not linked')->badge(),
                     ]),
                 Section::make('Review and resolution')
                     ->schema([
@@ -97,6 +122,9 @@ class MaintenanceRecommendationResource extends Resource
                         TextEntry::make('history_dismissed')
                             ->label('Dismissed')
                             ->state(fn (MaintenanceRecommendation $record): string => $record->isDismissed() && $record->resolved_at ? $record->resolved_at->toDayDateTimeString() : 'Not dismissed'),
+                        TextEntry::make('history_action')
+                            ->label('Action workflow')
+                            ->state(fn (MaintenanceRecommendation $record): string => ($record->action_status ?: 'Pending').($record->actioned_at ? ' on '.$record->actioned_at->toDayDateTimeString() : '')),
                     ]),
             ]);
     }
@@ -105,7 +133,7 @@ class MaintenanceRecommendationResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->with(['equipment', 'reviewedBy', 'resolvedBy'])
+                ->with(['equipment', 'reviewedBy', 'resolvedBy', 'actionedBy', 'linkedWorkOrder', 'linkedMaintenanceSchedule'])
                 ->orderByRaw(MaintenanceRecommendation::riskRankSql())
                 ->latest('generated_at'))
             ->columns([
@@ -122,7 +150,8 @@ class MaintenanceRecommendationResource extends Resource
                 TextColumn::make('rule_key')
                     ->label('Rule')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable(),
@@ -136,16 +165,31 @@ class MaintenanceRecommendationResource extends Resource
                 TextColumn::make('suggested_action')
                     ->label('Suggested action')
                     ->state(fn (MaintenanceRecommendation $record): string => $record->suggestedAction())
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(),
                 TextColumn::make('risk_level')
-                    ->label('Risk level')
+                    ->label('Risk')
                     ->badge()
                     ->color(fn (string $state): string => self::riskColor($state))
                     ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw(MaintenanceRecommendation::riskRankSql().' '.$direction)),
                 TextColumn::make('status')
+                    ->label('Recommendation status')
                     ->badge()
                     ->color(fn (string $state): string => self::statusColor($state))
                     ->sortable(),
+                TextColumn::make('action_status')
+                    ->label('Action status')
+                    ->formatStateUsing(fn (?string $state): string => $state ?: 'Pending')
+                    ->badge()
+                    ->color(fn (?string $state): string => self::actionStatusColor($state ?: 'Pending'))
+                    ->sortable(),
+                TextColumn::make('linkedWorkOrder.work_order_number')
+                    ->label('Linked work order')
+                    ->placeholder('None')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('linkedMaintenanceSchedule.maintenance_type')
+                    ->label('Linked schedule')
+                    ->placeholder('None')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('generated_at')
                     ->label('Generated date')
                     ->dateTime()
@@ -166,7 +210,14 @@ class MaintenanceRecommendationResource extends Resource
                     ->label('Risk level')
                     ->options(MaintenanceRecommendation::riskLevelOptions()),
                 SelectFilter::make('status')
+                    ->label('Recommendation status')
                     ->options(MaintenanceRecommendation::statusOptions()),
+                SelectFilter::make('action_status')
+                    ->label('Action status')
+                    ->options(MaintenanceRecommendation::actionStatusOptions()),
+                SelectFilter::make('suggested_action_type')
+                    ->label('Suggested action type')
+                    ->options(MaintenanceRecommendation::suggestedActionTypeOptions()),
                 SelectFilter::make('rule_key')
                     ->label('Rule')
                     ->options(MaintenanceRecommendation::ruleKeyOptions()),
@@ -211,6 +262,10 @@ class MaintenanceRecommendationResource extends Resource
                 self::markReviewedAction(),
                 self::markResolvedAction(),
                 self::dismissAction(),
+                self::approveAction(),
+                self::rejectAction(),
+                self::executeAction(),
+                self::cancelAction(),
             ]);
     }
 
@@ -272,6 +327,103 @@ class MaintenanceRecommendationResource extends Resource
             });
     }
 
+    public static function approveAction(): Action
+    {
+        return Action::make('approveAction')
+            ->label('Approve Action')
+            ->icon('heroicon-o-hand-thumb-up')
+            ->form([
+                Textarea::make('action_notes')
+                    ->label('Action notes'),
+            ])
+            ->visible(fn (MaintenanceRecommendation $record): bool => $record->isActionPending()
+                && ! $record->isResolved()
+                && ! $record->isDismissed()
+                && (auth()->user()?->can('approveAction', $record) ?? false))
+            ->action(function (MaintenanceRecommendation $record, array $data): void {
+                try {
+                    $record->approveAction(auth()->user(), $data['action_notes'] ?? null);
+                    Notification::make()->title('Recommendation action approved')->success()->send();
+                } catch (InvalidArgumentException $exception) {
+                    Notification::make()->title($exception->getMessage())->danger()->send();
+                    throw ValidationException::withMessages(['action_notes' => $exception->getMessage()]);
+                }
+            });
+    }
+
+    public static function rejectAction(): Action
+    {
+        return Action::make('rejectAction')
+            ->label('Reject Action')
+            ->icon('heroicon-o-no-symbol')
+            ->form([
+                Textarea::make('action_notes')
+                    ->label('Rejection notes')
+                    ->required(),
+            ])
+            ->visible(fn (MaintenanceRecommendation $record): bool => $record->isActionPending()
+                && (auth()->user()?->can('rejectAction', $record) ?? false))
+            ->action(function (MaintenanceRecommendation $record, array $data): void {
+                try {
+                    $record->rejectAction(auth()->user(), $data['action_notes'] ?? '');
+                    Notification::make()->title('Recommendation action rejected')->success()->send();
+                } catch (InvalidArgumentException $exception) {
+                    Notification::make()->title($exception->getMessage())->danger()->send();
+                    throw ValidationException::withMessages(['action_notes' => $exception->getMessage()]);
+                }
+            });
+    }
+
+    public static function executeAction(): Action
+    {
+        return Action::make('executeAction')
+            ->label('Execute Action')
+            ->icon('heroicon-o-bolt')
+            ->requiresConfirmation()
+            ->form([
+                Textarea::make('action_notes')
+                    ->label('Execution notes'),
+            ])
+            ->visible(fn (MaintenanceRecommendation $record): bool => $record->isActionApproved()
+                && ! $record->isResolved()
+                && ! $record->isDismissed()
+                && ! $record->linked_work_order_id
+                && ! $record->linked_maintenance_schedule_id
+                && (auth()->user()?->can('executeAction', $record) ?? false))
+            ->action(function (MaintenanceRecommendation $record, array $data): void {
+                try {
+                    $record->executeAction(auth()->user(), $data['action_notes'] ?? null);
+                    Notification::make()->title('Recommendation action processed')->success()->send();
+                } catch (InvalidArgumentException $exception) {
+                    Notification::make()->title($exception->getMessage())->danger()->send();
+                    throw ValidationException::withMessages(['action_notes' => $exception->getMessage()]);
+                }
+            });
+    }
+
+    public static function cancelAction(): Action
+    {
+        return Action::make('cancelAction')
+            ->label('Cancel Action')
+            ->icon('heroicon-o-x-circle')
+            ->form([
+                Textarea::make('action_notes')
+                    ->label('Cancellation notes')
+                    ->required(),
+            ])
+            ->visible(fn (MaintenanceRecommendation $record): bool => in_array($record->action_status ?: 'Pending', ['Pending', 'Approved'], true)
+                && (auth()->user()?->can('cancelAction', $record) ?? false))
+            ->action(function (MaintenanceRecommendation $record, array $data): void {
+                try {
+                    $record->cancelAction(auth()->user(), $data['action_notes'] ?? '');
+                    Notification::make()->title('Recommendation action cancelled')->success()->send();
+                } catch (InvalidArgumentException $exception) {
+                    Notification::make()->title($exception->getMessage())->danger()->send();
+                    throw ValidationException::withMessages(['action_notes' => $exception->getMessage()]);
+                }
+            });
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()?->can('viewAny', MaintenanceRecommendation::class) ?? false;
@@ -326,6 +478,16 @@ class MaintenanceRecommendationResource extends Resource
             'Resolved' => 'success',
             'Dismissed' => 'gray',
             'Reviewed' => 'info',
+            default => 'warning',
+        };
+    }
+
+    private static function actionStatusColor(string $state): string
+    {
+        return match ($state) {
+            'Approved' => 'info',
+            'Executed' => 'success',
+            'Rejected', 'Cancelled' => 'danger',
             default => 'warning',
         };
     }

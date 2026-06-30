@@ -21,10 +21,13 @@ class MaintenanceRecommendationSummary extends Widget
      */
     public function counts(): array
     {
-        return collect(MaintenanceRecommendation::STATUSES)
-            ->mapWithKeys(fn (string $status): array => [
-                $status => MaintenanceRecommendation::query()->where('status', $status)->count(),
-            ])
-            ->all();
+        return [
+            'Open Recommendations' => MaintenanceRecommendation::query()->where('status', 'Open')->count(),
+            'Reviewed Recommendations' => MaintenanceRecommendation::query()->where('status', 'Reviewed')->count(),
+            'Resolved Recommendations' => MaintenanceRecommendation::query()->where('status', 'Resolved')->count(),
+            'Dismissed Recommendations' => MaintenanceRecommendation::query()->where('status', 'Dismissed')->count(),
+            'Critical Recommendations' => MaintenanceRecommendation::query()->where('risk_level', 'Critical')->count(),
+            'High Recommendations' => MaintenanceRecommendation::query()->where('risk_level', 'High')->count(),
+        ];
     }
 }

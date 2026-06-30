@@ -255,7 +255,13 @@ class EquipmentResource extends Resource
                                 TextEntry::make('suggested_action')
                                     ->label('Suggested Action')
                                     ->state(fn (MaintenanceRecommendation $record): string => $record->suggestedAction()),
-                                TextEntry::make('status')->badge(),
+                                TextEntry::make('action_status')
+                                    ->label('Action Status')
+                                    ->state(fn (MaintenanceRecommendation $record): string => $record->action_status ?: 'Pending')
+                                    ->badge(),
+                                TextEntry::make('status')->label('Recommendation Status')->badge(),
+                                TextEntry::make('linkedWorkOrder.work_order_number')->label('Linked Work Order')->placeholder('None'),
+                                TextEntry::make('linkedMaintenanceSchedule.maintenance_type')->label('Linked Schedule')->placeholder('None'),
                                 TextEntry::make('generated_at')->label('Generated date')->dateTime(),
                                 TextEntry::make('view_recommendation')
                                     ->label('View Recommendation')

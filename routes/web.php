@@ -21,7 +21,10 @@ Route::get('/equipment/lookup/{qr_identifier}', function (string $qrIdentifier) 
         ->where('qr_identifier', $qrIdentifier)
         ->when(
             auth()->user()?->can('viewAny', MaintenanceRecommendation::class) ?? false,
-            fn ($query) => $query->with('openMaintenanceRecommendations')
+            fn ($query) => $query->with([
+                'openMaintenanceRecommendations.linkedWorkOrder',
+                'openMaintenanceRecommendations.linkedMaintenanceSchedule',
+            ])
         );
 
     $equipment = $query->first();

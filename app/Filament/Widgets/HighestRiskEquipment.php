@@ -30,6 +30,7 @@ class HighestRiskEquipment extends Widget
                 'equipment.equipment_name',
                 DB::raw('min('.MaintenanceRecommendation::riskRankSql('maintenance_recommendations.risk_level').') as risk_rank'),
                 DB::raw('count(*) as open_recommendation_count'),
+                DB::raw('min(maintenance_recommendations.rule_key) as suggested_rule_key'),
             ])
             ->where('maintenance_recommendations.status', 'Open')
             ->groupBy('equipment.id', 'equipment.equipment_code', 'equipment.equipment_name')
@@ -45,6 +46,9 @@ class HighestRiskEquipment extends Widget
                     4 => 'Low',
                     default => 'None',
                 };
+                $row->suggested_action = MaintenanceRecommendation::ACTION_TYPE_LABELS[
+                    MaintenanceRecommendation::RULE_ACTION_TYPES[$row->suggested_rule_key] ?? 'monitor_only'
+                ] ?? 'Monitor Only';
 
                 return $row;
             });

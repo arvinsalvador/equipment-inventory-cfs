@@ -30,6 +30,7 @@
         .risk-moderate { background: #dbeafe; color: #1e40af; }
         .risk-low { background: #f3f4f6; color: #374151; }
         .status { background: #ecfdf5; color: #047857; }
+        .action-status { background: #fef3c7; color: #92400e; }
         h1 { margin-top: 0; line-height: 1.15; }
         @media (max-width: 700px) { main { padding: 16px; } .summary { grid-template-columns: 1fr; } }
     </style>
@@ -118,10 +119,13 @@
                                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                     <span class="badge risk-{{ strtolower($recommendation->risk_level) }}">{{ $recommendation->risk_level }}</span>
                                     <span class="badge status">{{ $recommendation->status }}</span>
+                                    <span class="badge action-status">{{ $recommendation->action_status ?: 'Pending' }}</span>
                                 </div>
                             </div>
                             <div class="grid">
                                 <div class="item"><div class="label">Suggested Action</div><div class="value">{{ $recommendation->suggestedAction() }}</div></div>
+                                <div class="item"><div class="label">Linked Work Order</div><div class="value">{{ $recommendation->linkedWorkOrder?->work_order_number ?: 'None' }}</div></div>
+                                <div class="item"><div class="label">Linked Schedule</div><div class="value">{{ $recommendation->linkedMaintenanceSchedule?->maintenance_type ?: 'None' }}</div></div>
                                 <div class="item"><div class="label">Generated Date</div><div class="value">{{ $recommendation->generated_at?->toDayDateTimeString() ?: 'None' }}</div></div>
                             </div>
                         </article>

@@ -15,6 +15,10 @@ class ViewMaintenanceRecommendation extends ViewRecord
             MaintenanceRecommendationResource::markReviewedAction(),
             MaintenanceRecommendationResource::markResolvedAction(),
             MaintenanceRecommendationResource::dismissAction(),
+            MaintenanceRecommendationResource::approveAction(),
+            MaintenanceRecommendationResource::rejectAction(),
+            MaintenanceRecommendationResource::executeAction(),
+            MaintenanceRecommendationResource::cancelAction(),
         ];
     }
 }
