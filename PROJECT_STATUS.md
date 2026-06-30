@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 8A - AI-Assisted Maintenance Recommendation Engine Foundation Complete
+Phase 8B - AI Recommendation Dashboard, Equipment Integration, QR Display, and Decision Support Preview Complete
 
 ## Current Branch
 
@@ -580,9 +580,32 @@ dev
 - Beyond repair evidence incomplete
 - Completed work without after-maintenance evidence
 
+## Phase 8B Status
+
+- Dashboard Widgets: Complete
+- Equipment Recommendation Integration: Complete
+- QR Recommendation Integration: Complete
+- Recommendation Detail View: Complete
+- Recommendation History Timeline: Complete
+- Suggested Next Action Preview: Complete
+- Dashboard Statistics: Complete
+- Filtering: Complete
+- Sorting: Complete
+- Authorization: Complete
+- Tests: Complete
+
+## Deferred to Phase 8C
+
+- Automatic Work Order Generation
+- Automatic Preventive Maintenance Schedule Generation
+- Recommendation Action Workflow
+- Recommendation-to-Work Order Linking
+- Recommendation-to-Maintenance Schedule Linking
+- Action Audit Trail
+
 ## Next Phase
 
-Phase 8B - Recommendations Dashboard Integration and Equipment QR Display
+Phase 8C - Recommendation Action Workflow
 
 ## Known Risks
 

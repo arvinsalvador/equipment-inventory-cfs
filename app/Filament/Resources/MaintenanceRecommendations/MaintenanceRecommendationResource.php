@@ -8,12 +8,14 @@ use App\Models\Equipment;
 use App\Models\MaintenanceRecommendation;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,6 +56,20 @@ class MaintenanceRecommendationResource extends Resource
                         TextEntry::make('recommended_action')->label('Recommended action')->columnSpanFull(),
                         TextEntry::make('generated_at')->label('Generated date')->dateTime(),
                     ]),
+                Section::make('Why was this recommendation generated?')
+                    ->schema([
+                        TextEntry::make('why_rule')->label('Rule')->state(fn (MaintenanceRecommendation $record): string => $record->rule_key),
+                        TextEntry::make('why_risk')->label('Risk')->state(fn (MaintenanceRecommendation $record): string => $record->risk_level)->badge()->color(fn (string $state): string => self::riskColor($state)),
+                        TextEntry::make('why_generated_at')->label('Generated date')->state(fn (MaintenanceRecommendation $record): mixed => $record->generated_at)->dateTime(),
+                        TextEntry::make('why_explanation')->label('Explanation')->state(fn (MaintenanceRecommendation $record): string => $record->explanation)->columnSpanFull(),
+                    ]),
+                Section::make('Suggested Next Action')
+                    ->schema([
+                        TextEntry::make('suggested_action')
+                            ->label('Suggested action')
+                            ->state(fn (MaintenanceRecommendation $record): string => $record->suggestedAction())
+                            ->badge(),
+                    ]),
                 Section::make('Review and resolution')
                     ->schema([
                         TextEntry::make('reviewedBy.name')->label('Reviewed by')->placeholder('Not reviewed'),
@@ -67,18 +83,41 @@ class MaintenanceRecommendationResource extends Resource
                                 : json_encode($record->metadata, JSON_PRETTY_PRINT))
                             ->columnSpanFull(),
                     ]),
+                Section::make('Recommendation History')
+                    ->schema([
+                        TextEntry::make('history_generated')
+                            ->label('Generated')
+                            ->state(fn (MaintenanceRecommendation $record): string => $record->generated_at?->toDayDateTimeString() ?? 'Not generated'),
+                        TextEntry::make('history_reviewed')
+                            ->label('Reviewed')
+                            ->state(fn (MaintenanceRecommendation $record): string => $record->reviewed_at?->toDayDateTimeString() ?? 'Not reviewed'),
+                        TextEntry::make('history_resolved')
+                            ->label('Resolved')
+                            ->state(fn (MaintenanceRecommendation $record): string => $record->isResolved() && $record->resolved_at ? $record->resolved_at->toDayDateTimeString() : 'Not resolved'),
+                        TextEntry::make('history_dismissed')
+                            ->label('Dismissed')
+                            ->state(fn (MaintenanceRecommendation $record): string => $record->isDismissed() && $record->resolved_at ? $record->resolved_at->toDayDateTimeString() : 'Not dismissed'),
+                    ]),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['equipment', 'reviewedBy', 'resolvedBy'])->latest('generated_at'))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->with(['equipment', 'reviewedBy', 'resolvedBy'])
+                ->orderByRaw(MaintenanceRecommendation::riskRankSql())
+                ->latest('generated_at'))
             ->columns([
                 TextColumn::make('equipment.equipment_code')
                     ->label('Equipment')
                     ->formatStateUsing(fn (MaintenanceRecommendation $record): string => $record->equipment->equipment_code.' - '.$record->equipment->equipment_name)
-                    ->searchable(['equipment.equipment_code', 'equipment.equipment_name'])
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query->whereHas(
+                        'equipment',
+                        fn (Builder $query): Builder => $query
+                            ->where('equipment_code', 'like', "%{$search}%")
+                            ->orWhere('equipment_name', 'like', "%{$search}%")
+                    ))
                     ->sortable(),
                 TextColumn::make('rule_key')
                     ->label('Rule')
@@ -94,11 +133,15 @@ class MaintenanceRecommendationResource extends Resource
                     ->label('Recommended action')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('suggested_action')
+                    ->label('Suggested action')
+                    ->state(fn (MaintenanceRecommendation $record): string => $record->suggestedAction())
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('risk_level')
                     ->label('Risk level')
                     ->badge()
                     ->color(fn (string $state): string => self::riskColor($state))
-                    ->sortable(),
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw(MaintenanceRecommendation::riskRankSql().' '.$direction)),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => self::statusColor($state))
@@ -126,10 +169,7 @@ class MaintenanceRecommendationResource extends Resource
                     ->options(MaintenanceRecommendation::statusOptions()),
                 SelectFilter::make('rule_key')
                     ->label('Rule')
-                    ->options(fn (): array => MaintenanceRecommendation::query()
-                        ->orderBy('rule_key')
-                        ->pluck('rule_key', 'rule_key')
-                        ->all()),
+                    ->options(MaintenanceRecommendation::ruleKeyOptions()),
                 SelectFilter::make('equipment_id')
                     ->label('Equipment')
                     ->options(fn (): array => Equipment::query()
@@ -141,6 +181,30 @@ class MaintenanceRecommendationResource extends Resource
                         ->all())
                     ->searchable()
                     ->preload(),
+                Filter::make('generated_at')
+                    ->form([
+                        DatePicker::make('generated_from')->label('Generated from'),
+                        DatePicker::make('generated_until')->label('Generated until'),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['generated_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('generated_at', '>=', $date))
+                        ->when($data['generated_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('generated_at', '<=', $date))),
+                Filter::make('reviewed_at')
+                    ->form([
+                        DatePicker::make('reviewed_from')->label('Reviewed from'),
+                        DatePicker::make('reviewed_until')->label('Reviewed until'),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['reviewed_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('reviewed_at', '>=', $date))
+                        ->when($data['reviewed_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('reviewed_at', '<=', $date))),
+                Filter::make('resolved_at')
+                    ->form([
+                        DatePicker::make('resolved_from')->label('Resolved from'),
+                        DatePicker::make('resolved_until')->label('Resolved until'),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['resolved_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('resolved_at', '>=', $date))
+                        ->when($data['resolved_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('resolved_at', '<=', $date))),
             ])
             ->recordActions([
                 ViewAction::make(),

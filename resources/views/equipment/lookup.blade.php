@@ -21,6 +21,15 @@
         .item { border-top: 1px solid #f1f5f9; padding-top: 10px; }
         .label { color: #64748b; font-size: 13px; }
         .value { margin-top: 3px; font-weight: 600; overflow-wrap: anywhere; }
+        .recommendations { margin-top: 18px; display: grid; gap: 12px; }
+        .recommendation { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; background: #fff; }
+        .recommendation-head { display: flex; justify-content: space-between; gap: 10px; align-items: start; flex-wrap: wrap; }
+        .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 700; }
+        .risk-critical { background: #fee2e2; color: #991b1b; }
+        .risk-high { background: #fef3c7; color: #92400e; }
+        .risk-moderate { background: #dbeafe; color: #1e40af; }
+        .risk-low { background: #f3f4f6; color: #374151; }
+        .status { background: #ecfdf5; color: #047857; }
         h1 { margin-top: 0; line-height: 1.15; }
         @media (max-width: 700px) { main { padding: 16px; } .summary { grid-template-columns: 1fr; } }
     </style>
@@ -79,6 +88,50 @@
             </div>
 
             <div class="item" style="margin-top: 16px;"><div class="label">Remarks</div><div class="value">{{ $equipment->remarks ?: 'None' }}</div></div>
+
+            @can('viewAny', \App\Models\MaintenanceRecommendation::class)
+                @php
+                    $recommendations = $equipment->openMaintenanceRecommendations
+                        ->sortBy(fn ($recommendation) => match ($recommendation->risk_level) {
+                            'Critical' => 1,
+                            'High' => 2,
+                            'Moderate' => 3,
+                            'Low' => 4,
+                            default => 5,
+                        })
+                        ->values();
+                @endphp
+
+                <div class="recommendations">
+                    <div>
+                        <div class="label">Open Recommendations</div>
+                        <div class="value">{{ $recommendations->count() }} open recommendation{{ $recommendations->count() === 1 ? '' : 's' }}</div>
+                    </div>
+
+                    @forelse ($recommendations as $recommendation)
+                        <article class="recommendation">
+                            <div class="recommendation-head">
+                                <div>
+                                    <div class="label">Rule</div>
+                                    <div class="value">{{ $recommendation->rule_key }}</div>
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <span class="badge risk-{{ strtolower($recommendation->risk_level) }}">{{ $recommendation->risk_level }}</span>
+                                    <span class="badge status">{{ $recommendation->status }}</span>
+                                </div>
+                            </div>
+                            <div class="grid">
+                                <div class="item"><div class="label">Suggested Action</div><div class="value">{{ $recommendation->suggestedAction() }}</div></div>
+                                <div class="item"><div class="label">Generated Date</div><div class="value">{{ $recommendation->generated_at?->toDayDateTimeString() ?: 'None' }}</div></div>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="recommendation">
+                            <div class="value">No open recommendations.</div>
+                        </div>
+                    @endforelse
+                </div>
+            @endcan
         </section>
     @endif
 </main>

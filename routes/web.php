@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Equipment;
+use App\Models\MaintenanceRecommendation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,10 +16,15 @@ Route::get('/equipment/lookup/{qr_identifier}', function (string $qrIdentifier) 
 
     abort_unless(auth()->user()->can('equipment.view'), 403);
 
-    $equipment = Equipment::query()
+    $query = Equipment::query()
         ->with(['category', 'currentLocation'])
         ->where('qr_identifier', $qrIdentifier)
-        ->first();
+        ->when(
+            auth()->user()?->can('viewAny', MaintenanceRecommendation::class) ?? false,
+            fn ($query) => $query->with('openMaintenanceRecommendations')
+        );
+
+    $equipment = $query->first();
 
     return view('equipment.lookup', [
         'equipment' => $equipment,

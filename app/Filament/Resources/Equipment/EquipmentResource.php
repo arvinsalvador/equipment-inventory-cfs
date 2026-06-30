@@ -6,9 +6,11 @@ use App\Filament\Resources\Equipment\Pages\CreateEquipment;
 use App\Filament\Resources\Equipment\Pages\EditEquipment;
 use App\Filament\Resources\Equipment\Pages\ListEquipment;
 use App\Filament\Resources\Equipment\Pages\ViewEquipment;
+use App\Filament\Resources\MaintenanceRecommendations\MaintenanceRecommendationResource;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Location;
+use App\Models\MaintenanceRecommendation;
 use App\Services\EquipmentQrCodeGenerator;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -235,6 +237,34 @@ class EquipmentResource extends Resource
                             ])
                             ->columnSpanFull(),
                     ]),
+                Section::make('Open recommendations')
+                    ->schema([
+                        RepeatableEntry::make('openMaintenanceRecommendations')
+                            ->label('Recommendations')
+                            ->schema([
+                                TextEntry::make('rule_key')->label('Rule')->badge(),
+                                TextEntry::make('risk_level')
+                                    ->label('Risk')
+                                    ->badge()
+                                    ->color(fn (string $state): string => match ($state) {
+                                        'Critical' => 'danger',
+                                        'High' => 'warning',
+                                        'Low' => 'gray',
+                                        default => 'info',
+                                    }),
+                                TextEntry::make('suggested_action')
+                                    ->label('Suggested Action')
+                                    ->state(fn (MaintenanceRecommendation $record): string => $record->suggestedAction()),
+                                TextEntry::make('status')->badge(),
+                                TextEntry::make('generated_at')->label('Generated date')->dateTime(),
+                                TextEntry::make('view_recommendation')
+                                    ->label('View Recommendation')
+                                    ->state('Open Recommendation')
+                                    ->url(fn (MaintenanceRecommendation $record): string => MaintenanceRecommendationResource::getUrl('view', ['record' => $record])),
+                            ])
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(fn (): bool => auth()->user()?->can('viewAny', MaintenanceRecommendation::class) ?? false),
                 Section::make('Location transfer history')
                     ->schema([
                         RepeatableEntry::make('locationHistories')

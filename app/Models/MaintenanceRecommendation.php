@@ -41,6 +41,28 @@ class MaintenanceRecommendation extends Model
         'Dismissed',
     ];
 
+    public const RULE_KEYS = [
+        'overdue_maintenance',
+        'due_soon',
+        'defective_without_work_order',
+        'repeated_repairs',
+        'no_maintenance_history',
+        'expiring_warranty',
+        'beyond_repair_evidence_incomplete',
+        'completed_without_after_evidence',
+    ];
+
+    public const SUGGESTED_ACTIONS = [
+        'overdue_maintenance' => 'Schedule Preventive Maintenance',
+        'due_soon' => 'Prepare Preventive Maintenance',
+        'defective_without_work_order' => 'Generate Corrective Work Order',
+        'repeated_repairs' => 'Conduct Comprehensive Inspection',
+        'no_maintenance_history' => 'Perform Initial Preventive Maintenance',
+        'expiring_warranty' => 'Inspect Before Warranty Expiration',
+        'beyond_repair_evidence_incomplete' => 'Upload Additional Evidence',
+        'completed_without_after_evidence' => 'Upload After-Maintenance Evidence',
+    ];
+
     public static function riskLevelOptions(): array
     {
         return array_combine(self::RISK_LEVELS, self::RISK_LEVELS);
@@ -49,6 +71,21 @@ class MaintenanceRecommendation extends Model
     public static function statusOptions(): array
     {
         return array_combine(self::STATUSES, self::STATUSES);
+    }
+
+    public static function ruleKeyOptions(): array
+    {
+        return array_combine(self::RULE_KEYS, self::RULE_KEYS);
+    }
+
+    public static function riskRankSql(string $column = 'risk_level'): string
+    {
+        return "case {$column} when 'Critical' then 1 when 'High' then 2 when 'Moderate' then 3 when 'Low' then 4 else 5 end";
+    }
+
+    public function suggestedAction(): string
+    {
+        return self::SUGGESTED_ACTIONS[$this->rule_key] ?? $this->recommended_action;
     }
 
     public function equipment(): BelongsTo
@@ -99,6 +136,11 @@ class MaintenanceRecommendation extends Model
     public function scopeUnresolved(Builder $query): Builder
     {
         return $query->whereNotIn('status', ['Resolved', 'Dismissed']);
+    }
+
+    public function scopeOrderByRisk(Builder $query): Builder
+    {
+        return $query->orderByRaw(self::riskRankSql());
     }
 
     public function isOpen(): bool
