@@ -209,6 +209,32 @@ class EquipmentResource extends Resource
                             ])
                             ->columnSpanFull(),
                     ]),
+                Section::make('Maintenance requests')
+                    ->schema([
+                        RepeatableEntry::make('maintenanceRequests')
+                            ->label('Requests')
+                            ->schema([
+                                TextEntry::make('request_number')->label('Request number'),
+                                TextEntry::make('submittedBy.name')->label('Submitted by'),
+                                TextEntry::make('severity')->badge(),
+                                TextEntry::make('status')->badge(),
+                                TextEntry::make('created_at')->label('Created date')->dateTime(),
+                            ])
+                            ->columnSpanFull(),
+                    ]),
+                Section::make('Work orders')
+                    ->schema([
+                        RepeatableEntry::make('workOrders')
+                            ->label('Work orders')
+                            ->schema([
+                                TextEntry::make('work_order_number')->label('Work order number'),
+                                TextEntry::make('assignedTo.name')->label('Assigned to')->placeholder('Unassigned'),
+                                TextEntry::make('priority')->badge(),
+                                TextEntry::make('status')->badge(),
+                                TextEntry::make('created_at')->label('Created date')->dateTime(),
+                            ])
+                            ->columnSpanFull(),
+                    ]),
                 Section::make('Location transfer history')
                     ->schema([
                         RepeatableEntry::make('locationHistories')

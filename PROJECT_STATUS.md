@@ -6,7 +6,7 @@ AI-Based Smart Equipment Inventory and Maintenance Recommendation System Using Q
 
 ## Current Phase
 
-Phase 6B - Work Orders Database Foundation Complete
+Phase 6C - Maintenance Requests and Work Orders Filament Resources Complete
 
 ## Current Branch
 
@@ -359,8 +359,49 @@ dev
 - Evidence, AI recommendations, reports, and PWA were not implemented in Phase 5.
 - Background status updates and scheduler/cron automation were not added; due/overdue display is dynamic.
 
+## Phase 6A Status
+
+- Phase 6A status: Complete
+- Maintenance request table: Complete
+- MaintenanceRequest model: Complete
+- Request number generation: Complete
+- Initial photo path foundation: Complete
+- Equipment relationship: Complete
+- MaintenanceRequestPolicy: Complete
+- Approval logic: Complete
+- Rejection logic: Complete
+- Conversion logic: Complete
+- Cancellation logic: Complete
+- Tests added: Complete
+- Targeted Phase 6A tests: 23 passed, 73 assertions
+- Full test suite after Phase 6A: 160 passed, 624 assertions
+- Remaining risks: None for Phase 6A implementation
+
+## Phase 6A Deferred Items
+
+- Filament maintenance request CRUD
+- Work orders
+- Evidence workflows
+- AI recommendations
+- Reports
+- PWA behavior
+
 ## Phase 6B Status
 
+- Phase 6B status: Complete
+- Work orders table: Complete
+- WorkOrder model: Complete
+- Work order number generation: Complete
+- Equipment relationship: Complete
+- Maintenance request relationship: Complete
+- Maintenance request conversion foundation: Complete
+- WorkOrderPolicy: Complete
+- Status transition foundation: Complete
+- Tests added: Complete
+- Targeted Phase 6B tests: 25 passed, 111 assertions
+- Full test suite after Phase 6B: 185 passed, 735 assertions
+- Final post-format targeted rerun: 25 passed, 111 assertions
+- Remaining risks: None for Phase 6B implementation
 - [x] work_orders table added
 - [x] WorkOrder model added
 - [x] Work order number generation added
@@ -423,9 +464,57 @@ dev
 - Evidence uploads and evidence-based status validation were not implemented; these are reserved for a later evidence phase.
 - AI recommendations, reports, and PWA work were not implemented.
 
+## Phase 6B Deferred Items
+
+- Filament work order CRUD
+- Evidence uploads
+- Evidence-validation rules
+- AI recommendations
+- Reports
+- PWA behavior
+
+## Phase 6C Status
+
+- Phase 6C status: Complete
+- MaintenanceRequestResource: Complete
+- WorkOrderResource: Complete
+- Maintenance request approval UI: Complete
+- Maintenance request rejection UI: Complete
+- Maintenance request conversion UI: Complete
+- Maintenance request cancellation UI: Complete
+- Work order assignment UI: Complete
+- Work order acceptance UI: Complete
+- Work order progress workflow UI: Complete
+- Work order verification UI: Complete
+- Beyond-repair workflow UI: Complete
+- Authorization and policy enforcement: Complete
+- Tests added: Complete
+- Targeted Phase 6C tests: 22 passed, 124 assertions
+- Full test suite after Phase 6C: 207 passed, 859 assertions
+- Remaining risks: Evidence uploads and validation are deferred to Phase 7
+
+## Phase 6C Resource Details
+
+- MaintenanceRequestResource was added under Maintenance Management with list, view, create, and edit pages.
+- Request table includes request number, equipment, submitter, severity, status, created date, and reviewed date.
+- Request actions support approve, reject, convert to work order, and cancel, with status and policy-based visibility.
+- WorkOrderResource was added under Maintenance Management with list, view, and edit pages.
+- Work order manual creation is not exposed; work orders originate from approved maintenance requests.
+- Work order table includes work order number, equipment, assigned user, priority, status, due date, and created date.
+- Work order actions support assign, make available, accept, start, hold, await parts, submit for verification, complete, beyond repair, verify, reopen, and cancel.
+- EquipmentResource view includes lightweight related maintenance request and work order sections.
+
+## Phase 6 Complete Status
+
+- Maintenance Requests Database Foundation: Complete
+- Work Orders Database Foundation: Complete
+- Maintenance Requests Filament UI: Complete
+- Work Orders Filament UI: Complete
+- Phase 6 status: Complete
+
 ## Next Phase
 
-Phase 6C - Maintenance Requests and Work Orders Filament Resources
+Phase 7A - Evidence Upload Infrastructure
 
 ## Known Risks
 
