@@ -45,6 +45,11 @@ class Location extends Model
         return $this->hasMany(self::class, 'parent_id');
     }
 
+    public function equipment(): HasMany
+    {
+        return $this->hasMany(Equipment::class, 'current_location_id');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
