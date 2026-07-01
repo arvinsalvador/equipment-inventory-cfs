@@ -70,5 +70,7 @@ Route::post('/equipment/scan/manual', function (Request $request) {
 Route::middleware('auth')->prefix('reports')->name('reports.')->group(function (): void {
     Route::get('/{report}', [ReportController::class, 'show'])->name('show');
     Route::get('/{report}/print', [ReportController::class, 'print'])->name('print');
+    Route::get('/{report}/pdf', [ReportController::class, 'pdf'])->name('pdf');
     Route::get('/{report}/csv', [ReportController::class, 'csv'])->name('csv');
+    Route::get('/{report}/excel', [ReportController::class, 'excel'])->name('excel');
 });

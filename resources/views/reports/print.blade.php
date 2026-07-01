@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $definition['name'] }} Print View</title>
     <style>
+        @page { margin: 14mm 12mm; size: landscape; }
         body { color: #111827; font-family: Arial, sans-serif; font-size: 12px; margin: 24px; }
         h1 { font-size: 22px; margin: 6px 0; }
         .meta { color: #4b5563; margin-bottom: 16px; }

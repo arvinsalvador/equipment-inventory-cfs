@@ -17,11 +17,19 @@
                             <x-filament::button :href="route('reports.print', $slug)" tag="a" size="sm" color="gray" icon="heroicon-o-printer">
                                 Print
                             </x-filament::button>
+
+                            <x-filament::button :href="route('reports.pdf', $slug)" tag="a" size="sm" color="gray" icon="heroicon-o-document-text">
+                                PDF
+                            </x-filament::button>
                         @endif
 
                         @if (in_array('csv', $report['actions'], true))
                             <x-filament::button :href="route('reports.csv', $slug)" tag="a" size="sm" color="gray" icon="heroicon-o-arrow-down-tray">
                                 CSV
+                            </x-filament::button>
+
+                            <x-filament::button :href="route('reports.excel', $slug)" tag="a" size="sm" color="gray" icon="heroicon-o-table-cells">
+                                Excel
                             </x-filament::button>
                         @endif
                     </div>

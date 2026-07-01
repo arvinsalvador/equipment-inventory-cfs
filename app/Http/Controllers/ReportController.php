@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Reports\CsvReportExporter;
+use App\Services\Reports\ExcelReportExporter;
 use App\Services\Reports\ReportRegistry;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,6 +14,7 @@ class ReportController extends Controller
     public function __construct(
         private readonly ReportRegistry $reports,
         private readonly CsvReportExporter $csvExporter,
+        private readonly ExcelReportExporter $excelExporter,
     ) {}
 
     public function show(Request $request, string $report): View
@@ -29,6 +31,13 @@ class ReportController extends Controller
         return view('reports.print', $this->payload($request, $report));
     }
 
+    public function pdf(Request $request, string $report): View
+    {
+        $this->authorizeReports();
+
+        return view('reports.pdf-ready', $this->payload($request, $report));
+    }
+
     public function csv(Request $request, string $report): StreamedResponse
     {
         $this->authorizeReports();
@@ -40,6 +49,22 @@ class ReportController extends Controller
             $report.'-'.now()->format('Ymd-His').'.csv',
             $this->reports->columns($report),
             $this->reports->rows($report, $filters)
+        );
+    }
+
+    public function excel(Request $request, string $report): StreamedResponse
+    {
+        $this->authorizeReports();
+
+        $definition = $this->reports->get($report);
+        $filters = $this->filters($request, $definition['filters']);
+
+        return $this->excelExporter->stream(
+            $report.'-'.now()->format('Ymd-His').'.xls',
+            $definition['name'],
+            $this->reports->columns($report),
+            $this->reports->rows($report, $filters),
+            $this->reports->appliedFilterLabels($report, $filters)
         );
     }
 

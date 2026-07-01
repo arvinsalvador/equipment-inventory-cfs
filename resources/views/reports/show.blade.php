@@ -53,7 +53,9 @@
                     <button class="button" type="submit">Apply filters</button>
                     <a class="button secondary" href="{{ route('reports.show', $slug) }}">Reset</a>
                     <a class="button secondary" href="{{ route('reports.print', array_merge(['report' => $slug], $filters)) }}">Print</a>
+                    <a class="button secondary" href="{{ route('reports.pdf', array_merge(['report' => $slug], $filters)) }}">PDF Ready</a>
                     <a class="button secondary" href="{{ route('reports.csv', array_merge(['report' => $slug], $filters)) }}">Export CSV</a>
+                    <a class="button secondary" href="{{ route('reports.excel', array_merge(['report' => $slug], $filters)) }}">Export Excel</a>
                     <a class="button secondary" href="{{ url('/admin/reports') }}">Report Center</a>
                 </div>
             </form>
