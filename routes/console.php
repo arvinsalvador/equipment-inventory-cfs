@@ -2,6 +2,7 @@
 
 use App\Services\EquipmentLifecycleAnalyzer;
 use App\Services\MaintenanceRecommendationEngine;
+use App\Services\SystemNotificationService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -31,3 +32,14 @@ Artisan::command('equipment:analyze-lifecycle', function (EquipmentLifecycleAnal
 
     return self::SUCCESS;
 })->purpose('Analyze equipment lifecycle and cost decision-support profiles');
+
+Artisan::command('notifications:generate', function (SystemNotificationService $notifications): int {
+    $summary = $notifications->generateAll();
+
+    $this->info('System notifications generated.');
+    $this->line('Notifications created: '.$summary['created']);
+    $this->line('Duplicates skipped: '.$summary['duplicates_skipped']);
+    $this->line('Categories checked: '.implode(', ', $summary['categories_checked']));
+
+    return self::SUCCESS;
+})->purpose('Generate in-app system notifications for maintenance operations');

@@ -6,6 +6,7 @@ use App\Filament\Widgets\EquipmentHealth;
 use App\Filament\Widgets\HighestRiskEquipment;
 use App\Filament\Widgets\MaintenanceRecommendationSummary;
 use App\Filament\Widgets\MaintenanceScheduleSummary;
+use App\Filament\Widgets\NotificationOverview;
 use App\Filament\Widgets\OperationsCommandHeader;
 use App\Filament\Widgets\OperationsKpiOverview;
 use App\Filament\Widgets\PriorityAttention;
@@ -41,6 +42,7 @@ class Dashboard extends BaseDashboard
     {
         return [
             OperationsCommandHeader::class,
+            NotificationOverview::class,
             OperationsKpiOverview::class,
             PriorityAttention::class,
             HighestRiskEquipment::class,
