@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Equipment;
+use App\Models\EquipmentLifecycleProfile;
 use App\Models\Location;
 use App\Models\MaintenanceRecommendation;
 use App\Models\MaintenanceRequest;
@@ -53,6 +54,7 @@ class MaintenanceAnalyticsService
             'technician_performance' => $this->technicianPerformance($range),
             'equipment_reliability' => $equipmentReliability,
             'location_analytics' => $locationAnalytics,
+            'lifecycle_widgets' => $this->lifecycleWidgets(),
             'recommendation_trend' => $this->recommendationTrend(),
             'workload_trend' => $this->workloadTrend(),
             'insights' => $this->insights($executiveKpis, $equipmentReliability, $locationAnalytics),
@@ -306,6 +308,51 @@ class MaintenanceAnalyticsService
                 'critical_recommendations' => $location->critical_recommendations_count,
             ])
             ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function lifecycleWidgets(): array
+    {
+        return [
+            'replacement_candidates' => EquipmentLifecycleProfile::query()->where('lifecycle_status', 'Replacement Candidate')->count(),
+            'critical_health_equipment' => EquipmentLifecycleProfile::query()->where('health_grade', 'Critical')->count(),
+            'high_maintenance_assets' => EquipmentLifecycleProfile::query()->where('lifecycle_status', 'High Maintenance')->count(),
+            'lowest_health_scores' => EquipmentLifecycleProfile::query()
+                ->with('equipment')
+                ->whereNotNull('health_score')
+                ->orderBy('health_score')
+                ->limit(5)
+                ->get()
+                ->map(fn (EquipmentLifecycleProfile $profile) => [
+                    'equipment' => $profile->equipment?->equipment_code.' - '.$profile->equipment?->equipment_name,
+                    'value' => $profile->health_score,
+                ])
+                ->all(),
+            'highest_maintenance_cost' => Equipment::query()
+                ->withSum('workOrders as maintenance_cost', 'total_cost')
+                ->orderByDesc('maintenance_cost')
+                ->limit(5)
+                ->get()
+                ->map(fn (Equipment $equipment) => [
+                    'equipment' => "{$equipment->equipment_code} - {$equipment->equipment_name}",
+                    'value' => number_format((float) $equipment->maintenance_cost, 2),
+                ])
+                ->all(),
+            'near_end_of_life' => EquipmentLifecycleProfile::query()
+                ->with('equipment')
+                ->whereNotNull('estimated_remaining_life_months')
+                ->where('estimated_remaining_life_months', '<=', 12)
+                ->orderBy('estimated_remaining_life_months')
+                ->limit(5)
+                ->get()
+                ->map(fn (EquipmentLifecycleProfile $profile) => [
+                    'equipment' => $profile->equipment?->equipment_code.' - '.$profile->equipment?->equipment_name,
+                    'value' => $profile->estimated_remaining_life_months,
+                ])
+                ->all(),
+        ];
     }
 
     /**

@@ -185,6 +185,16 @@ class Equipment extends Model
         return $this->hasOne(MaintenanceSchedule::class)->latestOfMany('scheduled_date');
     }
 
+    public function lifecycleProfile(): HasOne
+    {
+        return $this->hasOne(EquipmentLifecycleProfile::class);
+    }
+
+    public function completedWorkOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class)->where('status', 'Completed')->latest('completed_at');
+    }
+
     public function dueMaintenanceSchedules(): HasMany
     {
         return $this->hasMany(MaintenanceSchedule::class)
@@ -196,6 +206,16 @@ class Equipment extends Model
     public function latestLocationHistory(): HasOne
     {
         return $this->hasOne(EquipmentLocationHistory::class)->latestOfMany('transferred_at');
+    }
+
+    public function maintenanceCostTotal(): float
+    {
+        return (float) $this->workOrders()->sum('total_cost');
+    }
+
+    public function repairCount(): int
+    {
+        return $this->completedWorkOrders()->count();
     }
 
     public function scopeActive(Builder $query): Builder

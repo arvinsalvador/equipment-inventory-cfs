@@ -4,6 +4,7 @@ namespace App\Services\Reports;
 
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
+use App\Models\EquipmentLifecycleProfile;
 use App\Models\EquipmentLocationHistory;
 use App\Models\Location;
 use App\Models\MaintenanceRecommendation;
@@ -36,6 +37,7 @@ class ReportRegistry
             'ai-recommendations' => $this->definition('AI Recommendation Report', 'Rule-based maintenance recommendations with risk, status, and action state.', ['csv', 'print'], ['date_from', 'date_to', 'equipment', 'risk_level', 'rule', 'recommendation_status', 'action_status']),
             'equipment-transfer-history' => $this->definition('Equipment Transfer History Report', 'Equipment movement history by origin, destination, transfer user, and date.', ['csv', 'print'], ['date_from', 'date_to', 'equipment', 'from_location', 'to_location', 'transferred_by']),
             'equipment-maintenance-history' => $this->definition('Equipment Maintenance History Report', 'Combined schedule, request, and work order maintenance activity history.', ['csv', 'print'], ['date_from', 'date_to', 'equipment', 'activity_type']),
+            'equipment-lifecycle' => $this->definition('Equipment Lifecycle Report', 'Health score, lifecycle status, replacement recommendation, repair count, and maintenance cost by equipment.', ['csv', 'print'], ['health_grade', 'lifecycle_status', 'replacement_recommendation', 'category', 'location']),
         ];
     }
 
@@ -68,6 +70,7 @@ class ReportRegistry
             'ai-recommendations' => $this->columnsFrom(['equipment' => 'Equipment', 'rule' => 'Rule', 'title' => 'Title', 'risk_level' => 'Risk level', 'suggested_action' => 'Suggested action', 'action_status' => 'Action status', 'recommendation_status' => 'Recommendation status', 'generated_date' => 'Generated date', 'reviewed_date' => 'Reviewed date', 'resolved_date' => 'Resolved date']),
             'equipment-transfer-history' => $this->columnsFrom(['equipment' => 'Equipment', 'from_location' => 'From location', 'to_location' => 'To location', 'transferred_by' => 'Transferred by', 'transfer_date' => 'Transfer date', 'remarks' => 'Remarks']),
             'equipment-maintenance-history' => $this->columnsFrom(['date' => 'Date', 'equipment' => 'Equipment', 'activity_type' => 'Activity type', 'reference_number' => 'Reference number', 'status' => 'Status', 'actor' => 'Performed/Submitted/Assigned by', 'summary' => 'Summary']),
+            'equipment-lifecycle' => $this->columnsFrom(['equipment_code' => 'Equipment code', 'equipment_name' => 'Equipment name', 'category' => 'Category', 'location' => 'Location', 'health_score' => 'Health score', 'health_grade' => 'Health grade', 'lifecycle_status' => 'Lifecycle status', 'replacement_recommendation' => 'Replacement recommendation', 'estimated_remaining_life' => 'Estimated remaining life', 'estimated_end_of_life_date' => 'Estimated end-of-life date', 'repair_count' => 'Repair count', 'total_maintenance_cost' => 'Total maintenance cost', 'last_calculated_date' => 'Last calculated date']),
             default => throw new InvalidArgumentException('Unknown report.'),
         };
     }
@@ -92,6 +95,7 @@ class ReportRegistry
             'ai-recommendations' => $this->aiRecommendations($filters),
             'equipment-transfer-history' => $this->transferHistory($filters),
             'equipment-maintenance-history' => $this->maintenanceHistory($filters),
+            'equipment-lifecycle' => $this->equipmentLifecycle($filters),
             default => throw new InvalidArgumentException('Unknown report.'),
         };
     }
@@ -122,6 +126,9 @@ class ReportRegistry
             'action_status' => array_combine(MaintenanceRecommendation::ACTION_STATUSES, MaintenanceRecommendation::ACTION_STATUSES),
             'final_condition' => array_combine(Equipment::CONDITIONS, Equipment::CONDITIONS),
             'activity_type' => ['Maintenance schedule' => 'Maintenance schedule', 'Maintenance request' => 'Maintenance request', 'Work order' => 'Work order'],
+            'health_grade' => array_combine(EquipmentLifecycleProfile::HEALTH_GRADES, EquipmentLifecycleProfile::HEALTH_GRADES),
+            'lifecycle_status' => array_combine(EquipmentLifecycleProfile::LIFECYCLE_STATUSES, EquipmentLifecycleProfile::LIFECYCLE_STATUSES),
+            'replacement_recommendation' => array_combine(EquipmentLifecycleProfile::REPLACEMENT_RECOMMENDATIONS, EquipmentLifecycleProfile::REPLACEMENT_RECOMMENDATIONS),
         ];
     }
 
@@ -460,6 +467,35 @@ class ReportRegistry
             ->when($filters['activity_type'] ?? null, fn (Collection $rows, string $type) => $rows->where('activity_type', $type))
             ->sortByDesc('date')
             ->values();
+    }
+
+    private function equipmentLifecycle(array $filters): Collection
+    {
+        return Equipment::query()
+            ->with(['category', 'currentLocation', 'lifecycleProfile'])
+            ->withCount(['completedWorkOrders as repair_count'])
+            ->when($filters['category'] ?? null, fn ($query, $id) => $query->where('equipment_category_id', $id))
+            ->when($filters['location'] ?? null, fn ($query, $id) => $query->where('current_location_id', $id))
+            ->when($filters['health_grade'] ?? null, fn ($query, $value) => $query->whereHas('lifecycleProfile', fn ($query) => $query->where('health_grade', $value)))
+            ->when($filters['lifecycle_status'] ?? null, fn ($query, $value) => $query->whereHas('lifecycleProfile', fn ($query) => $query->where('lifecycle_status', $value)))
+            ->when($filters['replacement_recommendation'] ?? null, fn ($query, $value) => $query->whereHas('lifecycleProfile', fn ($query) => $query->where('replacement_recommendation', $value)))
+            ->orderBy('equipment_code')
+            ->get()
+            ->map(fn (Equipment $equipment) => [
+                'equipment_code' => $equipment->equipment_code,
+                'equipment_name' => $equipment->equipment_name,
+                'category' => $equipment->category?->name,
+                'location' => $equipment->currentLocation?->name,
+                'health_score' => $equipment->lifecycleProfile?->health_score,
+                'health_grade' => $equipment->lifecycleProfile?->health_grade,
+                'lifecycle_status' => $equipment->lifecycleProfile?->lifecycle_status,
+                'replacement_recommendation' => $equipment->lifecycleProfile?->replacement_recommendation,
+                'estimated_remaining_life' => $equipment->lifecycleProfile?->estimated_remaining_life_months,
+                'estimated_end_of_life_date' => $this->dateValue($equipment->lifecycleProfile?->estimated_end_of_life_date),
+                'repair_count' => $equipment->repair_count,
+                'total_maintenance_cost' => number_format($equipment->maintenanceCostTotal(), 2),
+                'last_calculated_date' => $this->dateValue($equipment->lifecycleProfile?->last_calculated_at, 'Y-m-d H:i'),
+            ]);
     }
 
     private function applyWorkOrderFilters(Builder $query, array $filters): Builder

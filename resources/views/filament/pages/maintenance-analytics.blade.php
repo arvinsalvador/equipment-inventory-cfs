@@ -211,6 +211,45 @@
             ])
         </x-filament::section>
 
+        <x-filament::section>
+            <x-slot name="heading">Lifecycle Decision Support</x-slot>
+            <div class="grid gap-4 md:grid-cols-3">
+                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Replacement Candidates</p>
+                    <p class="mt-2 text-3xl font-semibold">{{ $analytics['lifecycle_widgets']['replacement_candidates'] }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Critical Health Equipment</p>
+                    <p class="mt-2 text-3xl font-semibold">{{ $analytics['lifecycle_widgets']['critical_health_equipment'] }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                    <p class="text-xs font-semibold uppercase text-gray-500">High Maintenance Assets</p>
+                    <p class="mt-2 text-3xl font-semibold">{{ $analytics['lifecycle_widgets']['high_maintenance_assets'] }}</p>
+                </div>
+            </div>
+            <div class="mt-4 grid gap-4 xl:grid-cols-3">
+                @foreach ([
+                    'Lowest Health Scores' => $analytics['lifecycle_widgets']['lowest_health_scores'],
+                    'Highest Maintenance Cost' => $analytics['lifecycle_widgets']['highest_maintenance_cost'],
+                    'Near End-of-Life Equipment' => $analytics['lifecycle_widgets']['near_end_of_life'],
+                ] as $title => $rows)
+                    <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">{{ $title }}</h3>
+                        <div class="mt-3 space-y-2">
+                            @forelse ($rows as $row)
+                                <div class="flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2 text-sm dark:bg-gray-950">
+                                    <span class="min-w-0 truncate">{{ $row['equipment'] }}</span>
+                                    <strong>{{ $row['value'] }}</strong>
+                                </div>
+                            @empty
+                                <p class="text-sm text-gray-500">No lifecycle records available.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </x-filament::section>
+
         <div class="grid gap-6 xl:grid-cols-2">
             <x-filament::section>
                 <x-slot name="heading">AI Recommendation Trend</x-slot>

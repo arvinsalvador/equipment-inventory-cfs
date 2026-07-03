@@ -11,6 +11,7 @@ use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Location;
 use App\Models\MaintenanceRecommendation;
+use App\Services\EquipmentLifecycleAnalyzer;
 use App\Services\EquipmentQrCodeGenerator;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -271,6 +272,39 @@ class EquipmentResource extends Resource
                             ->columnSpanFull(),
                     ])
                     ->visible(fn (): bool => auth()->user()?->can('viewAny', MaintenanceRecommendation::class) ?? false),
+                Section::make('Lifecycle analysis')
+                    ->schema([
+                        TextEntry::make('lifecycleProfile.health_score')->label('Health score')->placeholder('Not calculated')->badge(),
+                        TextEntry::make('lifecycleProfile.health_grade')->label('Health grade')->placeholder('Not calculated')->badge(),
+                        TextEntry::make('lifecycleProfile.lifecycle_status')->label('Lifecycle status')->placeholder('Not calculated')->badge(),
+                        TextEntry::make('lifecycleProfile.replacement_recommendation')->label('Replacement recommendation')->placeholder('Not calculated')->badge(),
+                        TextEntry::make('lifecycleProfile.estimated_remaining_life_months')->label('Estimated remaining life (months)')->placeholder('Unknown'),
+                        TextEntry::make('lifecycleProfile.estimated_end_of_life_date')->label('Estimated end-of-life date')->date()->placeholder('Unknown'),
+                        TextEntry::make('maintenance_cost_total')
+                            ->label('Total maintenance cost')
+                            ->state(fn (Equipment $record): string => number_format($record->maintenanceCostTotal(), 2)),
+                        TextEntry::make('repair_count')
+                            ->label('Repair count')
+                            ->state(fn (Equipment $record): int => $record->repairCount()),
+                        TextEntry::make('lifecycleProfile.last_calculated_at')->label('Last calculated date')->dateTime()->placeholder('Not calculated'),
+                        TextEntry::make('lifecycleProfile.replacement_reason')->label('Replacement reason')->placeholder('Not calculated')->columnSpanFull(),
+                        TextEntry::make('lifecycle_scoring_details')
+                            ->label('Scoring details')
+                            ->state(function (Equipment $record): string {
+                                $details = $record->lifecycleProfile?->metadata['score_details'] ?? [];
+
+                                if ($details === []) {
+                                    return 'No scoring details available.';
+                                }
+
+                                return collect($details)
+                                    ->map(fn (array $detail): string => "{$detail['factor']}: -{$detail['points']} ({$detail['reason']})")
+                                    ->implode("\n");
+                            })
+                            ->placeholder('No scoring details available.')
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false),
                 Section::make('Location transfer history')
                     ->schema([
                         RepeatableEntry::make('locationHistories')
@@ -367,6 +401,7 @@ class EquipmentResource extends Resource
                 self::openQrLookupAction(),
                 self::openQrCodeFileAction(),
                 self::generateQrCodeAction(),
+                self::recalculateLifecycleAction(),
                 Action::make('archive')
                     ->label('Archive')
                     ->icon('heroicon-o-archive-box')
@@ -417,6 +452,23 @@ class EquipmentResource extends Resource
             ->url(fn (Equipment $record): string => $record->getQrCodeUrl() ?? '#')
             ->openUrlInNewTab()
             ->visible(fn (Equipment $record): bool => filled($record->getQrCodeUrl()) && (auth()->user()?->can('view', $record) ?? false));
+    }
+
+    public static function recalculateLifecycleAction(): Action
+    {
+        return Action::make('recalculateLifecycle')
+            ->label('Recalculate Lifecycle')
+            ->icon('heroicon-o-arrow-path')
+            ->requiresConfirmation()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('update', $record) ?? false)
+            ->action(function (Equipment $record): void {
+                app(EquipmentLifecycleAnalyzer::class)->analyze($record);
+
+                Notification::make()
+                    ->title('Lifecycle analysis recalculated')
+                    ->success()
+                    ->send();
+            });
     }
 
     public static function shouldRegisterNavigation(): bool

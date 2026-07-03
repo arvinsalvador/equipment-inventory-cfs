@@ -41,6 +41,10 @@ use InvalidArgumentException;
     'reopened_at',
     'cancelled_at',
     'due_date',
+    'labor_cost',
+    'parts_cost',
+    'external_service_cost',
+    'total_cost',
     'remarks',
 ])]
 class WorkOrder extends Model
@@ -83,6 +87,13 @@ class WorkOrder extends Model
     {
         static::creating(function (WorkOrder $workOrder): void {
             $workOrder->work_order_number ??= self::makeWorkOrderNumber();
+            $workOrder->total_cost = $workOrder->calculateTotalCost();
+        });
+
+        static::saving(function (WorkOrder $workOrder): void {
+            if ($workOrder->isDirty(['labor_cost', 'parts_cost', 'external_service_cost'])) {
+                $workOrder->total_cost = $workOrder->calculateTotalCost();
+            }
         });
     }
 
@@ -112,6 +123,25 @@ class WorkOrder extends Model
     public static function priorityOptions(): array
     {
         return array_combine(self::PRIORITIES, self::PRIORITIES);
+    }
+
+    public function calculateTotalCost(): string
+    {
+        return number_format(
+            (float) ($this->labor_cost ?? 0)
+            + (float) ($this->parts_cost ?? 0)
+            + (float) ($this->external_service_cost ?? 0),
+            2,
+            '.',
+            ''
+        );
+    }
+
+    public function updateTotalCost(): self
+    {
+        $this->forceFill(['total_cost' => $this->calculateTotalCost()])->save();
+
+        return $this->refresh();
     }
 
     public function maintenanceRequest(): BelongsTo
@@ -572,6 +602,10 @@ class WorkOrder extends Model
             'reopened_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'due_date' => 'date',
+            'labor_cost' => 'decimal:2',
+            'parts_cost' => 'decimal:2',
+            'external_service_cost' => 'decimal:2',
+            'total_cost' => 'decimal:2',
         ];
     }
 }
