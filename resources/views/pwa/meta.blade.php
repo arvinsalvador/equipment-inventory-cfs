@@ -1,4 +1,5 @@
 <meta name="theme-color" content="#f59e0b">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AI Equipment">
@@ -8,3 +9,4 @@
 <link rel="apple-touch-icon" href="{{ asset('icons/pwa-icon.svg') }}">
 <link rel="stylesheet" href="{{ asset('pwa.css') }}">
 <script src="{{ asset('pwa.js') }}" defer></script>
+<script src="{{ asset('offline-sync.js') }}" defer></script>

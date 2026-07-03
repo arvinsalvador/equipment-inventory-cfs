@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OfflineSyncController;
 use App\Http\Controllers\ReportController;
 use App\Models\BrowserPushSubscription;
 use App\Models\Equipment;
@@ -115,4 +116,8 @@ Route::prefix('browser-push')->name('browser-push.')->group(function (): void {
 
         return response()->json(['status' => 'revoked']);
     })->name('subscriptions.destroy');
+});
+
+Route::middleware('auth')->prefix('offline-sync')->name('offline-sync.')->group(function (): void {
+    Route::post('/actions', [OfflineSyncController::class, 'store'])->name('actions.store');
 });

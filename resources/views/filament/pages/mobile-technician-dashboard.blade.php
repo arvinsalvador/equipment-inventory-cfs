@@ -29,6 +29,25 @@
             </div>
         </div>
 
+        <div class="grid gap-3 sm:grid-cols-4">
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <p class="text-xs font-semibold uppercase text-gray-500">Pending Offline Actions</p>
+                <p class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white" data-offline-pending-count>0</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <p class="text-xs font-semibold uppercase text-gray-500">Last Synchronization</p>
+                <p class="mt-2 text-sm font-semibold text-gray-950 dark:text-white" data-offline-last-sync>Never</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <p class="text-xs font-semibold uppercase text-gray-500">Drafts Saved Offline</p>
+                <p class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white" data-offline-draft-count>0</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <p class="text-xs font-semibold uppercase text-gray-500">Failed Synchronizations</p>
+                <p class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white" data-offline-failed-count>0</p>
+            </div>
+        </div>
+
         <x-filament::section>
             <x-slot name="heading">Assigned Work Orders</x-slot>
             <div class="space-y-3">
@@ -97,10 +116,14 @@
 
         <x-filament::section>
             <x-slot name="heading">Device Information</x-slot>
-            <div class="grid gap-3 sm:grid-cols-3">
+            <div class="grid gap-3 sm:grid-cols-4">
                 <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
                     <p class="text-xs font-semibold uppercase text-gray-500">Online/Offline</p>
                     <p class="mt-1 text-sm font-semibold" data-pwa-online-status>Checking</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Sync status</p>
+                    <p class="mt-1 text-sm font-semibold" data-offline-sync-status>Checking</p>
                 </div>
                 <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
                     <p class="text-xs font-semibold uppercase text-gray-500">Browser</p>
@@ -112,5 +135,7 @@
                 </div>
             </div>
         </x-filament::section>
+
+        @include('pwa.offline-workspace')
     </div>
 </x-filament-panels::page>

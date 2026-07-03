@@ -5,6 +5,7 @@ const SHELL_ASSETS = [
     '/manifest.webmanifest',
     '/pwa.css',
     '/pwa.js',
+    '/offline-sync.js',
     '/favicon.ico',
     '/icons/pwa-icon.svg',
     '/icons/pwa-maskable.svg',
