@@ -60,6 +60,20 @@ class SystemNotificationResource extends Resource
                     ->label('Read')
                     ->state(fn (SystemNotification $record): string => $record->isRead() ? 'Read' : 'Unread')
                     ->badge(),
+                TextColumn::make('email_status')
+                    ->label('Email')
+                    ->state(fn (SystemNotification $record): string => match (true) {
+                        $record->wasEmailed() => 'Sent',
+                        $record->emailFailed() => 'Failed',
+                        $record->email_delivery_attempts > 0 => 'Attempted',
+                        default => 'Not sent',
+                    })
+                    ->badge()
+                    ->toggleable(),
+                TextColumn::make('email_delivery_attempts')
+                    ->label('Email attempts')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('generated_at')
                     ->label('Generated')
                     ->dateTime()

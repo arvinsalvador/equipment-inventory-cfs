@@ -17,10 +17,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'warranty_alerts',
     'evidence_alerts',
     'system_alerts',
+    'email_notifications_enabled',
+    'immediate_critical_email_enabled',
+    'daily_digest_email_enabled',
+    'weekly_digest_email_enabled',
+    'digest_time',
+    'digest_day_of_week',
 ])]
 class UserNotificationPreference extends Model
 {
     use HasFactory;
+
+    public const DIGEST_DAYS = [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+    ];
 
     public const CATEGORY_COLUMNS = [
         'Preventive Maintenance' => 'maintenance_reminders',
@@ -45,6 +61,21 @@ class UserNotificationPreference extends Model
         return (bool) $this->{$column};
     }
 
+    public function wantsImmediateCriticalEmail(): bool
+    {
+        return $this->email_notifications_enabled && $this->immediate_critical_email_enabled;
+    }
+
+    public function wantsDailyDigestEmail(): bool
+    {
+        return $this->email_notifications_enabled && $this->daily_digest_email_enabled;
+    }
+
+    public function wantsWeeklyDigestEmail(): bool
+    {
+        return $this->email_notifications_enabled && $this->weekly_digest_email_enabled;
+    }
+
     protected function casts(): array
     {
         return [
@@ -56,6 +87,10 @@ class UserNotificationPreference extends Model
             'warranty_alerts' => 'boolean',
             'evidence_alerts' => 'boolean',
             'system_alerts' => 'boolean',
+            'email_notifications_enabled' => 'boolean',
+            'immediate_critical_email_enabled' => 'boolean',
+            'daily_digest_email_enabled' => 'boolean',
+            'weekly_digest_email_enabled' => 'boolean',
         ];
     }
 }

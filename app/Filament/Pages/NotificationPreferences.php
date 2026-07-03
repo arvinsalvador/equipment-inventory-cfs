@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\UserNotificationPreference;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Validation\Rule;
 
 class NotificationPreferences extends Page
 {
@@ -34,6 +35,18 @@ class NotificationPreferences extends Page
 
     public bool $system_alerts = true;
 
+    public bool $email_notifications_enabled = false;
+
+    public bool $immediate_critical_email_enabled = false;
+
+    public bool $daily_digest_email_enabled = false;
+
+    public bool $weekly_digest_email_enabled = false;
+
+    public ?string $digest_time = null;
+
+    public ?string $digest_day_of_week = null;
+
     public static function canAccess(): bool
     {
         return auth()->user()?->can('access admin panel') ?? false;
@@ -51,10 +64,22 @@ class NotificationPreferences extends Page
         foreach (array_values(UserNotificationPreference::CATEGORY_COLUMNS) as $field) {
             $this->{$field} = (bool) $preference->{$field};
         }
+
+        $this->email_notifications_enabled = (bool) $preference->email_notifications_enabled;
+        $this->immediate_critical_email_enabled = (bool) $preference->immediate_critical_email_enabled;
+        $this->daily_digest_email_enabled = (bool) $preference->daily_digest_email_enabled;
+        $this->weekly_digest_email_enabled = (bool) $preference->weekly_digest_email_enabled;
+        $this->digest_time = $preference->digest_time;
+        $this->digest_day_of_week = $preference->digest_day_of_week;
     }
 
     public function save(): void
     {
+        $this->validate([
+            'digest_time' => ['nullable', 'date_format:H:i'],
+            'digest_day_of_week' => ['nullable', Rule::in(UserNotificationPreference::DIGEST_DAYS)],
+        ]);
+
         auth()->user()->notificationPreference()->updateOrCreate([], [
             'maintenance_reminders' => $this->maintenance_reminders,
             'work_order_alerts' => $this->work_order_alerts,
@@ -64,6 +89,12 @@ class NotificationPreferences extends Page
             'warranty_alerts' => $this->warranty_alerts,
             'evidence_alerts' => $this->evidence_alerts,
             'system_alerts' => $this->system_alerts,
+            'email_notifications_enabled' => $this->email_notifications_enabled,
+            'immediate_critical_email_enabled' => $this->immediate_critical_email_enabled,
+            'daily_digest_email_enabled' => $this->daily_digest_email_enabled,
+            'weekly_digest_email_enabled' => $this->weekly_digest_email_enabled,
+            'digest_time' => $this->digest_time,
+            'digest_day_of_week' => $this->digest_day_of_week,
         ]);
 
         Notification::make()

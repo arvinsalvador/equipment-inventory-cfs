@@ -794,9 +794,44 @@ dev
 - Automatic scheduler/cron configuration
 - Notification digest emails
 
+## Phase 10B Status
+
+- Phase 10B status: Complete
+- Email notification preferences: Complete
+- Email delivery tracking fields: Complete
+- Critical notification mailable: Complete
+- Notification digest mailable: Complete
+- Notification email service: Complete
+- Optional critical email delivery flag: Complete
+- Daily digest command: Complete
+- Weekly digest command: Complete
+- Scheduler registration: Complete
+- Notification Center email status: Complete
+- Notification Preferences email section: Complete
+- Authorization: Complete
+- Tests added: Complete
+- Remaining risks: Email delivery requires proper MAIL_* environment configuration and production cron setup
+
+## Phase 10B Deferred Items
+
+- SMS notifications
+- Browser push notifications
+- Mobile push notifications
+- PWA notification integration
+- Real-time notification updates
+- Advanced notification templates
+
+## Production Scheduler Note
+
+To run scheduled notifications in production, configure the server cron:
+
+```bash
+* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
 ## Next Phase
 
-Phase 10B - Email and Scheduled Notification Delivery
+Phase 10C - Browser Push Notification Preparation
 
 ## Known Risks
 

@@ -21,6 +21,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'read_at',
     'generated_at',
     'expires_at',
+    'email_sent_at',
+    'email_failed_at',
+    'email_failure_reason',
+    'email_delivery_attempts',
     'metadata',
 ])]
 class SystemNotification extends Model
@@ -149,6 +153,16 @@ class SystemNotification extends Model
         return $this->expires_at !== null && $this->expires_at->lte(now());
     }
 
+    public function wasEmailed(): bool
+    {
+        return $this->email_sent_at !== null;
+    }
+
+    public function emailFailed(): bool
+    {
+        return $this->email_failed_at !== null && $this->email_sent_at === null;
+    }
+
     public function markAsRead(): self
     {
         $this->forceFill(['read_at' => now()])->save();
@@ -184,6 +198,9 @@ class SystemNotification extends Model
             'read_at' => 'datetime',
             'generated_at' => 'datetime',
             'expires_at' => 'datetime',
+            'email_sent_at' => 'datetime',
+            'email_failed_at' => 'datetime',
+            'email_delivery_attempts' => 'integer',
             'metadata' => 'array',
         ];
     }
