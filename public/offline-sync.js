@@ -6,6 +6,15 @@
     let syncInProgress = false;
     let lastSyncOutcome = null;
 
+    const hasOfflineSyncSurface = () => document.querySelector([
+        '[data-offline-form]',
+        '[data-offline-queue-list]',
+        '[data-offline-draft-list]',
+        '[data-offline-sync-status]',
+        '[data-offline-pending-count]',
+        '[data-offline-sync-now]',
+    ].join(', ')) !== null;
+
     const now = () => new Date().toISOString();
     const read = (key) => JSON.parse(localStorage.getItem(key) || '[]');
     const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
@@ -355,6 +364,10 @@
         }
     });
     document.addEventListener('DOMContentLoaded', () => {
+        if (!hasOfflineSyncSurface()) {
+            return;
+        }
+
         render();
         if (navigator.onLine) processQueue();
     });

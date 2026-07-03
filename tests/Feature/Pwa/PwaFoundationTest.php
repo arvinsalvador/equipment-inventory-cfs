@@ -68,6 +68,8 @@ class PwaFoundationTest extends TestCase
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
         $this->assertStringContainsString("'/login'", $serviceWorker);
         $this->assertStringContainsString("'/logout'", $serviceWorker);
+        $this->assertStringContainsString("request.method !== 'GET'", $serviceWorker);
+        $this->assertStringContainsString("fetch(request).catch(() => caches.match('/offline'))", $serviceWorker);
         $this->assertStringContainsString('isBlockedPath(url.pathname)', $serviceWorker);
         $this->assertStringNotContainsString("'/admin/login'", $serviceWorker);
         $this->assertStringNotContainsString("url.pathname === '/admin/login'", $serviceWorker);
@@ -78,6 +80,20 @@ class PwaFoundationTest extends TestCase
         $this->assertStringNotContainsString('/admin/work-orders', $serviceWorker);
     }
 
+    public function test_pwa_meta_does_not_globally_load_offline_sync_script(): void
+    {
+        $meta = file_get_contents(resource_path('views/pwa/meta.blade.php'));
+
+        $this->assertStringContainsString("asset('pwa.js')", $meta);
+        $this->assertStringNotContainsString('offline-sync.js', $meta);
+    }
+
+    public function test_pwa_scripts_do_not_replace_the_document_body(): void
+    {
+        $this->assertStringNotContainsString('document.body', file_get_contents(public_path('pwa.js')));
+        $this->assertStringNotContainsString('document.body', file_get_contents(public_path('offline-sync.js')));
+    }
+
     public function test_admin_login_returns_filament_login_page_not_offline_shell(): void
     {
         $this->get('/admin/login')
@@ -85,6 +101,12 @@ class PwaFoundationTest extends TestCase
             ->assertSee('AI Based Equipment Inventory and Maintenance')
             ->assertSee('manifest.webmanifest')
             ->assertDontSee('offline-sync.js')
+            ->assertDontSee('No Pending Actions')
+            ->assertDontSee('No pending offline actions.')
+            ->assertDontSee('Working Offline')
+            ->assertDontSee('Working offline.')
+            ->assertDontSee('Offline Workspace')
+            ->assertDontSee('data-offline-queue', false)
             ->assertDontSee('data-offline-sync-status', false)
             ->assertDontSee('data-offline-sync-message', false)
             ->assertDontSee('data-pwa-online-status', false)

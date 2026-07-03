@@ -87,6 +87,10 @@ class OfflineSyncTest extends TestCase
         $this->assertStringContainsString('queueItem', $script);
         $this->assertStringContainsString('saveDraft', $script);
         $this->assertStringContainsString('processQueue', $script);
+        $this->assertStringContainsString('hasOfflineSyncSurface', $script);
+        $this->assertStringContainsString('if (!hasOfflineSyncSurface())', $script);
+        $this->assertStringContainsString('[data-offline-form]', $script);
+        $this->assertStringContainsString('[data-offline-queue-list]', $script);
         $this->assertStringContainsString('data-offline-retry', $script);
         $this->assertStringContainsString('data-offline-remove', $script);
         $this->assertStringContainsString("existing.status === 'synced'", $script);
