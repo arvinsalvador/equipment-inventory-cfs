@@ -63,6 +63,49 @@
             </div>
         </x-filament::section>
 
+        <x-filament::section>
+            <x-slot name="heading">Browser Push Notifications</x-slot>
+
+            @php($browserPushReadiness = $this->browserPushReadiness())
+
+            <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200">
+                Browser push delivery will be enabled in a future PWA phase. These settings prepare your account for browser notifications.
+            </div>
+
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                @foreach ([
+                    'browser_push_enabled' => 'Enable browser push notifications',
+                    'critical_browser_push_enabled' => 'Critical alerts',
+                    'maintenance_browser_push_enabled' => 'Maintenance alerts',
+                    'work_order_browser_push_enabled' => 'Work order alerts',
+                    'ai_recommendation_browser_push_enabled' => 'AI recommendation alerts',
+                    'lifecycle_browser_push_enabled' => 'Lifecycle alerts',
+                    'warranty_browser_push_enabled' => 'Warranty alerts',
+                    'evidence_browser_push_enabled' => 'Evidence alerts',
+                ] as $field => $label)
+                    <label class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4 text-sm font-medium text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white">
+                        <span>{{ $label }}</span>
+                        <input type="checkbox" wire:model="{{ $field }}" class="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500">
+                    </label>
+                @endforeach
+            </div>
+
+            <div class="mt-4 grid gap-4 md:grid-cols-3">
+                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                    <div class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Enabled</div>
+                    <div class="mt-2 text-sm font-semibold text-gray-950 dark:text-white">{{ $browserPushReadiness['enabled'] ? 'Yes' : 'No' }}</div>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                    <div class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Active subscriptions</div>
+                    <div class="mt-2 text-sm font-semibold text-gray-950 dark:text-white">{{ $browserPushReadiness['active_subscriptions'] }}</div>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                    <div class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Readiness</div>
+                    <div class="mt-2 text-sm font-semibold text-gray-950 dark:text-white">{{ $browserPushReadiness['status'] }}</div>
+                </div>
+            </div>
+        </x-filament::section>
+
         <x-filament::button type="submit" icon="heroicon-o-check">
             Save Preferences
         </x-filament::button>

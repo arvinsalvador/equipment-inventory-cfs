@@ -23,6 +23,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'weekly_digest_email_enabled',
     'digest_time',
     'digest_day_of_week',
+    'browser_push_enabled',
+    'critical_browser_push_enabled',
+    'maintenance_browser_push_enabled',
+    'work_order_browser_push_enabled',
+    'ai_recommendation_browser_push_enabled',
+    'lifecycle_browser_push_enabled',
+    'warranty_browser_push_enabled',
+    'evidence_browser_push_enabled',
 ])]
 class UserNotificationPreference extends Model
 {
@@ -47,6 +55,17 @@ class UserNotificationPreference extends Model
         'Warranty' => 'warranty_alerts',
         'Evidence' => 'evidence_alerts',
         'System' => 'system_alerts',
+    ];
+
+    public const BROWSER_PUSH_CATEGORY_COLUMNS = [
+        'Preventive Maintenance' => 'maintenance_browser_push_enabled',
+        'Work Order' => 'work_order_browser_push_enabled',
+        'Maintenance Request' => 'maintenance_browser_push_enabled',
+        'AI Recommendation' => 'ai_recommendation_browser_push_enabled',
+        'Equipment Lifecycle' => 'lifecycle_browser_push_enabled',
+        'Warranty' => 'warranty_browser_push_enabled',
+        'Evidence' => 'evidence_browser_push_enabled',
+        'System' => 'critical_browser_push_enabled',
     ];
 
     public function user(): BelongsTo
@@ -76,6 +95,18 @@ class UserNotificationPreference extends Model
         return $this->email_notifications_enabled && $this->weekly_digest_email_enabled;
     }
 
+    public function wantsCriticalBrowserPush(): bool
+    {
+        return $this->browser_push_enabled && $this->critical_browser_push_enabled;
+    }
+
+    public function wantsBrowserPushCategory(string $category): bool
+    {
+        $column = self::BROWSER_PUSH_CATEGORY_COLUMNS[$category] ?? null;
+
+        return $this->browser_push_enabled && $column !== null && (bool) $this->{$column};
+    }
+
     protected function casts(): array
     {
         return [
@@ -91,6 +122,14 @@ class UserNotificationPreference extends Model
             'immediate_critical_email_enabled' => 'boolean',
             'daily_digest_email_enabled' => 'boolean',
             'weekly_digest_email_enabled' => 'boolean',
+            'browser_push_enabled' => 'boolean',
+            'critical_browser_push_enabled' => 'boolean',
+            'maintenance_browser_push_enabled' => 'boolean',
+            'work_order_browser_push_enabled' => 'boolean',
+            'ai_recommendation_browser_push_enabled' => 'boolean',
+            'lifecycle_browser_push_enabled' => 'boolean',
+            'warranty_browser_push_enabled' => 'boolean',
+            'evidence_browser_push_enabled' => 'boolean',
         ];
     }
 }

@@ -829,9 +829,43 @@ To run scheduled notifications in production, configure the server cron:
 * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
 ```
 
+## Phase 10C Status
+
+- Phase 10C status: Complete
+- Browser push subscription table: Complete
+- BrowserPushSubscription model: Complete
+- User browser push relationships: Complete
+- Browser push preference fields: Complete
+- Notification Preferences browser push section: Complete
+- Browser push preparation service: Complete
+- Browser push readiness status: Complete
+- Browser push subscription endpoints: Complete
+- Browser push device/subscription display: Complete
+- Authorization: Complete
+- Tests added: Complete
+- Remaining risks: Real browser push delivery is deferred until the PWA/service-worker phase
+
+## Phase 10C Deferred Items
+
+- Real browser push message delivery
+- Service worker push handling
+- VAPID key configuration
+- PWA install behavior
+- Push notification permission prompt
+- Mobile push notifications
+- SMS notifications
+
+## Phase 10 Complete Status
+
+- In-app notifications: Complete
+- Email notification foundation: Complete
+- Scheduled notification delivery: Complete
+- Browser push preparation: Complete
+- Phase 10 status: Complete
+
 ## Next Phase
 
-Phase 10C - Browser Push Notification Preparation
+Phase 11A - Progressive Web App Foundation
 
 ## Known Risks
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\UserNotificationPreference;
+use App\Services\BrowserPushPreparationService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Validation\Rule;
@@ -47,6 +48,22 @@ class NotificationPreferences extends Page
 
     public ?string $digest_day_of_week = null;
 
+    public bool $browser_push_enabled = false;
+
+    public bool $critical_browser_push_enabled = false;
+
+    public bool $maintenance_browser_push_enabled = false;
+
+    public bool $work_order_browser_push_enabled = false;
+
+    public bool $ai_recommendation_browser_push_enabled = false;
+
+    public bool $lifecycle_browser_push_enabled = false;
+
+    public bool $warranty_browser_push_enabled = false;
+
+    public bool $evidence_browser_push_enabled = false;
+
     public static function canAccess(): bool
     {
         return auth()->user()?->can('access admin panel') ?? false;
@@ -71,6 +88,14 @@ class NotificationPreferences extends Page
         $this->weekly_digest_email_enabled = (bool) $preference->weekly_digest_email_enabled;
         $this->digest_time = $preference->digest_time;
         $this->digest_day_of_week = $preference->digest_day_of_week;
+        $this->browser_push_enabled = (bool) $preference->browser_push_enabled;
+        $this->critical_browser_push_enabled = (bool) $preference->critical_browser_push_enabled;
+        $this->maintenance_browser_push_enabled = (bool) $preference->maintenance_browser_push_enabled;
+        $this->work_order_browser_push_enabled = (bool) $preference->work_order_browser_push_enabled;
+        $this->ai_recommendation_browser_push_enabled = (bool) $preference->ai_recommendation_browser_push_enabled;
+        $this->lifecycle_browser_push_enabled = (bool) $preference->lifecycle_browser_push_enabled;
+        $this->warranty_browser_push_enabled = (bool) $preference->warranty_browser_push_enabled;
+        $this->evidence_browser_push_enabled = (bool) $preference->evidence_browser_push_enabled;
     }
 
     public function save(): void
@@ -95,6 +120,14 @@ class NotificationPreferences extends Page
             'weekly_digest_email_enabled' => $this->weekly_digest_email_enabled,
             'digest_time' => $this->digest_time,
             'digest_day_of_week' => $this->digest_day_of_week,
+            'browser_push_enabled' => $this->browser_push_enabled,
+            'critical_browser_push_enabled' => $this->critical_browser_push_enabled,
+            'maintenance_browser_push_enabled' => $this->maintenance_browser_push_enabled,
+            'work_order_browser_push_enabled' => $this->work_order_browser_push_enabled,
+            'ai_recommendation_browser_push_enabled' => $this->ai_recommendation_browser_push_enabled,
+            'lifecycle_browser_push_enabled' => $this->lifecycle_browser_push_enabled,
+            'warranty_browser_push_enabled' => $this->warranty_browser_push_enabled,
+            'evidence_browser_push_enabled' => $this->evidence_browser_push_enabled,
         ]);
 
         Notification::make()
@@ -106,5 +139,13 @@ class NotificationPreferences extends Page
     public function getTitle(): string
     {
         return 'Notification Preferences';
+    }
+
+    /**
+     * @return array{enabled:bool,active_subscriptions:int,ready:bool,status:string}
+     */
+    public function browserPushReadiness(): array
+    {
+        return app(BrowserPushPreparationService::class)->getReadinessForUser(auth()->user());
     }
 }

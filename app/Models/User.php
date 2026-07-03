@@ -37,6 +37,16 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(UserNotificationPreference::class);
     }
 
+    public function browserPushSubscriptions(): HasMany
+    {
+        return $this->hasMany(BrowserPushSubscription::class);
+    }
+
+    public function activeBrowserPushSubscriptions(): HasMany
+    {
+        return $this->hasMany(BrowserPushSubscription::class)->active();
+    }
+
     public function wantsNotificationCategory(string $category): bool
     {
         $preference = $this->notificationPreference;
