@@ -57,11 +57,40 @@ class PwaFoundationTest extends TestCase
 
         $serviceWorker = file_get_contents($path);
 
+        $this->assertStringContainsString("const CACHE_NAME = 'ai-equipment-pwa-v2'", $serviceWorker);
         $this->assertStringContainsString('/offline', $serviceWorker);
         $this->assertStringContainsString('/manifest.webmanifest', $serviceWorker);
+        $this->assertStringContainsString('/pwa.css', $serviceWorker);
+        $this->assertStringContainsString('/pwa.js', $serviceWorker);
         $this->assertStringContainsString("request.mode === 'navigate'", $serviceWorker);
+        $this->assertStringContainsString("'/admin'", $serviceWorker);
+        $this->assertStringContainsString("'/filament'", $serviceWorker);
+        $this->assertStringContainsString("'/livewire'", $serviceWorker);
+        $this->assertStringContainsString("'/login'", $serviceWorker);
+        $this->assertStringContainsString("'/logout'", $serviceWorker);
+        $this->assertStringContainsString('isBlockedPath(url.pathname)', $serviceWorker);
+        $this->assertStringNotContainsString("'/admin/login'", $serviceWorker);
+        $this->assertStringNotContainsString("url.pathname === '/admin/login'", $serviceWorker);
+        $this->assertStringNotContainsString("'/offline-sync.js'", $serviceWorker);
+        $this->assertStringNotContainsString("'/favicon.ico'", $serviceWorker);
+        $this->assertStringNotContainsString("url.pathname.startsWith('/build/')", $serviceWorker);
         $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
         $this->assertStringNotContainsString('/admin/work-orders', $serviceWorker);
+    }
+
+    public function test_admin_login_returns_filament_login_page_not_offline_shell(): void
+    {
+        $this->get('/admin/login')
+            ->assertOk()
+            ->assertSee('AI Based Equipment Inventory and Maintenance')
+            ->assertSee('manifest.webmanifest')
+            ->assertDontSee('offline-sync.js')
+            ->assertDontSee('data-offline-sync-status', false)
+            ->assertDontSee('data-offline-sync-message', false)
+            ->assertDontSee('data-pwa-online-status', false)
+            ->assertDontSee('Offline Mode')
+            ->assertDontSee('Internet connection unavailable.')
+            ->assertDontSee('Some features require reconnecting.');
     }
 
     public function test_offline_page_renders_required_copy(): void
@@ -73,6 +102,15 @@ class PwaFoundationTest extends TestCase
             ->assertSee('Some features require reconnecting.');
     }
 
+    public function test_public_pwa_assets_are_available(): void
+    {
+        $this->assertFileExists(public_path('manifest.webmanifest'));
+        $this->assertFileExists(public_path('pwa.css'));
+        $this->assertFileExists(public_path('pwa.js'));
+        $this->assertFileExists(public_path('icons/pwa-icon.svg'));
+        $this->assertFileExists(public_path('icons/pwa-maskable.svg'));
+    }
+
     public function test_pwa_install_prompt_bottom_nav_and_qr_shortcut_render_for_authenticated_filament_pages(): void
     {
         $this->actingAs($this->technician)
@@ -82,7 +120,13 @@ class PwaFoundationTest extends TestCase
             ->assertSee('Install App')
             ->assertSee('Mobile technician navigation')
             ->assertSee('Scan QR')
-            ->assertSee('data-pwa-qr-link', false);
+            ->assertSee('data-pwa-qr-link', false)
+            ->assertDontSee('offline-sync.js')
+            ->assertDontSee('No pending offline actions.')
+            ->assertDontSee('No Pending Actions')
+            ->assertDontSee('data-offline-sync-status', false)
+            ->assertDontSee('data-offline-sync-message', false)
+            ->assertDontSee('data-pwa-online-status', false);
     }
 
     public function test_qr_scanner_page_renders_camera_readiness_and_pwa_assets(): void

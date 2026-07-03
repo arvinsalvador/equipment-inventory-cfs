@@ -17,8 +17,22 @@
         </x-filament::section>
 
         <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" data-offline-banner hidden>
-            <strong>Working Offline</strong>
-            <span class="ms-1">Changes will be synchronized automatically.</span>
+            <strong>Working offline.</strong>
+            <span class="ms-1">Changes will sync when connection returns.</span>
+        </div>
+
+        <div class="pwa-offline-sync-summary rounded-lg border border-gray-200 bg-white p-4 text-sm dark:border-gray-800 dark:bg-gray-900">
+            <div>
+                <p class="text-xs font-semibold uppercase text-gray-500">Queue status</p>
+                <p class="mt-1 font-semibold text-gray-950 dark:text-white" data-offline-sync-message>No pending offline actions.</p>
+            </div>
+            <div class="pwa-offline-sync-summary-grid">
+                <p>Connection: <strong data-pwa-online-status>Checking</strong></p>
+                <p>Status: <strong data-offline-sync-status>Checking</strong></p>
+                <p>Pending Offline Actions: <strong data-offline-pending-count>0</strong></p>
+                <p>Failed Syncs: <strong data-offline-failed-count>0</strong></p>
+                <p>Last Sync: <strong data-offline-last-sync>Never</strong></p>
+            </div>
         </div>
 
         <div class="grid gap-3 sm:grid-cols-4">
@@ -50,6 +64,7 @@
                 <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
                     <p class="text-xs font-semibold uppercase text-gray-500">Sync status</p>
                     <p class="mt-1 text-sm font-semibold" data-offline-sync-status>Checking</p>
+                    <p class="mt-1 text-xs text-gray-500" data-offline-sync-message>No pending offline actions.</p>
                 </div>
                 <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
                     <p class="text-xs font-semibold uppercase text-gray-500">Last Synchronization</p>
@@ -78,4 +93,6 @@
             <div class="space-y-3" data-offline-draft-list></div>
         </x-filament::section>
     </div>
+
+    <script src="{{ asset('offline-sync.js') }}" defer></script>
 </x-filament-panels::page>

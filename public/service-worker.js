@@ -1,33 +1,29 @@
-const CACHE_NAME = 'ai-equipment-pwa-v1';
+const CACHE_NAME = 'ai-equipment-pwa-v2';
 const SHELL_ASSETS = [
-    '/',
     '/offline',
     '/manifest.webmanifest',
     '/pwa.css',
     '/pwa.js',
-    '/offline-sync.js',
-    '/favicon.ico',
     '/icons/pwa-icon.svg',
     '/icons/pwa-maskable.svg',
 ];
 
-const isStaticAsset = (request) => {
-    const url = new URL(request.url);
+const NEVER_INTERCEPT_PATHS = [
+    '/admin',
+    '/filament',
+    '/livewire',
+    '/login',
+    '/logout',
+    '/offline-sync',
+    '/browser-push',
+];
 
-    return url.origin === self.location.origin
-        && request.method === 'GET'
-        && (
-            url.pathname.startsWith('/build/')
-            || url.pathname.startsWith('/css/')
-            || url.pathname.startsWith('/js/')
-            || url.pathname.startsWith('/icons/')
-            || url.pathname.endsWith('.css')
-            || url.pathname.endsWith('.js')
-            || url.pathname.endsWith('.svg')
-            || url.pathname.endsWith('.ico')
-            || url.pathname === '/manifest.webmanifest'
-        );
-};
+const isBlockedPath = (pathname) => NEVER_INTERCEPT_PATHS
+    .some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
+const isShellAsset = (pathname) => SHELL_ASSETS.includes(pathname) || pathname.startsWith('/icons/');
+
+const isSafePublicNavigation = (pathname) => pathname === '/' || pathname === '/offline';
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
@@ -53,7 +49,11 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    if (url.pathname === '/offline' || isStaticAsset(request)) {
+    if (isBlockedPath(url.pathname)) {
+        return;
+    }
+
+    if (isShellAsset(url.pathname)) {
         event.respondWith(
             caches.match(request).then((cached) => cached || fetch(request).then((response) => {
                 const copy = response.clone();
@@ -66,7 +66,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    if (request.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/admin/login')) {
+    if (request.mode === 'navigate' && isSafePublicNavigation(url.pathname)) {
         event.respondWith(
             fetch(request).catch(() => caches.match('/offline')),
         );

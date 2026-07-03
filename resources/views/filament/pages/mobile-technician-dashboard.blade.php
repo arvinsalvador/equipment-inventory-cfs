@@ -48,6 +48,25 @@
             </div>
         </div>
 
+        <div class="pwa-offline-sync-summary rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div>
+                <p class="text-xs font-semibold uppercase text-gray-500">Offline sync</p>
+                <p class="mt-1 font-semibold text-gray-950 dark:text-white" data-offline-sync-message>No pending offline actions.</p>
+            </div>
+            <div class="pwa-offline-sync-summary-grid">
+                <p>Connection: <strong data-pwa-online-status>Checking</strong></p>
+                <p>Status: <strong data-offline-sync-status>Checking</strong></p>
+                <p>Pending Offline Actions: <strong data-offline-pending-count>0</strong></p>
+                <p>Failed Syncs: <strong data-offline-failed-count>0</strong></p>
+                <p>Last Sync: <strong data-offline-last-sync>Never</strong></p>
+            </div>
+            <div>
+                <x-filament::button type="button" data-offline-sync-now icon="heroicon-o-arrow-path" color="gray">
+                    Sync Now
+                </x-filament::button>
+            </div>
+        </div>
+
         <x-filament::section>
             <x-slot name="heading">Assigned Work Orders</x-slot>
             <div class="space-y-3">
@@ -124,6 +143,7 @@
                 <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
                     <p class="text-xs font-semibold uppercase text-gray-500">Sync status</p>
                     <p class="mt-1 text-sm font-semibold" data-offline-sync-status>Checking</p>
+                    <p class="mt-1 text-xs text-gray-500" data-offline-sync-message>No pending offline actions.</p>
                 </div>
                 <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
                     <p class="text-xs font-semibold uppercase text-gray-500">Browser</p>
@@ -138,4 +158,6 @@
 
         @include('pwa.offline-workspace')
     </div>
+
+    <script src="{{ asset('offline-sync.js') }}" defer></script>
 </x-filament-panels::page>

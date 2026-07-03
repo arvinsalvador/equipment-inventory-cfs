@@ -4,6 +4,7 @@
     const lastSyncKey = 'ai-equipment-offline-last-sync';
     const syncUrl = '/offline-sync/actions';
     let syncInProgress = false;
+    let lastSyncOutcome = null;
 
     const now = () => new Date().toISOString();
     const read = (key) => JSON.parse(localStorage.getItem(key) || '[]');
@@ -56,9 +57,17 @@
         });
     };
 
-    const syncStatus = (status) => {
+    const syncStatus = (status, message = null) => {
         setText('[data-offline-sync-status]', status);
+        if (message) {
+            setText('[data-offline-sync-message]', message);
+        }
         document.documentElement.dataset.offlineSyncStatus = status.toLowerCase().replace(/\s+/g, '-');
+    };
+
+    const updateConnectionStatus = () => {
+        setText('[data-pwa-online-status]', navigator.onLine ? 'Online' : 'Offline');
+        document.documentElement.dataset.offlineConnectionStatus = navigator.onLine ? 'online' : 'offline';
     };
 
     const counts = () => {
@@ -96,7 +105,7 @@
 
         queue.push(item);
         setQueue(queue);
-        syncStatus(navigator.onLine ? 'Pending Synchronization' : 'Offline');
+        lastSyncOutcome = null;
 
         if (navigator.onLine) {
             processQueue();
@@ -119,21 +128,24 @@
         const drafts = getDrafts();
         drafts.push(draft);
         setDrafts(drafts);
-        syncStatus('Saved Offline');
+        syncStatus('Saved Offline', 'Draft saved locally. Queue it when ready to synchronize.');
 
         return draft;
     };
 
     const processQueue = async () => {
         if (syncInProgress || !navigator.onLine) {
-            syncStatus(navigator.onLine ? 'Pending Synchronization' : 'Offline');
+            lastSyncOutcome = null;
+            render();
             return;
         }
 
         syncInProgress = true;
-        syncStatus('Synchronizing');
+        lastSyncOutcome = null;
+        syncStatus('Synchronizing', 'Synchronizing offline actions.');
 
         const queue = getQueue();
+        let attempted = false;
 
         for (const item of queue) {
             if (!['pending', 'failed'].includes(item.status)) {
@@ -141,6 +153,7 @@
             }
 
             try {
+                attempted = true;
                 item.attempts += 1;
                 item.updated_at = now();
 
@@ -164,6 +177,7 @@
                 if (response.status === 409) {
                     item.status = 'failed';
                     item.error = body.message || 'Server version changed. Please review before resubmitting.';
+                    setQueue(queue);
                     continue;
                 }
 
@@ -184,9 +198,12 @@
             setQueue(queue);
         }
 
-        localStorage.setItem(lastSyncKey, now());
+        if (attempted) {
+            localStorage.setItem(lastSyncKey, now());
+        }
+
         syncInProgress = false;
-        syncStatus(getQueue().some((item) => item.status === 'failed') ? 'Sync Failed' : 'Sync Complete');
+        lastSyncOutcome = getQueue().some((item) => item.status === 'failed') ? 'failed' : (attempted ? 'complete' : null);
         render();
     };
 
@@ -243,11 +260,13 @@
         const currentCounts = counts();
         const lastSync = localStorage.getItem(lastSyncKey);
 
+        updateConnectionStatus();
         setText('[data-offline-pending-count]', String(currentCounts.pending));
         setText('[data-offline-failed-count]', String(currentCounts.failed));
         setText('[data-offline-synced-count]', String(currentCounts.synced));
         setText('[data-offline-draft-count]', String(currentCounts.drafts));
         setText('[data-offline-last-sync]', lastSync ? new Date(lastSync).toLocaleString() : 'Never');
+        setText('[data-offline-last-sync-short]', lastSync ? new Date(lastSync).toLocaleString() : 'Never');
 
         document.querySelectorAll('[data-offline-banner]').forEach((element) => {
             element.hidden = navigator.onLine;
@@ -256,7 +275,8 @@
         document.querySelectorAll('[data-offline-queue-list]').forEach((element) => {
             const filter = element.dataset.offlineFilter || 'pending';
             const items = getQueue().filter((item) => item.status === filter);
-            element.innerHTML = items.length ? items.map(actionRow).join('') : '<p class="pwa-offline-empty">No records.</p>';
+            const emptyText = filter === 'pending' ? 'No pending offline actions.' : 'No records.';
+            element.innerHTML = items.length ? items.map(actionRow).join('') : `<p class="pwa-offline-empty">${emptyText}</p>`;
         });
 
         document.querySelectorAll('[data-offline-draft-list]').forEach((element) => {
@@ -265,7 +285,17 @@
         });
 
         if (!syncInProgress) {
-            syncStatus(navigator.onLine ? (currentCounts.failed ? 'Sync Failed' : 'Online') : 'Offline');
+            if (!navigator.onLine) {
+                syncStatus('Offline', 'Working offline. Changes will sync when connection returns.');
+            } else if (currentCounts.failed > 0 || lastSyncOutcome === 'failed') {
+                syncStatus('Sync Failed', `${currentCounts.failed || 1} offline action${(currentCounts.failed || 1) === 1 ? '' : 's'} failed to synchronize.`);
+            } else if (lastSyncOutcome === 'complete') {
+                syncStatus('Sync Complete', 'All offline actions synchronized.');
+            } else if (currentCounts.pending > 0) {
+                syncStatus('Pending Synchronization', 'Online — pending actions ready to sync.');
+            } else {
+                syncStatus('No Pending Actions', 'No pending offline actions.');
+            }
         }
     };
 
@@ -314,8 +344,16 @@
         if (syncNow) processQueue();
     });
 
-    window.addEventListener('online', processQueue);
+    window.addEventListener('online', () => {
+        render();
+        processQueue();
+    });
     window.addEventListener('offline', render);
+    window.addEventListener('storage', (event) => {
+        if ([queueKey, draftKey, lastSyncKey].includes(event.key)) {
+            render();
+        }
+    });
     document.addEventListener('DOMContentLoaded', () => {
         render();
         if (navigator.onLine) processQueue();

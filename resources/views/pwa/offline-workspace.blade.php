@@ -2,8 +2,21 @@
     <x-slot name="heading">Offline Forms</x-slot>
 
     <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" data-offline-banner hidden>
-        <strong>Working Offline</strong>
-        <span class="ms-1">Changes will be synchronized automatically.</span>
+        <strong>Working offline.</strong>
+        <span class="ms-1">Changes will sync when connection returns.</span>
+    </div>
+
+    <div class="pwa-offline-sync-summary mt-4">
+        <div>
+            <p>Connection: <strong data-pwa-online-status>Checking</strong></p>
+            <p>Pending Offline Actions: <strong data-offline-pending-count>0</strong></p>
+            <p>Failed Syncs: <strong data-offline-failed-count>0</strong></p>
+            <p>Last Sync: <strong data-offline-last-sync>Never</strong></p>
+        </div>
+        <div>
+            <p>Sync status: <strong data-offline-sync-status>Checking</strong></p>
+            <p data-offline-sync-message>No pending offline actions.</p>
+        </div>
     </div>
 
     <div class="mt-4 grid gap-4 xl:grid-cols-2">

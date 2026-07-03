@@ -9,4 +9,3 @@
 <link rel="apple-touch-icon" href="{{ asset('icons/pwa-icon.svg') }}">
 <link rel="stylesheet" href="{{ asset('pwa.css') }}">
 <script src="{{ asset('pwa.js') }}" defer></script>
-<script src="{{ asset('offline-sync.js') }}" defer></script>

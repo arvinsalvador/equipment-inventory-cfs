@@ -894,6 +894,7 @@ Phase 11B - Offline Data Capture & Synchronization
 ## Phase 11B Status
 
 - Phase 11B status: Complete
+- Phase 11A/11B PWA service worker admin-route interception bug fixed.
 - Offline queue complete
 - Draft storage complete
 - Synchronization manager complete

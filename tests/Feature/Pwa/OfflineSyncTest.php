@@ -51,7 +51,15 @@ class OfflineSyncTest extends TestCase
             ->assertSee('Successfully synchronized')
             ->assertSee('Local drafts')
             ->assertSee('Retry Sync')
-            ->assertSee('Working Offline');
+            ->assertSee('Working offline.')
+            ->assertSee('Changes will sync when connection returns.')
+            ->assertSee('No pending offline actions.')
+            ->assertSee('Connection:')
+            ->assertSee('Pending Offline Actions:')
+            ->assertSee('Failed Syncs:')
+            ->assertSee('Last Sync:')
+            ->assertSee('offline-sync.js')
+            ->assertSee('data-offline-sync-message', false);
 
         $this->actingAs($this->technician)
             ->get('/admin/mobile-technician-dashboard')
@@ -61,7 +69,14 @@ class OfflineSyncTest extends TestCase
             ->assertSee('Drafts Saved Offline')
             ->assertSee('Failed Synchronizations')
             ->assertSee('Offline Forms')
-            ->assertSee('Working Offline')
+            ->assertSee('Working offline.')
+            ->assertSee('Changes will sync when connection returns.')
+            ->assertSee('No pending offline actions.')
+            ->assertSee('Connection:')
+            ->assertSee('Pending Offline Actions:')
+            ->assertSee('Failed Syncs:')
+            ->assertSee('Last Sync:')
+            ->assertSee('offline-sync.js')
             ->assertSee('data-offline-form', false);
     }
 
@@ -79,13 +94,25 @@ class OfflineSyncTest extends TestCase
         $this->assertStringContainsString('Pending Synchronization', $script);
         $this->assertStringContainsString('Sync Complete', $script);
         $this->assertStringContainsString('Sync Failed', $script);
+        $this->assertStringContainsString('Working offline. Changes will sync when connection returns.', $script);
+        $this->assertStringContainsString('Online — pending actions ready to sync.', $script);
+        $this->assertStringContainsString('All offline actions synchronized.', $script);
+        $this->assertStringContainsString('No pending offline actions.', $script);
+        $this->assertStringContainsString('No Pending Actions', $script);
+        $this->assertStringContainsString('data-offline-last-sync-short', $script);
+        $this->assertStringContainsString('window.addEventListener(\'storage\'', $script);
+        $this->assertStringContainsString('data-offline-sync-message', $script);
     }
 
-    public function test_service_worker_caches_offline_sync_asset_without_caching_authenticated_pages(): void
+    public function test_service_worker_does_not_cache_offline_sync_or_authenticated_pages(): void
     {
         $serviceWorker = file_get_contents(public_path('service-worker.js'));
 
-        $this->assertStringContainsString('/offline-sync.js', $serviceWorker);
+        $this->assertStringNotContainsString("'/offline-sync.js'", $serviceWorker);
+        $this->assertStringContainsString("'/offline-sync'", $serviceWorker);
+        $this->assertStringContainsString("'/admin'", $serviceWorker);
+        $this->assertStringContainsString("'/livewire'", $serviceWorker);
+        $this->assertStringContainsString("'/filament'", $serviceWorker);
         $this->assertStringNotContainsString('/admin/offline-queue', $serviceWorker);
         $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
     }
