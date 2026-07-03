@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Equipment Lookup</title>
+    @include('pwa.meta')
     <style>
         body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #111827; }
         main { max-width: 960px; margin: 0 auto; padding: 24px; }
@@ -139,5 +140,6 @@
         </section>
     @endif
 </main>
+@include('pwa.mobile-shell')
 </body>
 </html>

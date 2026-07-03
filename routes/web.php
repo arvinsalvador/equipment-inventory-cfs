@@ -12,6 +12,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/offline', function () {
+    return view('pwa.offline');
+})->name('pwa.offline');
+
 Route::get('/equipment/lookup/{qr_identifier}', function (string $qrIdentifier) {
     if (! auth()->check()) {
         return redirect('/admin/login');

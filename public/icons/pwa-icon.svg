@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AI Equipment">
+  <rect width="512" height="512" rx="96" fill="#111827"/>
+  <path d="M128 168h256v176H128z" fill="#f59e0b"/>
+  <path d="M168 208h176v96H168z" fill="#111827"/>
+  <path d="M196 236h120v16H196zm0 36h76v16h-76z" fill="#f8fafc"/>
+  <circle cx="152" cy="384" r="28" fill="#f59e0b"/>
+  <circle cx="360" cy="384" r="28" fill="#f59e0b"/>
+  <path d="M208 120h96v32h-96z" fill="#f8fafc"/>
+</svg>

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Scan Equipment</title>
+    @include('pwa.meta')
     <style>
         body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #111827; }
         main { max-width: 780px; margin: 0 auto; padding: 24px; }
@@ -24,7 +25,7 @@
         <h1>Scan Equipment</h1>
         <p class="hint">Allow camera access and point the rear camera at an equipment QR code. Camera scanning requires HTTPS or localhost in most browsers. You can also enter a QR identifier manually.</p>
         <video id="scanner-preview" playsinline muted></video>
-        <p id="scanner-message" class="error"></p>
+        <p id="scanner-message" class="error" data-pwa-camera-status></p>
         <button id="start-scanner" type="button">Start camera scanner</button>
 
         <form method="POST" action="{{ route('equipment.scan.manual') }}">
@@ -35,6 +36,7 @@
         </form>
     </section>
 </main>
+@include('pwa.mobile-shell')
 <script>
 (() => {
     const startButton = document.getElementById('start-scanner');
