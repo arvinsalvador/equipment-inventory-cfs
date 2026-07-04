@@ -135,6 +135,11 @@ class NotificationEmailService
                 'email_failure_reason' => null,
             ])->save();
 
+            app(AuditLogService::class)->log('email_sent', 'Notification', "Notification email sent for {$notification->title}.", auth()->user(), $notification, null, [
+                'recipient_id' => $recipient->id,
+                'recipient_email' => $recipient->email,
+            ]);
+
             return true;
         } catch (Throwable $exception) {
             $this->lastSendFailed = true;

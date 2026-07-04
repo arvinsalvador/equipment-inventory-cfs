@@ -9,6 +9,7 @@ use App\Filament\Resources\MaintenanceSchedules\Pages\ViewMaintenanceSchedule;
 use App\Models\Equipment;
 use App\Models\MaintenanceSchedule;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -251,6 +252,7 @@ class MaintenanceScheduleResource extends Resource
             ->action(function (MaintenanceSchedule $record, array $data): void {
                 try {
                     $record->complete(auth()->user(), $data['completion_remarks'] ?? null);
+                    app(AuditLogService::class)->log('completed', 'Maintenance Schedule', "Maintenance schedule #{$record->id} completed.", auth()->user(), $record);
 
                     Notification::make()
                         ->title('Maintenance schedule completed')
@@ -282,6 +284,9 @@ class MaintenanceScheduleResource extends Resource
             ->action(function (MaintenanceSchedule $record, array $data): void {
                 try {
                     $record->reschedule($data['scheduled_date'], $data['remarks'] ?? null);
+                    app(AuditLogService::class)->log('rescheduled', 'Maintenance Schedule', "Maintenance schedule #{$record->id} rescheduled.", auth()->user(), $record, null, [
+                        'scheduled_date' => $record->scheduled_date?->toDateString(),
+                    ]);
 
                     Notification::make()
                         ->title('Maintenance schedule rescheduled')
@@ -313,6 +318,7 @@ class MaintenanceScheduleResource extends Resource
             ->action(function (MaintenanceSchedule $record, array $data): void {
                 try {
                     $record->cancel($data['cancellation_reason'] ?? '', auth()->user());
+                    app(AuditLogService::class)->log('cancelled', 'Maintenance Schedule', "Maintenance schedule #{$record->id} cancelled.", auth()->user(), $record);
 
                     Notification::make()
                         ->title('Maintenance schedule cancelled')

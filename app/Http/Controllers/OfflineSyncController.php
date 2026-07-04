@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Equipment;
 use App\Models\MaintenanceRequest;
 use App\Models\WorkOrder;
+use App\Services\AuditLogService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,8 @@ use Illuminate\Validation\Rule;
 
 class OfflineSyncController extends Controller
 {
+    public function __construct(private readonly AuditLogService $auditLogService) {}
+
     public function store(Request $request): JsonResponse
     {
         abort_unless($request->user() !== null, 401);
@@ -32,7 +35,7 @@ class OfflineSyncController extends Controller
             'base_updated_at' => ['nullable', 'date'],
         ]);
 
-        return match ($data['type']) {
+        $response = match ($data['type']) {
             'maintenance_request.create' => $this->syncMaintenanceRequest($request, $data),
             'work_order.completion_update' => $this->syncWorkOrderCompletion($request, $data),
             'evidence.metadata' => $this->syncEvidenceMetadata($request, $data),
@@ -40,6 +43,13 @@ class OfflineSyncController extends Controller
             'maintenance_note.create', 'inspection_note.create' => $this->syncWorkOrderNote($request, $data),
             'equipment_note.create' => $this->syncEquipmentNote($request, $data),
         };
+
+        $this->auditLogService->log('submitted', 'PWA Offline Sync', "Offline sync action {$data['type']} submitted.", $request->user(), metadata: [
+            'client_id' => $data['client_id'],
+            'type' => $data['type'],
+        ]);
+
+        return $response;
     }
 
     /**
@@ -216,6 +226,11 @@ class OfflineSyncController extends Controller
         }
 
         if ($record->updated_at->greaterThan(Carbon::parse($baseUpdatedAt)->addSecond())) {
+            $this->auditLogService->log('conflict_detected', 'PWA Offline Sync', 'Offline sync conflict detected.', request()->user(), $record, metadata: [
+                'base_updated_at' => $baseUpdatedAt,
+                'server_updated_at' => $record->updated_at?->toDateTimeString(),
+            ]);
+
             abort(response()->json([
                 'status' => 'conflict',
                 'message' => 'Server version changed. Please review before resubmitting.',

@@ -8,6 +8,7 @@ use App\Filament\Resources\MaintenanceRequests\Pages\ListMaintenanceRequests;
 use App\Filament\Resources\MaintenanceRequests\Pages\ViewMaintenanceRequest;
 use App\Models\Equipment;
 use App\Models\MaintenanceRequest;
+use App\Services\AuditLogService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -171,6 +172,7 @@ class MaintenanceRequestResource extends Resource
             ->action(function (MaintenanceRequest $record, array $data): void {
                 try {
                     $record->approve(auth()->user(), $data['review_remarks'] ?? null);
+                    app(AuditLogService::class)->logApproval('Maintenance Request', "Maintenance request {$record->request_number} approved.", auth()->user(), $record);
 
                     Notification::make()
                         ->title('Maintenance request approved')
@@ -198,6 +200,7 @@ class MaintenanceRequestResource extends Resource
             ->action(function (MaintenanceRequest $record, array $data): void {
                 try {
                     $record->reject($data['rejection_reason'] ?? '', auth()->user());
+                    app(AuditLogService::class)->log('rejected', 'Maintenance Request', "Maintenance request {$record->request_number} rejected.", auth()->user(), $record);
 
                     Notification::make()
                         ->title('Maintenance request rejected')
@@ -220,7 +223,10 @@ class MaintenanceRequestResource extends Resource
                 && (auth()->user()?->can('convert', $record) ?? false))
             ->action(function (MaintenanceRequest $record): void {
                 try {
-                    $record->createWorkOrder(auth()->user());
+                    $workOrder = $record->createWorkOrder(auth()->user());
+                    app(AuditLogService::class)->log('converted', 'Maintenance Request', "Maintenance request {$record->request_number} converted to work order {$workOrder->work_order_number}.", auth()->user(), $record, null, null, [
+                        'work_order_id' => $workOrder->id,
+                    ]);
 
                     Notification::make()
                         ->title('Work order created')
@@ -249,6 +255,7 @@ class MaintenanceRequestResource extends Resource
             ->action(function (MaintenanceRequest $record, array $data): void {
                 try {
                     $record->cancel($data['remarks'] ?? null);
+                    app(AuditLogService::class)->log('cancelled', 'Maintenance Request', "Maintenance request {$record->request_number} cancelled.", auth()->user(), $record);
 
                     Notification::make()
                         ->title('Maintenance request cancelled')

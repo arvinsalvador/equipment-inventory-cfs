@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -119,6 +120,14 @@ class MaintenanceRecommendation extends Model
         static::creating(function (MaintenanceRecommendation $recommendation): void {
             $recommendation->action_status ??= 'Pending';
             $recommendation->suggested_action_type ??= $recommendation->getSuggestedActionType();
+        });
+
+        static::created(function (MaintenanceRecommendation $recommendation): void {
+            app(AuditLogService::class)->log('generated', 'AI Recommendation', "Recommendation {$recommendation->title} generated.", auth()->user(), $recommendation, null, $recommendation->getAttributes());
+        });
+
+        static::updated(function (MaintenanceRecommendation $recommendation): void {
+            app(AuditLogService::class)->logUpdate($recommendation, 'AI Recommendation', auth()->user(), $recommendation->getOriginal(), $recommendation->getChanges(), "Recommendation {$recommendation->title} updated.");
         });
     }
 
@@ -302,7 +311,10 @@ class MaintenanceRecommendation extends Model
             'reviewed_at' => now(),
         ])->save();
 
-        return $this->refresh();
+        $this->refresh();
+        app(AuditLogService::class)->log('reviewed', 'AI Recommendation', "Recommendation {$this->title} reviewed.", $user, $this);
+
+        return $this;
     }
 
     public function markResolved(User $user): self
@@ -313,7 +325,10 @@ class MaintenanceRecommendation extends Model
             'resolved_at' => now(),
         ])->save();
 
-        return $this->refresh();
+        $this->refresh();
+        app(AuditLogService::class)->log('resolved', 'AI Recommendation', "Recommendation {$this->title} resolved.", $user, $this);
+
+        return $this;
     }
 
     public function dismiss(User $user): self
@@ -324,7 +339,10 @@ class MaintenanceRecommendation extends Model
             'resolved_at' => now(),
         ])->save();
 
-        return $this->refresh();
+        $this->refresh();
+        app(AuditLogService::class)->log('dismissed', 'AI Recommendation', "Recommendation {$this->title} dismissed.", $user, $this);
+
+        return $this;
     }
 
     public function approveAction(User $user, ?string $notes = null): self
@@ -341,7 +359,10 @@ class MaintenanceRecommendation extends Model
             'action_notes' => $notes,
         ])->save();
 
-        return $this->refresh();
+        $this->refresh();
+        app(AuditLogService::class)->log('action_approved', 'AI Recommendation', "Recommendation action approved for {$this->title}.", $user, $this);
+
+        return $this;
     }
 
     public function rejectAction(User $user, string $notes): self
@@ -360,7 +381,10 @@ class MaintenanceRecommendation extends Model
             'action_notes' => $notes,
         ])->save();
 
-        return $this->refresh();
+        $this->refresh();
+        app(AuditLogService::class)->log('action_rejected', 'AI Recommendation', "Recommendation action rejected for {$this->title}.", $user, $this);
+
+        return $this;
     }
 
     public function cancelAction(User $user, string $notes): self
@@ -379,7 +403,10 @@ class MaintenanceRecommendation extends Model
             'action_notes' => $notes,
         ])->save();
 
-        return $this->refresh();
+        $this->refresh();
+        app(AuditLogService::class)->log('action_cancelled', 'AI Recommendation', "Recommendation action cancelled for {$this->title}.", $user, $this);
+
+        return $this;
     }
 
     public function executeAction(User $user, ?string $notes = null): self
@@ -465,7 +492,10 @@ class MaintenanceRecommendation extends Model
             'linked_work_order_id' => $workOrder?->id,
         ])->save();
 
-        return $this->refresh();
+        $this->refresh();
+        app(AuditLogService::class)->log('action_executed', 'AI Recommendation', "Recommendation action executed for {$this->title}.", $user, $this);
+
+        return $this;
     }
 
     private function executeMonitorOnly(User $user, ?string $notes = null): self
@@ -485,7 +515,10 @@ class MaintenanceRecommendation extends Model
             'action_notes' => $notes,
         ], $links))->save();
 
-        return $this->refresh();
+        $this->refresh();
+        app(AuditLogService::class)->log('action_executed', 'AI Recommendation', "Recommendation action executed for {$this->title}.", $user, $this);
+
+        return $this;
     }
 
     private function findRelatedWorkOrder(): ?WorkOrder

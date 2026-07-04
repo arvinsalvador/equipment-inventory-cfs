@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -94,6 +95,22 @@ class WorkOrder extends Model
             if ($workOrder->isDirty(['labor_cost', 'parts_cost', 'external_service_cost'])) {
                 $workOrder->total_cost = $workOrder->calculateTotalCost();
             }
+        });
+
+        static::created(function (WorkOrder $workOrder): void {
+            app(AuditLogService::class)->logCreate($workOrder, 'Work Order', auth()->user(), $workOrder->getAttributes(), "Work order {$workOrder->work_order_number} created.");
+        });
+
+        static::updated(function (WorkOrder $workOrder): void {
+            $service = app(AuditLogService::class);
+
+            if ($workOrder->wasChanged('status')) {
+                $service->logStatusChange($workOrder, 'Work Order', $workOrder->getOriginal('status'), $workOrder->status, auth()->user(), "Work order {$workOrder->work_order_number} status changed to {$workOrder->status}.");
+
+                return;
+            }
+
+            $service->logUpdate($workOrder, 'Work Order', auth()->user(), $workOrder->getOriginal(), $workOrder->getChanges(), "Work order {$workOrder->work_order_number} updated.");
         });
     }
 

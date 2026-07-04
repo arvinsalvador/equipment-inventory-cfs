@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -53,6 +54,22 @@ class MaintenanceRequest extends Model
     {
         static::creating(function (MaintenanceRequest $maintenanceRequest): void {
             $maintenanceRequest->request_number ??= self::makeRequestNumber();
+        });
+
+        static::created(function (MaintenanceRequest $maintenanceRequest): void {
+            app(AuditLogService::class)->logCreate($maintenanceRequest, 'Maintenance Request', auth()->user(), $maintenanceRequest->getAttributes(), "Maintenance request {$maintenanceRequest->request_number} created.");
+        });
+
+        static::updated(function (MaintenanceRequest $maintenanceRequest): void {
+            $service = app(AuditLogService::class);
+
+            if ($maintenanceRequest->wasChanged('status')) {
+                $service->logStatusChange($maintenanceRequest, 'Maintenance Request', $maintenanceRequest->getOriginal('status'), $maintenanceRequest->status, auth()->user(), "Maintenance request {$maintenanceRequest->request_number} status changed to {$maintenanceRequest->status}.");
+
+                return;
+            }
+
+            $service->logUpdate($maintenanceRequest, 'Maintenance Request', auth()->user(), $maintenanceRequest->getOriginal(), $maintenanceRequest->getChanges(), "Maintenance request {$maintenanceRequest->request_number} updated.");
         });
     }
 

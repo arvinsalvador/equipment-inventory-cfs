@@ -6,6 +6,7 @@ use App\Filament\Resources\MaintenanceRecommendations\Pages\ListMaintenanceRecom
 use App\Filament\Resources\MaintenanceRecommendations\Pages\ViewMaintenanceRecommendation;
 use App\Models\Equipment;
 use App\Models\MaintenanceRecommendation;
+use App\Services\AuditLogService;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -281,6 +282,7 @@ class MaintenanceRecommendationResource extends Resource
                 && (auth()->user()?->can('review', $record) ?? false))
             ->action(function (MaintenanceRecommendation $record): void {
                 $record->markReviewed(auth()->user());
+                app(AuditLogService::class)->log('reviewed', 'AI Recommendation', "Recommendation {$record->title} reviewed.", auth()->user(), $record);
 
                 Notification::make()
                     ->title('Recommendation marked reviewed')
@@ -300,6 +302,7 @@ class MaintenanceRecommendationResource extends Resource
                 && (auth()->user()?->can('resolve', $record) ?? false))
             ->action(function (MaintenanceRecommendation $record): void {
                 $record->markResolved(auth()->user());
+                app(AuditLogService::class)->log('resolved', 'AI Recommendation', "Recommendation {$record->title} resolved.", auth()->user(), $record);
 
                 Notification::make()
                     ->title('Recommendation marked resolved')
@@ -319,6 +322,7 @@ class MaintenanceRecommendationResource extends Resource
                 && (auth()->user()?->can('dismiss', $record) ?? false))
             ->action(function (MaintenanceRecommendation $record): void {
                 $record->dismiss(auth()->user());
+                app(AuditLogService::class)->log('dismissed', 'AI Recommendation', "Recommendation {$record->title} dismissed.", auth()->user(), $record);
 
                 Notification::make()
                     ->title('Recommendation dismissed')
@@ -343,6 +347,7 @@ class MaintenanceRecommendationResource extends Resource
             ->action(function (MaintenanceRecommendation $record, array $data): void {
                 try {
                     $record->approveAction(auth()->user(), $data['action_notes'] ?? null);
+                    app(AuditLogService::class)->log('action_approved', 'AI Recommendation', "Recommendation action approved for {$record->title}.", auth()->user(), $record);
                     Notification::make()->title('Recommendation action approved')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -366,6 +371,7 @@ class MaintenanceRecommendationResource extends Resource
             ->action(function (MaintenanceRecommendation $record, array $data): void {
                 try {
                     $record->rejectAction(auth()->user(), $data['action_notes'] ?? '');
+                    app(AuditLogService::class)->log('action_rejected', 'AI Recommendation', "Recommendation action rejected for {$record->title}.", auth()->user(), $record);
                     Notification::make()->title('Recommendation action rejected')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -393,6 +399,7 @@ class MaintenanceRecommendationResource extends Resource
             ->action(function (MaintenanceRecommendation $record, array $data): void {
                 try {
                     $record->executeAction(auth()->user(), $data['action_notes'] ?? null);
+                    app(AuditLogService::class)->log('action_executed', 'AI Recommendation', "Recommendation action executed for {$record->title}.", auth()->user(), $record);
                     Notification::make()->title('Recommendation action processed')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -416,6 +423,7 @@ class MaintenanceRecommendationResource extends Resource
             ->action(function (MaintenanceRecommendation $record, array $data): void {
                 try {
                     $record->cancelAction(auth()->user(), $data['action_notes'] ?? '');
+                    app(AuditLogService::class)->log('action_cancelled', 'AI Recommendation', "Recommendation action cancelled for {$record->title}.", auth()->user(), $record);
                     Notification::make()->title('Recommendation action cancelled')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();

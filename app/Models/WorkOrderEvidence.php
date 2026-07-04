@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,6 +34,13 @@ class WorkOrderEvidence extends Model
         'Inspection evidence',
         'Other evidence',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (WorkOrderEvidence $evidence): void {
+            app(AuditLogService::class)->log('uploaded', 'Evidence', "Evidence #{$evidence->id} uploaded.", auth()->user(), $evidence, null, $evidence->getAttributes());
+        });
+    }
 
     public static function evidenceTypeOptions(): array
     {

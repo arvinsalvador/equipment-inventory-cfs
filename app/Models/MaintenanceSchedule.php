@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -60,6 +61,25 @@ class MaintenanceSchedule extends Model
         'High',
         'Critical',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (MaintenanceSchedule $schedule): void {
+            app(AuditLogService::class)->logCreate($schedule, 'Maintenance Schedule', auth()->user(), $schedule->getAttributes(), "Maintenance schedule #{$schedule->id} created.");
+        });
+
+        static::updated(function (MaintenanceSchedule $schedule): void {
+            $service = app(AuditLogService::class);
+
+            if ($schedule->wasChanged('status')) {
+                $service->logStatusChange($schedule, 'Maintenance Schedule', $schedule->getOriginal('status'), $schedule->status, auth()->user(), "Maintenance schedule #{$schedule->id} status changed to {$schedule->status}.");
+
+                return;
+            }
+
+            $service->logUpdate($schedule, 'Maintenance Schedule', auth()->user(), $schedule->getOriginal(), $schedule->getChanges(), "Maintenance schedule #{$schedule->id} updated.");
+        });
+    }
 
     public function equipment(): BelongsTo
     {

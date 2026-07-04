@@ -9,6 +9,7 @@ use App\Filament\Resources\WorkOrders\RelationManagers\EvidencesRelationManager;
 use App\Models\Equipment;
 use App\Models\User;
 use App\Models\WorkOrder;
+use App\Services\AuditLogService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -295,6 +296,9 @@ class WorkOrderResource extends Resource
             ->visible(fn (WorkOrder $record): bool => auth()->user()?->can('assign', $record) ?? false)
             ->action(function (WorkOrder $record, array $data): void {
                 $record->assignTo(User::findOrFail($data['assigned_to']));
+                app(AuditLogService::class)->log('assigned', 'Work Order', "Work order {$record->work_order_number} assigned.", auth()->user(), $record, null, [
+                    'assigned_to' => $data['assigned_to'],
+                ]);
                 Notification::make()->title('Work order assigned')->success()->send();
             });
     }
@@ -310,6 +314,7 @@ class WorkOrderResource extends Resource
                 && (auth()->user()?->can('assign', $record) ?? false))
             ->action(function (WorkOrder $record): void {
                 $record->makeAvailable();
+                app(AuditLogService::class)->log('available', 'Work Order', "Work order {$record->work_order_number} made available.", auth()->user(), $record);
                 Notification::make()->title('Work order made available')->success()->send();
             });
     }
@@ -325,6 +330,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record): void {
                 try {
                     $record->accept(auth()->user());
+                    app(AuditLogService::class)->log('accepted', 'Work Order', "Work order {$record->work_order_number} accepted.", auth()->user(), $record);
                     Notification::make()->title('Work order accepted')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -343,6 +349,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record): void {
                 try {
                     $record->start();
+                    app(AuditLogService::class)->log('started', 'Work Order', "Work order {$record->work_order_number} started.", auth()->user(), $record);
                     Notification::make()->title('Work order started')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -365,6 +372,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record, array $data): void {
                 try {
                     $record->putOnHold($data['on_hold_reason'] ?? '');
+                    app(AuditLogService::class)->log('put_on_hold', 'Work Order', "Work order {$record->work_order_number} put on hold.", auth()->user(), $record);
                     Notification::make()->title('Work order put on hold')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -387,6 +395,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record, array $data): void {
                 try {
                     $record->awaitParts($data['required_parts'] ?? '');
+                    app(AuditLogService::class)->log('awaiting_parts', 'Work Order', "Work order {$record->work_order_number} awaiting parts.", auth()->user(), $record);
                     Notification::make()->title('Work order is awaiting parts')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -419,6 +428,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record, array $data): void {
                 try {
                     $record->submitForVerification($data);
+                    app(AuditLogService::class)->log('submitted_for_verification', 'Work Order', "Work order {$record->work_order_number} submitted for verification.", auth()->user(), $record);
                     Notification::make()->title('Work order submitted for verification')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -468,6 +478,7 @@ class WorkOrderResource extends Resource
                         'final_equipment_condition' => $data['final_equipment_condition'] ?? null,
                         'final_operational_status' => $data['final_operational_status'] ?? null,
                     ]);
+                    app(AuditLogService::class)->log('completed', 'Work Order', "Work order {$record->work_order_number} completed.", auth()->user(), $record);
                     Notification::make()->title('Work order completed')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -505,6 +516,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record, array $data): void {
                 try {
                     $record->markBeyondRepair($data);
+                    app(AuditLogService::class)->log('marked_beyond_repair', 'Work Order', "Work order {$record->work_order_number} marked beyond repair.", auth()->user(), $record);
                     Notification::make()->title('Work order marked beyond repair')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -526,6 +538,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record): void {
                 try {
                     $record->verify(auth()->user());
+                    app(AuditLogService::class)->log('verified', 'Work Order', "Work order {$record->work_order_number} verified.", auth()->user(), $record);
                     Notification::make()->title('Work order verified')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -551,6 +564,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record, array $data): void {
                 try {
                     $record->reopen($data['reason'] ?? null);
+                    app(AuditLogService::class)->log('reopened', 'Work Order', "Work order {$record->work_order_number} reopened.", auth()->user(), $record);
                     Notification::make()->title('Work order reopened')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();
@@ -573,6 +587,7 @@ class WorkOrderResource extends Resource
             ->action(function (WorkOrder $record, array $data): void {
                 try {
                     $record->cancel($data['rejection_or_cancellation_reason'] ?? '');
+                    app(AuditLogService::class)->log('cancelled', 'Work Order', "Work order {$record->work_order_number} cancelled.", auth()->user(), $record);
                     Notification::make()->title('Work order cancelled')->success()->send();
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()->title($exception->getMessage())->danger()->send();

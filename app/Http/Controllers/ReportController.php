@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogService;
 use App\Services\Reports\CsvReportExporter;
 use App\Services\Reports\ExcelReportExporter;
 use App\Services\Reports\ReportRegistry;
@@ -15,11 +16,13 @@ class ReportController extends Controller
         private readonly ReportRegistry $reports,
         private readonly CsvReportExporter $csvExporter,
         private readonly ExcelReportExporter $excelExporter,
+        private readonly AuditLogService $auditLogService,
     ) {}
 
     public function show(Request $request, string $report): View
     {
         $this->authorizeReports();
+        $this->auditLogService->log('viewed', 'Reports', "Report {$report} viewed.", $request->user(), metadata: ['report' => $report]);
 
         return view('reports.show', $this->payload($request, $report));
     }
@@ -27,6 +30,7 @@ class ReportController extends Controller
     public function print(Request $request, string $report): View
     {
         $this->authorizeReports();
+        $this->auditLogService->log('printed', 'Reports', "Report {$report} printed.", $request->user(), metadata: ['report' => $report]);
 
         return view('reports.print', $this->payload($request, $report));
     }
@@ -34,6 +38,7 @@ class ReportController extends Controller
     public function pdf(Request $request, string $report): View
     {
         $this->authorizeReports();
+        $this->auditLogService->logExport('Reports', "Report {$report} PDF-ready view opened.", $request->user(), ['report' => $report, 'format' => 'pdf-ready']);
 
         return view('reports.pdf-ready', $this->payload($request, $report));
     }
@@ -44,6 +49,7 @@ class ReportController extends Controller
 
         $definition = $this->reports->get($report);
         $filters = $this->filters($request, $definition['filters']);
+        $this->auditLogService->logExport('Reports', "Report {$report} CSV exported.", $request->user(), ['report' => $report, 'format' => 'csv', 'filters' => $filters]);
 
         return $this->csvExporter->stream(
             $report.'-'.now()->format('Ymd-His').'.csv',
@@ -58,6 +64,7 @@ class ReportController extends Controller
 
         $definition = $this->reports->get($report);
         $filters = $this->filters($request, $definition['filters']);
+        $this->auditLogService->logExport('Reports', "Report {$report} Excel exported.", $request->user(), ['report' => $report, 'format' => 'excel', 'filters' => $filters]);
 
         return $this->excelExporter->stream(
             $report.'-'.now()->format('Ymd-His').'.xls',

@@ -29,6 +29,11 @@ class EquipmentQrCodeGenerator
             'qr_code_generated_at' => now(),
         ])->save();
 
+        app(AuditLogService::class)->log('qr_generated', 'Equipment', "QR code generated for equipment {$equipment->equipment_code}.", auth()->user(), $equipment, null, [
+            'qr_code_path' => $path,
+            'qr_code_generated_at' => $equipment->qr_code_generated_at,
+        ]);
+
         return $equipment->refresh();
     }
 }

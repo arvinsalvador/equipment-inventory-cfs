@@ -43,6 +43,8 @@ class RolePermissionSeeder extends Seeder
         'recommendations.view',
         'recommendations.review',
         'reports.view',
+        'audit.view',
+        'audit.export',
     ];
 
     public const STAFF_PERMISSIONS = [

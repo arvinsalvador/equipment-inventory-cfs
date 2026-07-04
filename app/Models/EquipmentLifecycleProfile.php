@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +51,13 @@ class EquipmentLifecycleProfile extends Model
         'Replace Equipment',
         'Dispose Equipment',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(function (EquipmentLifecycleProfile $profile): void {
+            app(AuditLogService::class)->log('recalculated', 'Lifecycle', "Lifecycle recalculated for equipment #{$profile->equipment_id}.", auth()->user(), $profile, null, $profile->getAttributes());
+        });
+    }
 
     public function equipment(): BelongsTo
     {

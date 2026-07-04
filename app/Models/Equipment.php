@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -71,6 +72,36 @@ class Equipment extends Model
     {
         static::creating(function (Equipment $equipment): void {
             $equipment->qr_identifier ??= self::makeQrIdentifier();
+        });
+
+        static::created(function (Equipment $equipment): void {
+            app(AuditLogService::class)->logCreate($equipment, 'Equipment', auth()->user(), $equipment->getAttributes(), "Equipment {$equipment->equipment_code} created.");
+        });
+
+        static::updated(function (Equipment $equipment): void {
+            $service = app(AuditLogService::class);
+
+            if ($equipment->wasChanged('is_archived') && $equipment->is_archived) {
+                $service->log('archived', 'Equipment', "Equipment {$equipment->equipment_code} archived.", auth()->user(), $equipment, [
+                    'is_archived' => false,
+                ], [
+                    'is_archived' => true,
+                ]);
+
+                return;
+            }
+
+            if ($equipment->wasChanged('current_location_id')) {
+                $service->log('location_changed', 'Equipment', "Equipment {$equipment->equipment_code} location changed.", auth()->user(), $equipment, [
+                    'current_location_id' => $equipment->getOriginal('current_location_id'),
+                ], [
+                    'current_location_id' => $equipment->current_location_id,
+                ]);
+
+                return;
+            }
+
+            $service->logUpdate($equipment, 'Equipment', auth()->user(), $equipment->getOriginal(), $equipment->getChanges(), "Equipment {$equipment->equipment_code} updated.");
         });
     }
 

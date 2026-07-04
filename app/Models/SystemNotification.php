@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -55,6 +56,29 @@ class SystemNotification extends Model
         'Evidence',
         'System',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (SystemNotification $notification): void {
+            app(AuditLogService::class)->log('generated', 'Notification', "Notification {$notification->title} generated.", auth()->user(), $notification, null, $notification->getAttributes());
+        });
+
+        static::updated(function (SystemNotification $notification): void {
+            if (! $notification->wasChanged('read_at')) {
+                return;
+            }
+
+            app(AuditLogService::class)->log(
+                $notification->read_at ? 'marked_read' : 'marked_unread',
+                'Notification',
+                "Notification {$notification->title} marked ".($notification->read_at ? 'read' : 'unread').'.',
+                auth()->user(),
+                $notification,
+                ['read_at' => $notification->getOriginal('read_at')],
+                ['read_at' => $notification->read_at],
+            );
+        });
+    }
 
     public static function typeOptions(): array
     {
