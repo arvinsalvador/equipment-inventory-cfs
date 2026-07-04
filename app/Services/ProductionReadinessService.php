@@ -139,6 +139,24 @@ class ProductionReadinessService
         ];
     }
 
+    /**
+     * @return array<int, array<string, string>>
+     */
+    public function getAndroidReadinessChecklist(): array
+    {
+        return [
+            $this->item('PWA manifest exists', File::exists(public_path('manifest.webmanifest')) ? 'ready' : 'warning', 'Android packaging requires a valid web app manifest.', 'Verify /manifest.webmanifest loads with Android-ready metadata.'),
+            $this->item('Service worker exists', File::exists(public_path('service-worker.js')) ? 'ready' : 'warning', 'TWA installability expects a service worker for the PWA.', 'Verify /service-worker.js is available and does not intercept admin routes.'),
+            $this->item('Offline page exists', Route::has('pwa.offline') ? 'ready' : 'warning', 'Offline fallback should remain available for safe public navigation.', 'Open /offline before Android packaging.'),
+            $this->item('Mobile dashboard exists', class_exists(MobileTechnicianDashboard::class) ? 'ready' : 'warning', 'The mobile technician dashboard is the intended Android app entry point.', 'Use /admin/mobile-technician-dashboard as the TWA start URL.'),
+            $this->item('QR scanner route exists', Route::has('equipment.scan') ? 'ready' : 'warning', 'Android users need QR scanning with manual lookup fallback.', 'Test /equipment/scan on Chrome Android over HTTPS.'),
+            $this->item('Offline queue route exists', class_exists(OfflineQueue::class) ? 'ready' : 'warning', 'Technicians need offline queue visibility before reconnecting.', 'Verify /admin/offline-queue on a mobile viewport.'),
+            $this->item('HTTPS required for camera', request()->isSecure() ? 'ready' : 'critical', 'Android camera access requires HTTPS except localhost development.', 'Deploy with SSL before QR scanner device testing.'),
+            $this->item('TWA assetlinks template prepared', File::exists(public_path('.well-known/assetlinks.template.json')) ? 'ready' : 'warning', 'Trusted Web Activity verification needs Digital Asset Links.', 'Create real /.well-known/assetlinks.json after the release signing fingerprint is known.'),
+            $this->item('Android documentation prepared', File::exists(base_path('docs/ANDROID_TWA_PREPARATION.md')) ? 'ready' : 'warning', 'Android packaging preparation should be documented before APK/AAB generation.', 'Review the TWA preparation guide before Phase 15B.'),
+        ];
+    }
+
     public function getOverallReadinessScore(): int
     {
         $items = collect([
@@ -149,6 +167,7 @@ class ProductionReadinessService
             ...$this->getQueueChecklist(),
             ...$this->getStorageChecklist(),
             ...$this->getPwaChecklist(),
+            ...$this->getAndroidReadinessChecklist(),
         ]);
 
         if ($items->isEmpty()) {
@@ -174,6 +193,7 @@ class ProductionReadinessService
             'APP_DEBUG, mail, queue, scheduler, and database credentials must be verified on the live host without exposing secrets.',
             'Shared-hosting public storage symlink and file permissions must be tested with real uploads.',
             'Service worker behavior should be validated in a fresh browser profile after deployment.',
+            'Android TWA packaging still requires HTTPS, real Digital Asset Links, release signing, and device testing.',
         ];
     }
 
@@ -188,6 +208,7 @@ class ProductionReadinessService
             'Enable Laravel config, route, and view caches after final production configuration.',
             'Verify admin login, QR lookup, PWA install prompt, evidence upload, reports, and notifications after deployment.',
             'Document who is responsible for daily backups, failed jobs, and audit log review.',
+            'Prepare real Android launcher assets and Digital Asset Links before generating an APK or AAB.',
         ];
     }
 
