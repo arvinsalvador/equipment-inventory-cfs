@@ -987,9 +987,36 @@ Phase 11B - Offline Data Capture & Synchronization
 - System Administration and Configuration: Complete
 - Phase 12 status: Complete
 
+## Phase 13A Status
+
+- Phase 13A status: Complete
+- Asset action request table: Complete
+- AssetActionRequest model: Complete
+- Request number generation: Complete
+- AssetActionRequestPolicy: Complete
+- Filament resource: Complete
+- Replacement workflow: Complete
+- Procurement workflow foundation: Complete
+- Disposal workflow foundation: Complete
+- Major repair workflow foundation: Complete
+- Lifecycle integration: Complete
+- Audit logging: Complete
+- Tests added: Complete
+- Remaining risks: Budget planning, supplier management, purchase orders, accounting integration, and AI recommendation shortcuts are deferred
+
+## Phase 13A Deferred Items
+
+- Budget planning
+- Supplier management
+- Purchase order generation
+- Procurement approval routing
+- Accounting integration
+- Asset disposal certificate generation
+- AI recommendation asset-action shortcut
+
 ## Next Phase
 
-Phase 13A - Procurement and Asset Disposal Workflow
+Phase 13B - Budget Planning and Asset Replacement Forecasting
 
 ## Known Risks
 

@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Equipment;
 
+use App\Filament\Resources\AssetActionRequests\AssetActionRequestResource;
 use App\Filament\Resources\Equipment\Pages\CreateEquipment;
 use App\Filament\Resources\Equipment\Pages\EditEquipment;
 use App\Filament\Resources\Equipment\Pages\ListEquipment;
 use App\Filament\Resources\Equipment\Pages\ViewEquipment;
 use App\Filament\Resources\MaintenanceRecommendations\MaintenanceRecommendationResource;
+use App\Models\AssetActionRequest;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Location;
@@ -305,6 +307,23 @@ class EquipmentResource extends Resource
                             ->columnSpanFull(),
                     ])
                     ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false),
+                Section::make('Asset action requests')
+                    ->schema([
+                        RepeatableEntry::make('assetActionRequests')
+                            ->label('Requests')
+                            ->schema([
+                                TextEntry::make('request_number')->label('Request number'),
+                                TextEntry::make('request_type')->label('Request type')->badge(),
+                                TextEntry::make('priority')->badge(),
+                                TextEntry::make('status')->badge(),
+                                TextEntry::make('estimated_cost')->label('Estimated cost')->money('PHP')->placeholder('None'),
+                                TextEntry::make('requestedBy.name')->label('Requested by'),
+                                TextEntry::make('created_at')->label('Created date')->dateTime(),
+                            ])
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(fn (Equipment $record): bool => (auth()->user()?->can('viewAny', AssetActionRequest::class) ?? false)
+                        && $record->assetActionRequests()->exists()),
                 Section::make('Location transfer history')
                     ->schema([
                         RepeatableEntry::make('locationHistories')
@@ -469,6 +488,15 @@ class EquipmentResource extends Resource
                     ->success()
                     ->send();
             });
+    }
+
+    public static function createAssetActionRequestAction(): Action
+    {
+        return Action::make('createAssetActionRequest')
+            ->label('Create Asset Action Request')
+            ->icon('heroicon-o-arrow-path-rounded-square')
+            ->url(fn (Equipment $record): string => AssetActionRequestResource::getUrl('create').'?equipment_id='.$record->id)
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('create', AssetActionRequest::class) ?? false);
     }
 
     public static function shouldRegisterNavigation(): bool

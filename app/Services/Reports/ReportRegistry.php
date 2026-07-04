@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Models\AssetActionRequest;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\EquipmentLifecycleProfile;
@@ -38,6 +39,7 @@ class ReportRegistry
             'equipment-transfer-history' => $this->definition('Equipment Transfer History Report', 'Equipment movement history by origin, destination, transfer user, and date.', ['csv', 'print'], ['date_from', 'date_to', 'equipment', 'from_location', 'to_location', 'transferred_by']),
             'equipment-maintenance-history' => $this->definition('Equipment Maintenance History Report', 'Combined schedule, request, and work order maintenance activity history.', ['csv', 'print'], ['date_from', 'date_to', 'equipment', 'activity_type']),
             'equipment-lifecycle' => $this->definition('Equipment Lifecycle Report', 'Health score, lifecycle status, replacement recommendation, repair count, and maintenance cost by equipment.', ['csv', 'print'], ['health_grade', 'lifecycle_status', 'replacement_recommendation', 'category', 'location']),
+            'asset-action-requests' => $this->definition('Asset Action Request Report', 'Replacement, procurement, disposal, repair, and inspection workflow tracking.', ['csv', 'print'], ['date_from', 'date_to', 'equipment', 'requested_by', 'request_type', 'priority', 'status']),
         ];
     }
 
@@ -71,6 +73,7 @@ class ReportRegistry
             'equipment-transfer-history' => $this->columnsFrom(['equipment' => 'Equipment', 'from_location' => 'From location', 'to_location' => 'To location', 'transferred_by' => 'Transferred by', 'transfer_date' => 'Transfer date', 'remarks' => 'Remarks']),
             'equipment-maintenance-history' => $this->columnsFrom(['date' => 'Date', 'equipment' => 'Equipment', 'activity_type' => 'Activity type', 'reference_number' => 'Reference number', 'status' => 'Status', 'actor' => 'Performed/Submitted/Assigned by', 'summary' => 'Summary']),
             'equipment-lifecycle' => $this->columnsFrom(['equipment_code' => 'Equipment code', 'equipment_name' => 'Equipment name', 'category' => 'Category', 'location' => 'Location', 'health_score' => 'Health score', 'health_grade' => 'Health grade', 'lifecycle_status' => 'Lifecycle status', 'replacement_recommendation' => 'Replacement recommendation', 'estimated_remaining_life' => 'Estimated remaining life', 'estimated_end_of_life_date' => 'Estimated end-of-life date', 'repair_count' => 'Repair count', 'total_maintenance_cost' => 'Total maintenance cost', 'last_calculated_date' => 'Last calculated date']),
+            'asset-action-requests' => $this->columnsFrom(['request_number' => 'Request number', 'equipment' => 'Equipment', 'request_type' => 'Request type', 'priority' => 'Priority', 'status' => 'Status', 'estimated_cost' => 'Estimated cost', 'requested_by' => 'Requested by', 'approved_by' => 'Approved by', 'created_date' => 'Created date', 'completed_date' => 'Completed date']),
             default => throw new InvalidArgumentException('Unknown report.'),
         };
     }
@@ -96,6 +99,7 @@ class ReportRegistry
             'equipment-transfer-history' => $this->transferHistory($filters),
             'equipment-maintenance-history' => $this->maintenanceHistory($filters),
             'equipment-lifecycle' => $this->equipmentLifecycle($filters),
+            'asset-action-requests' => $this->assetActionRequests($filters),
             default => throw new InvalidArgumentException('Unknown report.'),
         };
     }
@@ -116,8 +120,9 @@ class ReportRegistry
             'archived_status' => ['active' => 'Active only', 'archived' => 'Archived only'],
             'assigned_user' => User::query()->orderBy('name')->pluck('name', 'id')->all(),
             'submitted_by' => User::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'requested_by' => User::query()->orderBy('name')->pluck('name', 'id')->all(),
             'transferred_by' => User::query()->orderBy('name')->pluck('name', 'id')->all(),
-            'status' => array_combine(array_unique(array_merge(MaintenanceSchedule::STATUSES, MaintenanceRequest::STATUSES, WorkOrder::STATUSES)), array_unique(array_merge(MaintenanceSchedule::STATUSES, MaintenanceRequest::STATUSES, WorkOrder::STATUSES))),
+            'status' => array_combine(array_unique(array_merge(MaintenanceSchedule::STATUSES, MaintenanceRequest::STATUSES, WorkOrder::STATUSES, AssetActionRequest::STATUSES)), array_unique(array_merge(MaintenanceSchedule::STATUSES, MaintenanceRequest::STATUSES, WorkOrder::STATUSES, AssetActionRequest::STATUSES))),
             'priority' => array_combine(WorkOrder::PRIORITIES, WorkOrder::PRIORITIES),
             'severity' => array_combine(MaintenanceRequest::SEVERITIES, MaintenanceRequest::SEVERITIES),
             'risk_level' => array_combine(MaintenanceRecommendation::RISK_LEVELS, MaintenanceRecommendation::RISK_LEVELS),
@@ -129,6 +134,7 @@ class ReportRegistry
             'health_grade' => array_combine(EquipmentLifecycleProfile::HEALTH_GRADES, EquipmentLifecycleProfile::HEALTH_GRADES),
             'lifecycle_status' => array_combine(EquipmentLifecycleProfile::LIFECYCLE_STATUSES, EquipmentLifecycleProfile::LIFECYCLE_STATUSES),
             'replacement_recommendation' => array_combine(EquipmentLifecycleProfile::REPLACEMENT_RECOMMENDATIONS, EquipmentLifecycleProfile::REPLACEMENT_RECOMMENDATIONS),
+            'request_type' => array_combine(AssetActionRequest::REQUEST_TYPES, AssetActionRequest::REQUEST_TYPES),
         ];
     }
 
@@ -495,6 +501,32 @@ class ReportRegistry
                 'repair_count' => $equipment->repair_count,
                 'total_maintenance_cost' => number_format($equipment->maintenanceCostTotal(), 2),
                 'last_calculated_date' => $this->dateValue($equipment->lifecycleProfile?->last_calculated_at, 'Y-m-d H:i'),
+            ]);
+    }
+
+    private function assetActionRequests(array $filters): Collection
+    {
+        $query = AssetActionRequest::query()->with(['equipment', 'requestedBy', 'approvedBy'])->orderByDesc('created_at');
+        $this->applyDateRange($query, $filters, 'created_at');
+
+        return $query
+            ->when($filters['equipment'] ?? null, fn ($query, $id) => $query->where('equipment_id', $id))
+            ->when($filters['requested_by'] ?? null, fn ($query, $id) => $query->where('requested_by', $id))
+            ->when($filters['request_type'] ?? null, fn ($query, $value) => $query->where('request_type', $value))
+            ->when($filters['priority'] ?? null, fn ($query, $value) => $query->where('priority', $value))
+            ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
+            ->get()
+            ->map(fn (AssetActionRequest $request) => [
+                'request_number' => $request->request_number,
+                'equipment' => $this->equipmentLabel($request->equipment),
+                'request_type' => $request->request_type,
+                'priority' => $request->priority,
+                'status' => $request->status,
+                'estimated_cost' => $request->estimated_cost,
+                'requested_by' => $request->requestedBy?->name,
+                'approved_by' => $request->approvedBy?->name,
+                'created_date' => $this->dateValue($request->created_at, 'Y-m-d H:i'),
+                'completed_date' => $this->dateValue($request->completed_at, 'Y-m-d H:i'),
             ]);
     }
 
