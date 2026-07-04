@@ -91,6 +91,35 @@
         };
     };
 
+    const queueTypeGroup = (type) => {
+        if (type.startsWith('work_order.')) return 'work_orders';
+        if (type.startsWith('maintenance_request.')) return 'maintenance_requests';
+        if (type.startsWith('evidence.')) return 'evidence_uploads';
+        if (type.startsWith('equipment.')) return 'equipment_updates';
+
+        return 'other';
+    };
+
+    const updateTypeCounts = () => {
+        const groups = {
+            work_orders: 0,
+            maintenance_requests: 0,
+            evidence_uploads: 0,
+            equipment_updates: 0,
+            other: 0,
+        };
+
+        getQueue()
+            .filter((item) => ['pending', 'failed'].includes(item.status))
+            .forEach((item) => {
+                groups[queueTypeGroup(item.type)] += 1;
+            });
+
+        Object.entries(groups).forEach(([group, count]) => {
+            setText(`[data-offline-type-count="${group}"]`, String(count));
+        });
+    };
+
     const queueItem = (type, payload, options = {}) => {
         const item = {
             id: options.id || id(),
@@ -276,6 +305,7 @@
         setText('[data-offline-draft-count]', String(currentCounts.drafts));
         setText('[data-offline-last-sync]', lastSync ? new Date(lastSync).toLocaleString() : 'Never');
         setText('[data-offline-last-sync-short]', lastSync ? new Date(lastSync).toLocaleString() : 'Never');
+        updateTypeCounts();
 
         document.querySelectorAll('[data-offline-banner]').forEach((element) => {
             element.hidden = navigator.onLine;
@@ -284,7 +314,9 @@
         document.querySelectorAll('[data-offline-queue-list]').forEach((element) => {
             const filter = element.dataset.offlineFilter || 'pending';
             const items = getQueue().filter((item) => item.status === filter);
-            const emptyText = filter === 'pending' ? 'No pending offline actions.' : 'No records.';
+            const emptyText = filter === 'pending'
+                ? 'All offline changes have been synchronized. No pending actions.'
+                : 'No records.';
             element.innerHTML = items.length ? items.map(actionRow).join('') : `<p class="pwa-offline-empty">${emptyText}</p>`;
         });
 
@@ -303,7 +335,7 @@
             } else if (currentCounts.pending > 0) {
                 syncStatus('Pending Synchronization', 'Online — pending actions ready to sync.');
             } else {
-                syncStatus('No Pending Actions', 'No pending offline actions.');
+                syncStatus('Synchronized', 'All offline changes have been synchronized. No pending actions.');
             }
         }
     };

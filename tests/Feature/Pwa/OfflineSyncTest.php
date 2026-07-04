@@ -46,32 +46,35 @@ class OfflineSyncTest extends TestCase
             ->get('/admin/offline-queue')
             ->assertOk()
             ->assertSee('Offline Queue')
-            ->assertSee('Pending actions')
-            ->assertSee('Failed actions')
-            ->assertSee('Successfully synchronized')
-            ->assertSee('Local drafts')
-            ->assertSee('Retry Sync')
+            ->assertSee('Synchronization Summary')
+            ->assertSee('Pending Queue')
+            ->assertSee('Failed Syncs')
+            ->assertSee('Successfully Synchronized')
+            ->assertSee('Local Drafts')
+            ->assertSee('Sync Now')
+            ->assertSee('Retry Failed')
             ->assertSee('Working offline.')
             ->assertSee('Changes will sync when connection returns.')
-            ->assertSee('No pending offline actions.')
-            ->assertSee('Connection:')
-            ->assertSee('Pending Offline Actions:')
-            ->assertSee('Failed Syncs:')
-            ->assertSee('Last Sync:')
+            ->assertSee('All offline changes have been synchronized. No pending actions.')
+            ->assertSee('Connection Status')
+            ->assertSee('Total Pending Offline Actions')
+            ->assertSee('Failed Sync Count')
+            ->assertSee('Last Sync Attempt')
             ->assertSee('offline-sync.js')
             ->assertSee('data-offline-sync-message', false);
 
         $this->actingAs($this->technician)
             ->get('/admin/mobile-technician-dashboard')
             ->assertOk()
-            ->assertSee('Pending Offline Actions')
-            ->assertSee('Last Synchronization')
-            ->assertSee('Drafts Saved Offline')
-            ->assertSee('Failed Synchronizations')
+            ->assertSee('Technician Mobile Dashboard')
+            ->assertSee('Assigned Work Orders')
+            ->assertSee('Open Work Orders')
+            ->assertSee('Overdue Work Orders')
+            ->assertSee('Pending Offline Sync')
             ->assertSee('Offline Forms')
             ->assertSee('Working offline.')
             ->assertSee('Changes will sync when connection returns.')
-            ->assertSee('No pending offline actions.')
+            ->assertSee('All offline changes have been synchronized. No pending actions.')
             ->assertSee('Connection:')
             ->assertSee('Pending Offline Actions:')
             ->assertSee('Failed Syncs:')
@@ -101,11 +104,13 @@ class OfflineSyncTest extends TestCase
         $this->assertStringContainsString('Working offline. Changes will sync when connection returns.', $script);
         $this->assertStringContainsString('Online — pending actions ready to sync.', $script);
         $this->assertStringContainsString('All offline actions synchronized.', $script);
-        $this->assertStringContainsString('No pending offline actions.', $script);
-        $this->assertStringContainsString('No Pending Actions', $script);
+        $this->assertStringContainsString('All offline changes have been synchronized. No pending actions.', $script);
+        $this->assertStringContainsString('Synchronized', $script);
+        $this->assertStringNotContainsString('No Pending Actions', $script);
         $this->assertStringContainsString('data-offline-last-sync-short', $script);
         $this->assertStringContainsString('window.addEventListener(\'storage\'', $script);
         $this->assertStringContainsString('data-offline-sync-message', $script);
+        $this->assertStringContainsString('data-offline-type-count', $script);
     }
 
     public function test_service_worker_does_not_cache_offline_sync_or_authenticated_pages(): void

@@ -146,6 +146,7 @@ class PwaFoundationTest extends TestCase
             ->assertDontSee('offline-sync.js')
             ->assertDontSee('No pending offline actions.')
             ->assertDontSee('No Pending Actions')
+            ->assertDontSee('All offline changes have been synchronized. No pending actions.')
             ->assertDontSee('data-offline-sync-status', false)
             ->assertDontSee('data-offline-sync-message', false)
             ->assertDontSee('data-pwa-online-status', false);
@@ -199,13 +200,16 @@ class PwaFoundationTest extends TestCase
             ->get('/admin/mobile-technician-dashboard')
             ->assertOk()
             ->assertSee('Assigned Work Orders')
+            ->assertSee('Open Work Orders')
+            ->assertSee('Overdue Work Orders')
+            ->assertSee('Maintenance Requests Needing Action')
+            ->assertSee('Evidence Required')
+            ->assertSee('Critical Recommendations')
             ->assertSee('Due Today')
             ->assertSee('Notifications')
-            ->assertSee('Recent Equipment')
-            ->assertSee('Device Information')
-            ->assertSee('Online/Offline')
-            ->assertSee('Browser')
-            ->assertSee('Install status');
+            ->assertSee('Offline Status')
+            ->assertSee('Pending Offline Sync')
+            ->assertSee('Offline Forms');
     }
 
     public function test_mobile_dashboard_livewire_component_renders_responsive_layout(): void

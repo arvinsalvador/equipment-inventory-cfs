@@ -40,6 +40,8 @@ class RolePermissionSeeder extends Seeder
         'work-orders.verify',
         'beyond-repair.recommend',
         'beyond-repair.approve',
+        'technician-mobile.view',
+        'offline-queue.view',
         'recommendations.view',
         'recommendations.review',
         'reports.view',
@@ -70,6 +72,8 @@ class RolePermissionSeeder extends Seeder
         'work-orders.accept',
         'work-orders.update-assigned',
         'work-orders.upload-evidence',
+        'technician-mobile.view',
+        'offline-queue.view',
         'recommendations.view',
         'reports.view',
     ];
@@ -82,6 +86,8 @@ class RolePermissionSeeder extends Seeder
         'work-orders.update-assigned',
         'work-orders.upload-evidence',
         'beyond-repair.recommend',
+        'technician-mobile.view',
+        'offline-queue.view',
         'recommendations.view',
     ];
 

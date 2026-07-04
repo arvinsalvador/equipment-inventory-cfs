@@ -18,7 +18,7 @@ class OfflineQueue extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('access admin panel') ?? false;
+        return auth()->user()?->can('offline-queue.view') ?? false;
     }
 
     public static function shouldRegisterNavigation(): bool

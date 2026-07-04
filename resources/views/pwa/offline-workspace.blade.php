@@ -15,7 +15,7 @@
         </div>
         <div>
             <p>Sync status: <strong data-offline-sync-status>Checking</strong></p>
-            <p data-offline-sync-message>No pending offline actions.</p>
+            <p data-offline-sync-message>All offline changes have been synchronized. No pending actions.</p>
         </div>
     </div>
 
