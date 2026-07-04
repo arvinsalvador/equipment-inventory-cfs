@@ -1,0 +1,12 @@
+{
+  "applicationId": "REPLACE_WITH_APPLICATION_ID",
+  "host": "REPLACE_WITH_PRODUCTION_HOST",
+  "launcherName": "REPLACE_WITH_LAUNCHER_NAME",
+  "themeColor": "REPLACE_WITH_THEME_COLOR",
+  "backgroundColor": "REPLACE_WITH_BACKGROUND_COLOR",
+  "startUrl": "REPLACE_WITH_START_URL",
+  "display": "REPLACE_WITH_DISPLAY_MODE",
+  "navigationColor": "REPLACE_WITH_NAVIGATION_COLOR",
+  "signingKeyPath": "REPLACE_WITH_SIGNING_KEY_PATH",
+  "signingKeyAlias": "REPLACE_WITH_SIGNING_KEY_ALIAS"
+}

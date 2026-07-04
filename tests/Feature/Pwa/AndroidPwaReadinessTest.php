@@ -138,6 +138,65 @@ class AndroidPwaReadinessTest extends TestCase
         $this->assertContains('Real Android device testing required', $titles);
     }
 
+    public function test_android_phase_15c_bootstrap_files_exist(): void
+    {
+        $readmePath = base_path('android/README.md');
+        $bubblewrapPath = base_path('android/bubblewrap.config.template.json');
+        $signingGuidePath = base_path('android/SIGNING_GUIDE.md');
+        $releaseChecklistPath = base_path('android/RELEASE_CHECKLIST.md');
+
+        $this->assertFileExists($readmePath);
+        $this->assertFileExists($bubblewrapPath);
+        $this->assertFileExists($signingGuidePath);
+        $this->assertFileExists($releaseChecklistPath);
+
+        $this->assertStringContainsString('Trusted Web Activity', file_get_contents($readmePath));
+        $this->assertStringContainsString('Minimum SDK', file_get_contents($readmePath));
+        $this->assertStringContainsString('Android Studio', file_get_contents($readmePath));
+
+        $bubblewrap = json_decode(file_get_contents($bubblewrapPath), true);
+
+        $this->assertSame('REPLACE_WITH_APPLICATION_ID', $bubblewrap['applicationId']);
+        $this->assertSame('REPLACE_WITH_PRODUCTION_HOST', $bubblewrap['host']);
+        $this->assertSame('REPLACE_WITH_LAUNCHER_NAME', $bubblewrap['launcherName']);
+        $this->assertSame('REPLACE_WITH_THEME_COLOR', $bubblewrap['themeColor']);
+        $this->assertSame('REPLACE_WITH_BACKGROUND_COLOR', $bubblewrap['backgroundColor']);
+        $this->assertSame('REPLACE_WITH_START_URL', $bubblewrap['startUrl']);
+        $this->assertSame('REPLACE_WITH_DISPLAY_MODE', $bubblewrap['display']);
+        $this->assertSame('REPLACE_WITH_NAVIGATION_COLOR', $bubblewrap['navigationColor']);
+        $this->assertSame('REPLACE_WITH_SIGNING_KEY_PATH', $bubblewrap['signingKeyPath']);
+        $this->assertSame('REPLACE_WITH_SIGNING_KEY_ALIAS', $bubblewrap['signingKeyAlias']);
+
+        $signingGuide = file_get_contents($signingGuidePath);
+        $this->assertStringContainsString('Debug Keystore', $signingGuide);
+        $this->assertStringContainsString('Release Keystore', $signingGuide);
+        $this->assertStringContainsString('SHA-256 Fingerprint Generation', $signingGuide);
+        $this->assertStringContainsString('keytool', $signingGuide);
+
+        $releaseChecklist = file_get_contents($releaseChecklistPath);
+        $this->assertStringContainsString('HTTPS verification', $releaseChecklist);
+        $this->assertStringContainsString('Digital Asset Links verification', $releaseChecklist);
+        $this->assertStringContainsString('APK build', $releaseChecklist);
+        $this->assertStringContainsString('AAB build', $releaseChecklist);
+        $this->assertStringContainsString('QR scanner testing', $releaseChecklist);
+        $this->assertStringContainsString('Maintenance request workflow testing', $releaseChecklist);
+    }
+
+    public function test_production_readiness_service_includes_android_release_items(): void
+    {
+        $items = app(ProductionReadinessService::class)->getAndroidReleaseChecklist();
+        $titles = collect($items)->pluck('title')->all();
+
+        $this->assertContains('HTTPS domain available', $titles);
+        $this->assertContains('Asset Links deployed', $titles);
+        $this->assertContains('PWA validated', $titles);
+        $this->assertContains('Service Worker active', $titles);
+        $this->assertContains('Offline queue verified', $titles);
+        $this->assertContains('QR scanner tested', $titles);
+        $this->assertContains('Android documentation complete', $titles);
+        $this->assertContains('Signing key prepared', $titles);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

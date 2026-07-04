@@ -79,6 +79,31 @@
             {{ $renderChecklist($readiness['androidPackaging']) }}
         </x-filament::section>
 
+        <x-filament::section>
+            <x-slot name="heading">Android Release Preparation</x-slot>
+            @php
+                $androidReleaseMissing = collect($readiness['androidRelease'])
+                    ->reject(fn (array $item): bool => in_array($item['status'], ['ready', 'review'], true))
+                    ->count();
+                $androidReleaseReady = count($readiness['androidRelease']) - $androidReleaseMissing;
+            @endphp
+            <div class="mb-4 grid gap-3 md:grid-cols-3">
+                <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-950">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Overall Readiness</p>
+                    <p class="mt-1 text-xl font-semibold text-gray-950 dark:text-white">{{ $androidReleaseReady }}/{{ count($readiness['androidRelease']) }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-950">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Missing Requirements</p>
+                    <p class="mt-1 text-xl font-semibold text-gray-950 dark:text-white">{{ $androidReleaseMissing }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-950">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Release Gate</p>
+                    <p class="mt-1 text-sm font-medium text-gray-700 dark:text-gray-300">APK/AAB generation remains deferred.</p>
+                </div>
+            </div>
+            {{ $renderChecklist($readiness['androidRelease']) }}
+        </x-filament::section>
+
         <div class="grid gap-6 xl:grid-cols-2">
             <x-filament::section>
                 <x-slot name="heading">Production Warnings</x-slot>

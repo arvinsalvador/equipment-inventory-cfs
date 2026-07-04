@@ -178,6 +178,23 @@ class ProductionReadinessService
         ];
     }
 
+    /**
+     * @return array<int, array<string, string>>
+     */
+    public function getAndroidReleaseChecklist(): array
+    {
+        return [
+            $this->item('HTTPS domain available', request()->isSecure() ? 'ready' : 'critical', 'The Android release build must target the final HTTPS production domain.', 'Confirm the production domain has valid SSL before APK/AAB generation.'),
+            $this->item('Asset Links deployed', File::exists(public_path('.well-known/assetlinks.json')) ? 'ready' : 'critical', 'Trusted Web Activity release verification requires the final assetlinks.json file.', 'Deploy assetlinks.json with the real package name and release SHA-256 fingerprint.'),
+            $this->item('PWA validated', File::exists(public_path('manifest.webmanifest')) && File::exists(public_path('pwa.js')) ? 'ready' : 'warning', 'The production PWA manifest and install scripts should be valid before Android generation.', 'Validate the production manifest and install prompt behavior in Chrome.'),
+            $this->item('Service Worker active', File::exists(public_path('service-worker.js')) ? 'ready' : 'warning', 'The Android TWA depends on the existing service worker for offline behavior and safe asset caching.', 'Verify service-worker registration on the production domain.'),
+            $this->item('Offline queue verified', File::exists(public_path('offline-sync.js')) ? 'ready' : 'warning', 'Offline queue behavior must remain available for technicians in the packaged app.', 'Run offline queue tests and validate sync on a physical Android device.'),
+            $this->item('QR scanner tested', Route::has('equipment.scan') ? 'review' : 'warning', 'QR scanning must be tested on Chrome Android and the generated TWA over HTTPS.', 'Complete camera permission and QR scan validation on real Android hardware.'),
+            $this->item('Android documentation complete', File::exists(base_path('android/README.md')) && File::exists(base_path('android/SIGNING_GUIDE.md')) && File::exists(base_path('android/RELEASE_CHECKLIST.md')) ? 'ready' : 'warning', 'Android bootstrap, signing, and release documentation should be present before build generation.', 'Review the android/ documentation before Phase 15D.'),
+            $this->item('Signing key prepared', 'critical', 'A release signing key is required for real APK/AAB generation and Digital Asset Links verification.', 'Create and secure the release keystore outside this repository before release builds.'),
+        ];
+    }
+
     public function getOverallReadinessScore(): int
     {
         $items = collect([
@@ -190,6 +207,7 @@ class ProductionReadinessService
             ...$this->getPwaChecklist(),
             ...$this->getAndroidReadinessChecklist(),
             ...$this->getAndroidPackagingChecklist(),
+            ...$this->getAndroidReleaseChecklist(),
         ]);
 
         if ($items->isEmpty()) {
