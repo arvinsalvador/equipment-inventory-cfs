@@ -157,6 +157,27 @@ class ProductionReadinessService
         ];
     }
 
+    /**
+     * @return array<int, array<string, string>>
+     */
+    public function getAndroidPackagingChecklist(): array
+    {
+        $projectStatus = File::exists(base_path('PROJECT_STATUS.md'))
+            ? File::get(base_path('PROJECT_STATUS.md'))
+            : '';
+
+        return [
+            $this->item('Phase 15A completed', str_contains($projectStatus, 'Phase 15A status: Complete') ? 'ready' : 'warning', 'Android packaging should start only after Phase 15A readiness is complete.', 'Confirm PROJECT_STATUS.md lists Phase 15A as complete.'),
+            $this->item('Android TWA documentation exists', File::exists(base_path('docs/ANDROID_TWA_PREPARATION.md')) ? 'ready' : 'warning', 'TWA preparation documentation should remain available for package generation.', 'Review docs/ANDROID_TWA_PREPARATION.md before generating the Android project.'),
+            $this->item('Android packaging documentation exists', File::exists(base_path('docs/ANDROID_PACKAGING_TWA.md')) ? 'ready' : 'warning', 'Phase 15B packaging documentation should guide Bubblewrap APK and AAB generation.', 'Review docs/ANDROID_PACKAGING_TWA.md on the developer machine.'),
+            $this->item('Assetlinks template exists', File::exists(public_path('.well-known/assetlinks.template.json')) ? 'ready' : 'warning', 'Digital Asset Links should start from a placeholder template, not fake production values.', 'Replace placeholders only when package name and SHA-256 fingerprint are final.'),
+            $this->item('Production HTTPS domain required', request()->isSecure() ? 'ready' : 'critical', 'TWA generation should target the final production HTTPS domain.', 'Do not initialize Bubblewrap from localhost or a temporary URL.'),
+            $this->item('Real SHA-256 fingerprint required', 'critical', 'The final assetlinks.json requires the release signing certificate SHA-256 fingerprint.', 'Generate the fingerprint from the release signing key before finalizing Digital Asset Links.'),
+            $this->item('APK/AAB generation deferred', 'review', 'APK and AAB generation remains deferred until the production domain and signing values are available.', 'Generate APK/AAB in Phase 15C or release preparation after production verification.'),
+            $this->item('Real Android device testing required', 'critical', 'TWA behavior, camera permissions, QR scanning, and offline queue must be tested on real Android devices.', 'Test Chrome Android and the generated TWA before release.'),
+        ];
+    }
+
     public function getOverallReadinessScore(): int
     {
         $items = collect([
@@ -168,6 +189,7 @@ class ProductionReadinessService
             ...$this->getStorageChecklist(),
             ...$this->getPwaChecklist(),
             ...$this->getAndroidReadinessChecklist(),
+            ...$this->getAndroidPackagingChecklist(),
         ]);
 
         if ($items->isEmpty()) {

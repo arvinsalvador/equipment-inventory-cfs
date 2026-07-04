@@ -74,6 +74,11 @@
             {{ $renderChecklist($readiness['android']) }}
         </x-filament::section>
 
+        <x-filament::section>
+            <x-slot name="heading">Android Packaging / TWA Readiness</x-slot>
+            {{ $renderChecklist($readiness['androidPackaging']) }}
+        </x-filament::section>
+
         <div class="grid gap-6 xl:grid-cols-2">
             <x-filament::section>
                 <x-slot name="heading">Production Warnings</x-slot>

@@ -5,7 +5,7 @@
         ],
         "target": {
             "namespace": "android_app",
-            "package_name": "com.example.ai_equipment_inventory",
+            "package_name": "edu.snsu.delcarmen.cfs.cmms",
             "sha256_cert_fingerprints": [
                 "REPLACE_WITH_RELEASE_CERTIFICATE_SHA256_FINGERPRINT"
             ]

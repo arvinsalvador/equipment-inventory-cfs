@@ -33,6 +33,7 @@ class ProductionReadinessTest extends TestCase
         $this->assertChecklist($service->getStorageChecklist(), 'Public disk configured');
         $this->assertChecklist($service->getPwaChecklist(), 'Service worker exists');
         $this->assertChecklist($service->getAndroidReadinessChecklist(), 'TWA assetlinks template prepared');
+        $this->assertChecklist($service->getAndroidPackagingChecklist(), 'Android packaging documentation exists');
 
         $score = $service->getOverallReadinessScore();
         $this->assertIsInt($score);
@@ -58,12 +59,14 @@ class ProductionReadinessTest extends TestCase
             ->assertSee('Storage and File Upload Checklist')
             ->assertSee('PWA Readiness Checklist')
             ->assertSee('Android PWA/TWA Readiness Checklist')
+            ->assertSee('Android Packaging / TWA Readiness')
             ->assertSee('Production Warnings')
             ->assertSee('Recommended Actions')
             ->assertSee('APP_DEBUG should be false in production.')
             ->assertSee('The public/storage link must expose public uploaded files.')
             ->assertSee('Service worker should exclude admin, Filament, and Livewire routes.')
-            ->assertSee('Trusted Web Activity verification needs Digital Asset Links.');
+            ->assertSee('Trusted Web Activity verification needs Digital Asset Links.')
+            ->assertSee('Phase 15B packaging documentation should guide Bubblewrap APK and AAB generation.');
     }
 
     public function test_staff_technician_and_user_without_permission_cannot_access_page(): void

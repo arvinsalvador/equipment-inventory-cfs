@@ -82,20 +82,29 @@ class AndroidPwaReadinessTest extends TestCase
     {
         $templatePath = public_path('.well-known/assetlinks.template.json');
         $documentationPath = base_path('docs/ANDROID_TWA_PREPARATION.md');
+        $packagingDocumentationPath = base_path('docs/ANDROID_PACKAGING_TWA.md');
 
         $this->assertFileExists($templatePath);
         $this->assertFileExists($documentationPath);
+        $this->assertFileExists($packagingDocumentationPath);
 
         $template = file_get_contents($templatePath);
         $documentation = file_get_contents($documentationPath);
+        $packagingDocumentation = file_get_contents($packagingDocumentationPath);
 
         $this->assertStringContainsString('delegate_permission/common.handle_all_urls', $template);
-        $this->assertStringContainsString('com.example.ai_equipment_inventory', $template);
+        $this->assertStringContainsString('edu.snsu.delcarmen.cfs.cmms', $template);
         $this->assertStringContainsString('REPLACE_WITH_RELEASE_CERTIFICATE_SHA256_FINGERPRINT', $template);
         $this->assertStringContainsString('Why Trusted Web Activity Is Recommended', $documentation);
         $this->assertStringContainsString('Capacitor Alternative', $documentation);
         $this->assertStringContainsString('QR Scanner Android Compatibility Notes', $documentation);
         $this->assertStringContainsString('Offline Queue Android Compatibility Notes', $documentation);
+        $this->assertStringContainsString('Trusted Web Activity', $packagingDocumentation);
+        $this->assertStringContainsString('Bubblewrap', $packagingDocumentation);
+        $this->assertStringContainsString('assetlinks.json', $packagingDocumentation);
+        $this->assertStringContainsString('APK', $packagingDocumentation);
+        $this->assertStringContainsString('AAB', $packagingDocumentation);
+        $this->assertStringContainsString('edu.snsu.delcarmen.cfs.cmms', $packagingDocumentation);
     }
 
     public function test_production_readiness_service_includes_android_readiness_items(): void
@@ -112,6 +121,21 @@ class AndroidPwaReadinessTest extends TestCase
         $this->assertContains('HTTPS required for camera', $titles);
         $this->assertContains('TWA assetlinks template prepared', $titles);
         $this->assertContains('Android documentation prepared', $titles);
+    }
+
+    public function test_production_readiness_service_includes_android_packaging_items(): void
+    {
+        $items = app(ProductionReadinessService::class)->getAndroidPackagingChecklist();
+        $titles = collect($items)->pluck('title')->all();
+
+        $this->assertContains('Phase 15A completed', $titles);
+        $this->assertContains('Android TWA documentation exists', $titles);
+        $this->assertContains('Android packaging documentation exists', $titles);
+        $this->assertContains('Assetlinks template exists', $titles);
+        $this->assertContains('Production HTTPS domain required', $titles);
+        $this->assertContains('Real SHA-256 fingerprint required', $titles);
+        $this->assertContains('APK/AAB generation deferred', $titles);
+        $this->assertContains('Real Android device testing required', $titles);
     }
 
     private function userWithRole(string $role): User

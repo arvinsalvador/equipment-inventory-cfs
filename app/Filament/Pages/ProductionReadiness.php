@@ -49,6 +49,7 @@ class ProductionReadiness extends Page
             'storage' => $service->getStorageChecklist(),
             'pwa' => $service->getPwaChecklist(),
             'android' => $service->getAndroidReadinessChecklist(),
+            'androidPackaging' => $service->getAndroidPackagingChecklist(),
             'warnings' => $service->getProductionWarnings(),
             'actions' => $service->getRecommendedActions(),
         ];
