@@ -56,6 +56,7 @@ class RolePermissionSeeder extends Seeder
         'budget-plans.create',
         'budget-plans.update',
         'budget-plans.approve',
+        'executive-dashboard.view',
     ];
 
     public const STAFF_PERMISSIONS = [
