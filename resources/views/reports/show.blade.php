@@ -26,7 +26,7 @@
 <body>
     <main>
         <header>
-            <p class="muted">CFS Equipment Inventory and Maintenance</p>
+            <p class="muted">{{ $reportHeaderName }}</p>
             <h1>{{ $definition['name'] }}</h1>
             <p>{{ $definition['description'] }}</p>
         </header>

@@ -33,9 +33,9 @@
     </div>
 
     <header>
-        <div class="system">CFS Equipment Inventory and Maintenance</div>
+        <div class="system">{{ $reportHeaderName }}</div>
         <h1>{{ $definition['name'] }}</h1>
-        <div class="meta">Generated {{ now()->format('Y-m-d H:i') }} | {{ $rows->count() }} record{{ $rows->count() === 1 ? '' : 's' }}</div>
+        <div class="meta">Generated {{ now()->format('Y-m-d H:i') }}@if ($includeGeneratedBy && auth()->user()) by {{ auth()->user()->name }}@endif | {{ $rows->count() }} record{{ $rows->count() === 1 ? '' : 's' }}</div>
     </header>
 
     <section class="filters">
@@ -71,7 +71,7 @@
     </table>
 
     <footer>
-        PDF-ready template. Server-side PDF generation is deferred until a PDF package is approved.
+        {{ $reportFooterText }}
     </footer>
 </body>
 </html>

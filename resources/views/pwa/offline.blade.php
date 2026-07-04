@@ -16,7 +16,7 @@
     <main>
         <h1>Offline Mode</h1>
         <p>Internet connection unavailable.</p>
-        <p>Some features require reconnecting.</p>
+        <p>{{ app(\App\Services\SystemSettingsService::class)->get('pwa_defaults', 'offline_message', 'Some features require reconnecting.') }}</p>
     </main>
 </body>
 </html>

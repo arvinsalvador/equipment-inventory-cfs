@@ -20,9 +20,9 @@
     </style>
 </head>
 <body>
-    <p class="meta">CFS Equipment Inventory and Maintenance</p>
+    <p class="meta">{{ $reportHeaderName }}</p>
     <h1>{{ $definition['name'] }}</h1>
-    <p class="meta">Generated {{ now()->format('Y-m-d H:i') }}</p>
+    <p class="meta">Generated {{ now()->format('Y-m-d H:i') }}@if ($includeGeneratedBy && auth()->user()) by {{ auth()->user()->name }}@endif</p>
 
     <div class="filters">
         <strong>Applied filters:</strong>
@@ -55,5 +55,7 @@
             @endforelse
         </tbody>
     </table>
+
+    <p class="meta">{{ $reportFooterText }}</p>
 </body>
 </html>
