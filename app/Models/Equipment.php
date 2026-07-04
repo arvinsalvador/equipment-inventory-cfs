@@ -178,6 +178,11 @@ class Equipment extends Model
         return $this->hasMany(AssetActionRequest::class)->latest();
     }
 
+    public function budgetPlanItems(): HasMany
+    {
+        return $this->hasMany(BudgetPlanItem::class)->latest();
+    }
+
     public function workOrderEvidences(): HasMany
     {
         return $this->hasMany(WorkOrderEvidence::class)->latest('uploaded_at')->latest();

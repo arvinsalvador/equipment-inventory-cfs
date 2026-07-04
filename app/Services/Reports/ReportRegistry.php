@@ -3,6 +3,8 @@
 namespace App\Services\Reports;
 
 use App\Models\AssetActionRequest;
+use App\Models\BudgetPlan;
+use App\Models\BudgetPlanItem;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\EquipmentLifecycleProfile;
@@ -40,6 +42,8 @@ class ReportRegistry
             'equipment-maintenance-history' => $this->definition('Equipment Maintenance History Report', 'Combined schedule, request, and work order maintenance activity history.', ['csv', 'print'], ['date_from', 'date_to', 'equipment', 'activity_type']),
             'equipment-lifecycle' => $this->definition('Equipment Lifecycle Report', 'Health score, lifecycle status, replacement recommendation, repair count, and maintenance cost by equipment.', ['csv', 'print'], ['health_grade', 'lifecycle_status', 'replacement_recommendation', 'category', 'location']),
             'asset-action-requests' => $this->definition('Asset Action Request Report', 'Replacement, procurement, disposal, repair, and inspection workflow tracking.', ['csv', 'print'], ['date_from', 'date_to', 'equipment', 'requested_by', 'request_type', 'priority', 'status']),
+            'budget-plans' => $this->definition('Budget Plan Report', 'Budget plans by fiscal year, status, preparer, approval, and estimated budget.', ['csv', 'print'], ['fiscal_year', 'status']),
+            'budget-plan-items' => $this->definition('Budget Plan Item Report', 'Budget plan item forecast by fiscal year, equipment, item type, priority, cost, and status.', ['csv', 'print'], ['fiscal_year', 'equipment', 'item_type', 'priority', 'status']),
         ];
     }
 
@@ -74,6 +78,8 @@ class ReportRegistry
             'equipment-maintenance-history' => $this->columnsFrom(['date' => 'Date', 'equipment' => 'Equipment', 'activity_type' => 'Activity type', 'reference_number' => 'Reference number', 'status' => 'Status', 'actor' => 'Performed/Submitted/Assigned by', 'summary' => 'Summary']),
             'equipment-lifecycle' => $this->columnsFrom(['equipment_code' => 'Equipment code', 'equipment_name' => 'Equipment name', 'category' => 'Category', 'location' => 'Location', 'health_score' => 'Health score', 'health_grade' => 'Health grade', 'lifecycle_status' => 'Lifecycle status', 'replacement_recommendation' => 'Replacement recommendation', 'estimated_remaining_life' => 'Estimated remaining life', 'estimated_end_of_life_date' => 'Estimated end-of-life date', 'repair_count' => 'Repair count', 'total_maintenance_cost' => 'Total maintenance cost', 'last_calculated_date' => 'Last calculated date']),
             'asset-action-requests' => $this->columnsFrom(['request_number' => 'Request number', 'equipment' => 'Equipment', 'request_type' => 'Request type', 'priority' => 'Priority', 'status' => 'Status', 'estimated_cost' => 'Estimated cost', 'requested_by' => 'Requested by', 'approved_by' => 'Approved by', 'created_date' => 'Created date', 'completed_date' => 'Completed date']),
+            'budget-plans' => $this->columnsFrom(['plan_number' => 'Plan number', 'fiscal_year' => 'Fiscal year', 'status' => 'Status', 'total_estimated_budget' => 'Total estimated budget', 'prepared_by' => 'Prepared by', 'approved_by' => 'Approved by']),
+            'budget-plan-items' => $this->columnsFrom(['fiscal_year' => 'Fiscal year', 'equipment' => 'Equipment', 'item_type' => 'Item type', 'priority' => 'Priority', 'estimated_cost' => 'Estimated cost', 'status' => 'Status', 'forecast_reason' => 'Forecast reason']),
             default => throw new InvalidArgumentException('Unknown report.'),
         };
     }
@@ -100,6 +106,8 @@ class ReportRegistry
             'equipment-maintenance-history' => $this->maintenanceHistory($filters),
             'equipment-lifecycle' => $this->equipmentLifecycle($filters),
             'asset-action-requests' => $this->assetActionRequests($filters),
+            'budget-plans' => $this->budgetPlans($filters),
+            'budget-plan-items' => $this->budgetPlanItems($filters),
             default => throw new InvalidArgumentException('Unknown report.'),
         };
     }
@@ -122,8 +130,8 @@ class ReportRegistry
             'submitted_by' => User::query()->orderBy('name')->pluck('name', 'id')->all(),
             'requested_by' => User::query()->orderBy('name')->pluck('name', 'id')->all(),
             'transferred_by' => User::query()->orderBy('name')->pluck('name', 'id')->all(),
-            'status' => array_combine(array_unique(array_merge(MaintenanceSchedule::STATUSES, MaintenanceRequest::STATUSES, WorkOrder::STATUSES, AssetActionRequest::STATUSES)), array_unique(array_merge(MaintenanceSchedule::STATUSES, MaintenanceRequest::STATUSES, WorkOrder::STATUSES, AssetActionRequest::STATUSES))),
-            'priority' => array_combine(WorkOrder::PRIORITIES, WorkOrder::PRIORITIES),
+            'status' => array_combine(array_unique(array_merge(MaintenanceSchedule::STATUSES, MaintenanceRequest::STATUSES, WorkOrder::STATUSES, AssetActionRequest::STATUSES, BudgetPlan::STATUSES, BudgetPlanItem::STATUSES)), array_unique(array_merge(MaintenanceSchedule::STATUSES, MaintenanceRequest::STATUSES, WorkOrder::STATUSES, AssetActionRequest::STATUSES, BudgetPlan::STATUSES, BudgetPlanItem::STATUSES))),
+            'priority' => array_combine(array_unique(array_merge(WorkOrder::PRIORITIES, BudgetPlanItem::PRIORITIES)), array_unique(array_merge(WorkOrder::PRIORITIES, BudgetPlanItem::PRIORITIES))),
             'severity' => array_combine(MaintenanceRequest::SEVERITIES, MaintenanceRequest::SEVERITIES),
             'risk_level' => array_combine(MaintenanceRecommendation::RISK_LEVELS, MaintenanceRecommendation::RISK_LEVELS),
             'rule' => array_combine(MaintenanceRecommendation::RULE_KEYS, MaintenanceRecommendation::RULE_KEYS),
@@ -135,6 +143,8 @@ class ReportRegistry
             'lifecycle_status' => array_combine(EquipmentLifecycleProfile::LIFECYCLE_STATUSES, EquipmentLifecycleProfile::LIFECYCLE_STATUSES),
             'replacement_recommendation' => array_combine(EquipmentLifecycleProfile::REPLACEMENT_RECOMMENDATIONS, EquipmentLifecycleProfile::REPLACEMENT_RECOMMENDATIONS),
             'request_type' => array_combine(AssetActionRequest::REQUEST_TYPES, AssetActionRequest::REQUEST_TYPES),
+            'fiscal_year' => BudgetPlan::query()->orderByDesc('fiscal_year')->pluck('fiscal_year', 'fiscal_year')->all(),
+            'item_type' => array_combine(BudgetPlanItem::ITEM_TYPES, BudgetPlanItem::ITEM_TYPES),
         ];
     }
 
@@ -527,6 +537,47 @@ class ReportRegistry
                 'approved_by' => $request->approvedBy?->name,
                 'created_date' => $this->dateValue($request->created_at, 'Y-m-d H:i'),
                 'completed_date' => $this->dateValue($request->completed_at, 'Y-m-d H:i'),
+            ]);
+    }
+
+    private function budgetPlans(array $filters): Collection
+    {
+        return BudgetPlan::query()
+            ->with(['preparedBy', 'approvedBy'])
+            ->when($filters['fiscal_year'] ?? null, fn ($query, $year) => $query->where('fiscal_year', $year))
+            ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
+            ->orderByDesc('fiscal_year')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (BudgetPlan $plan) => [
+                'plan_number' => $plan->plan_number,
+                'fiscal_year' => $plan->fiscal_year,
+                'status' => $plan->status,
+                'total_estimated_budget' => $plan->total_estimated_budget,
+                'prepared_by' => $plan->preparedBy?->name,
+                'approved_by' => $plan->approvedBy?->name,
+            ]);
+    }
+
+    private function budgetPlanItems(array $filters): Collection
+    {
+        return BudgetPlanItem::query()
+            ->with(['budgetPlan', 'equipment'])
+            ->when($filters['fiscal_year'] ?? null, fn ($query, $year) => $query->whereHas('budgetPlan', fn ($query) => $query->where('fiscal_year', $year)))
+            ->when($filters['equipment'] ?? null, fn ($query, $id) => $query->where('equipment_id', $id))
+            ->when($filters['item_type'] ?? null, fn ($query, $value) => $query->where('item_type', $value))
+            ->when($filters['priority'] ?? null, fn ($query, $value) => $query->where('priority', $value))
+            ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (BudgetPlanItem $item) => [
+                'fiscal_year' => $item->budgetPlan?->fiscal_year,
+                'equipment' => $this->equipmentLabel($item->equipment),
+                'item_type' => $item->item_type,
+                'priority' => $item->priority,
+                'estimated_cost' => $item->estimated_cost,
+                'status' => $item->status,
+                'forecast_reason' => $item->forecast_reason,
             ]);
     }
 

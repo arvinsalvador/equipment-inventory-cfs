@@ -52,6 +52,10 @@ class RolePermissionSeeder extends Seeder
         'asset-actions.review',
         'asset-actions.approve',
         'asset-actions.complete',
+        'budget-plans.view',
+        'budget-plans.create',
+        'budget-plans.update',
+        'budget-plans.approve',
     ];
 
     public const STAFF_PERMISSIONS = [
