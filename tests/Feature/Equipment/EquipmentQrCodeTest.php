@@ -136,7 +136,57 @@ class EquipmentQrCodeTest extends TestCase
         $this->assertNotNull($equipment->qr_code_generated_at);
         Storage::disk('public')->assertExists($equipment->qr_code_path);
         $this->assertNotEmpty($equipment->getQrCodeUrl());
+        $this->assertStringStartsWith('/storage/equipment/qr-codes/', $equipment->getQrCodeUrl());
         $this->assertStringContainsString('/storage/equipment/qr-codes/', $equipment->getQrCodeUrl());
+        $this->assertFalse(str_starts_with($equipment->getQrCodeUrl(), 'http://localhost/storage/'));
+    }
+
+    public function test_generated_qr_code_uses_public_storage_visibility(): void
+    {
+        $equipment = app(EquipmentQrCodeGenerator::class)->generate($this->createEquipment());
+
+        Storage::disk('public')->assertExists($equipment->qr_code_path);
+        $this->assertSame('public', Storage::disk('public')->getVisibility($equipment->qr_code_path));
+        $this->assertStringStartsWith('/storage/equipment/qr-codes/', $equipment->getQrCodeUrl());
+        $this->assertStringContainsString('/storage/equipment/qr-codes/', $equipment->getQrCodeUrl());
+        $this->assertStringNotContainsString('storage/app/public', $equipment->getQrCodeUrl());
+    }
+
+    public function test_qr_code_url_normalizes_existing_public_storage_paths(): void
+    {
+        Storage::disk('public')->put('equipment/qr-codes/legacy.svg', '<svg></svg>', [
+            'visibility' => 'public',
+        ]);
+
+        foreach ([
+            'equipment/qr-codes/legacy.svg',
+            'storage/equipment/qr-codes/legacy.svg',
+            '/storage/equipment/qr-codes/legacy.svg',
+            'public/storage/equipment/qr-codes/legacy.svg',
+            'storage/app/public/equipment/qr-codes/legacy.svg',
+            'http://localhost:8087/storage/equipment/qr-codes/legacy.svg',
+        ] as $path) {
+            $equipment = $this->createEquipment([
+                'equipment_code' => 'EQ-QR-LEGACY-'.md5($path),
+                'qr_code_path' => $path,
+            ]);
+
+            $this->assertSame('equipment/qr-codes/legacy.svg', $equipment->normalized_qr_code_path);
+            $this->assertSame('/storage/equipment/qr-codes/legacy.svg', $equipment->getQrCodeUrl());
+            $this->assertStringContainsString('/storage/equipment/qr-codes/legacy.svg', $equipment->getQrCodeUrl());
+            $this->assertStringNotContainsString('storage/app/public', $equipment->getQrCodeUrl());
+        }
+    }
+
+    public function test_qr_code_url_returns_null_when_path_is_empty_or_file_is_missing(): void
+    {
+        $equipment = $this->createEquipment(['qr_code_path' => null]);
+
+        $this->assertNull($equipment->qr_code_url);
+
+        $equipment->forceFill(['qr_code_path' => 'equipment/qr-codes/missing.svg'])->save();
+
+        $this->assertNull($equipment->fresh()->qr_code_url);
     }
 
     public function test_staff_can_generate_qr_code_when_allowed_to_update_equipment(): void
@@ -171,7 +221,10 @@ class EquipmentQrCodeTest extends TestCase
         Livewire::test(ViewEquipment::class, ['record' => $equipment->getRouteKey()])
             ->assertSee('QR code')
             ->assertSee($equipment->qr_identifier)
-            ->assertSee('/equipment/lookup/'.$equipment->qr_identifier);
+            ->assertSee('/equipment/lookup/'.$equipment->qr_identifier)
+            ->assertSee($equipment->qr_code_url, false)
+            ->assertDontSee('storage/app/public')
+            ->assertDontSee('http://localhost/storage');
     }
 
     public function test_lookup_page_displays_qr_image_when_available(): void
@@ -185,6 +238,8 @@ class EquipmentQrCodeTest extends TestCase
             ->assertSee('QR code')
             ->assertSee('Equipment QR code', false)
             ->assertSee($equipment->getQrCodeUrl(), false)
+            ->assertDontSee('storage/app/public')
+            ->assertDontSee('http://localhost/storage')
             ->assertDontSee('QR code not generated');
     }
 

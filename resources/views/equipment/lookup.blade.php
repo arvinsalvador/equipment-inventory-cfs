@@ -53,8 +53,8 @@
                 <div class="media-stack">
                     <div class="media-card">
                         <div class="label">Equipment photo</div>
-                        @if ($equipment->photo_path)
-                            <img class="photo" src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($equipment->photo_path) }}" alt="Equipment photo">
+                        @if ($equipment->equipment_photo_url)
+                            <img class="photo" src="{{ $equipment->equipment_photo_url }}" alt="Equipment photo">
                         @else
                             <div class="placeholder">No photo available</div>
                         @endif
@@ -62,8 +62,8 @@
 
                     <div class="media-card">
                         <div class="label">QR code</div>
-                        @if ($equipment->getQrCodeUrl())
-                            <img class="qr-code" src="{{ $equipment->getQrCodeUrl() }}" alt="Equipment QR code">
+                        @if ($equipment->qr_code_url)
+                            <img class="qr-code" src="{{ $equipment->qr_code_url }}" alt="Equipment QR code">
                         @else
                             <div class="placeholder">QR code not generated</div>
                         @endif

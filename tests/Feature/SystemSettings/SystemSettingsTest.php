@@ -127,6 +127,19 @@ class SystemSettingsTest extends TestCase
         $this->actingAs($plainUser)->get(SystemConfiguration::getUrl())->assertForbidden();
     }
 
+    public function test_system_configuration_form_uses_full_width_layout_classes(): void
+    {
+        $administrator = $this->userWithRole('Administrator');
+
+        $this->actingAs($administrator)
+            ->get(SystemConfiguration::getUrl())
+            ->assertOk()
+            ->assertSee('class="w-full space-y-6"', false)
+            ->assertSee('grid grid-cols-1 gap-4 xl:grid-cols-2', false)
+            ->assertSee('block w-full min-w-0 rounded-lg', false)
+            ->assertSee('mt-3 block w-full min-w-0 rounded-lg', false);
+    }
+
     public function test_administrator_can_update_settings_and_changes_are_audited(): void
     {
         $administrator = $this->userWithRole('Administrator');

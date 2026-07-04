@@ -68,7 +68,95 @@ class EquipmentPhotoAndLocationHistoryTest extends TestCase
         $equipment = Equipment::where('equipment_code', 'EQ-PHOTO-001')->firstOrFail();
 
         $this->assertNotNull($equipment->photo_path);
+        $this->assertStringStartsWith('equipment/photos/', $equipment->photo_path);
         Storage::disk('public')->assertExists($equipment->photo_path);
+        $this->assertStringStartsWith('/storage/equipment/photos/', $equipment->getPhotoUrl());
+        $this->assertStringContainsString('/storage/equipment/photos/', $equipment->getPhotoUrl());
+        $this->assertFalse(str_starts_with($equipment->getPhotoUrl(), 'http://localhost/storage/'));
+        $this->assertStringNotContainsString('storage/app/public', $equipment->getPhotoUrl());
+    }
+
+    public function test_equipment_photo_url_normalizes_existing_public_storage_paths(): void
+    {
+        Storage::disk('public')->put('equipment/photos/legacy-photo.jpg', 'photo');
+
+        foreach ([
+            'equipment/photos/legacy-photo.jpg',
+            'storage/equipment/photos/legacy-photo.jpg',
+            '/storage/equipment/photos/legacy-photo.jpg',
+            'public/storage/equipment/photos/legacy-photo.jpg',
+            'storage/app/public/equipment/photos/legacy-photo.jpg',
+            'http://localhost:8087/storage/equipment/photos/legacy-photo.jpg',
+        ] as $path) {
+            $equipment = $this->createEquipment([
+                'equipment_code' => 'EQ-LEGACY-'.md5($path),
+                'photo_path' => $path,
+            ]);
+
+            $this->assertSame('equipment/photos/legacy-photo.jpg', $equipment->normalized_photo_path);
+            $this->assertSame('/storage/equipment/photos/legacy-photo.jpg', $equipment->getPhotoUrl());
+            $this->assertStringContainsString('/storage/equipment/photos/legacy-photo.jpg', $equipment->getPhotoUrl());
+            $this->assertStringNotContainsString('storage/app/public', $equipment->getPhotoUrl());
+        }
+    }
+
+    public function test_equipment_photo_url_returns_null_when_path_is_empty_or_file_is_missing(): void
+    {
+        $equipment = $this->createEquipment(['photo_path' => null]);
+
+        $this->assertNull($equipment->equipment_photo_url);
+
+        $equipment->forceFill(['photo_path' => 'equipment/photos/missing.jpg'])->save();
+
+        $this->assertNull($equipment->fresh()->equipment_photo_url);
+    }
+
+    public function test_equipment_list_renders_photo_public_url(): void
+    {
+        Storage::disk('public')->put('equipment/photos/list-photo.jpg', 'photo');
+        $equipment = $this->createEquipment([
+            'photo_path' => 'storage/equipment/photos/list-photo.jpg',
+        ]);
+
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        Livewire::test(ListEquipment::class)
+            ->assertSee($equipment->equipment_code)
+            ->assertSee('/storage/equipment/photos/list-photo.jpg', false)
+            ->assertDontSee('storage/app/public')
+            ->assertDontSee('http://localhost/storage');
+    }
+
+    public function test_equipment_view_renders_photo_public_url(): void
+    {
+        Storage::disk('public')->put('equipment/photos/view-photo.jpg', 'photo');
+        $equipment = $this->createEquipment([
+            'photo_path' => '/storage/equipment/photos/view-photo.jpg',
+        ]);
+
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        Livewire::test(\App\Filament\Resources\Equipment\Pages\ViewEquipment::class, ['record' => $equipment->getRouteKey()])
+            ->assertSee('Equipment photo')
+            ->assertSee('/storage/equipment/photos/view-photo.jpg', false)
+            ->assertDontSee('storage/app/public')
+            ->assertDontSee('http://localhost/storage');
+    }
+
+    public function test_qr_lookup_page_renders_equipment_photo_public_url(): void
+    {
+        Storage::disk('public')->put('equipment/photos/lookup-photo.jpg', 'photo');
+        $equipment = $this->createEquipment([
+            'photo_path' => 'storage/equipment/photos/lookup-photo.jpg',
+        ]);
+
+        $this->actingAs($this->userWithRole('Technician'));
+
+        $this->get(route('equipment.lookup', $equipment->qr_identifier))
+            ->assertOk()
+            ->assertSee('/storage/equipment/photos/lookup-photo.jpg', false)
+            ->assertDontSee('storage/app/public')
+            ->assertDontSee('http://localhost/storage');
     }
 
     public function test_non_image_upload_is_rejected(): void

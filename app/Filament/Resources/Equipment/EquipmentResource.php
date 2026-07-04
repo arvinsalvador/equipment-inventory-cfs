@@ -65,6 +65,7 @@ class EquipmentResource extends Resource
                             ->label('Equipment photo')
                             ->disk('public')
                             ->directory('equipment/photos')
+                            ->visibility('public')
                             ->image()
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(2048)
@@ -162,10 +163,12 @@ class EquipmentResource extends Resource
             ->components([
                 Section::make('Basic equipment details')
                     ->schema([
-                        ImageEntry::make('photo_path')
+                        ImageEntry::make('normalized_photo_path')
                             ->label('Equipment photo')
                             ->disk('public')
-                            ->height(180),
+                            ->state(fn (Equipment $record): ?string => $record->filamentPhotoImageState())
+                            ->height(180)
+                            ->visible(fn (Equipment $record): bool => filled($record->filamentPhotoImageState())),
                         TextEntry::make('equipment_code')->label('Equipment code'),
                         TextEntry::make('property_number')->label('Property number')->placeholder('None'),
                         TextEntry::make('equipment_name')->label('Equipment name'),
@@ -175,11 +178,12 @@ class EquipmentResource extends Resource
                         TextEntry::make('qr_lookup_url')
                             ->label('QR lookup URL')
                             ->state(fn (Equipment $record): string => $record->getQrLookupUrl()),
-                        ImageEntry::make('qr_code_path')
+                        ImageEntry::make('normalized_qr_code_path')
                             ->label('QR code')
                             ->disk('public')
+                            ->state(fn (Equipment $record): ?string => $record->filamentQrCodeImageState())
                             ->height(180)
-                            ->visible(fn (Equipment $record): bool => filled($record->getQrCodeUrl())),
+                            ->visible(fn (Equipment $record): bool => filled($record->filamentQrCodeImageState())),
                         TextEntry::make('qr_code_generated_at')
                             ->label('QR generated at')
                             ->dateTime()
@@ -345,9 +349,10 @@ class EquipmentResource extends Resource
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('is_archived')->latest('created_at'))
             ->columns([
-                ImageColumn::make('photo_path')
+                ImageColumn::make('normalized_photo_path')
                     ->label('Photo')
                     ->disk('public')
+                    ->state(fn (Equipment $record): ?string => $record->filamentPhotoImageState())
                     ->height(44)
                     ->square(),
                 TextColumn::make('equipment_code')
@@ -375,10 +380,10 @@ class EquipmentResource extends Resource
                     ->label('Next maintenance date')
                     ->date()
                     ->sortable(),
-                ImageColumn::make('qr_code_path')
+                ImageColumn::make('normalized_qr_code_path')
                     ->label('QR code')
                     ->disk('public')
-                    ->state(fn (Equipment $record): ?string => $record->getQrCodeUrl() ? $record->qr_code_path : null)
+                    ->state(fn (Equipment $record): ?string => $record->filamentQrCodeImageState())
                     ->height(44)
                     ->square()
                     ->visible(fn (): bool => auth()->user()?->can('equipment.view') ?? false),

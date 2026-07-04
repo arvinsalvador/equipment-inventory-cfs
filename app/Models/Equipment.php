@@ -131,11 +131,135 @@ class Equipment extends Model
 
     public function getQrCodeUrl(): ?string
     {
-        if (! $this->qr_code_path || ! Storage::disk('public')->exists($this->qr_code_path)) {
+        return $this->publicMediaUrl($this->qr_code_path);
+    }
+
+    public function getPhotoUrl(): ?string
+    {
+        return $this->publicMediaUrl($this->photo_path);
+    }
+
+    public function getEquipmentPhotoUrlAttribute(): ?string
+    {
+        return $this->getPhotoUrl();
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->getPhotoUrl();
+    }
+
+    public function getQrCodeUrlAttribute(): ?string
+    {
+        return $this->getQrCodeUrl();
+    }
+
+    public function getNormalizedPhotoPathAttribute(): ?string
+    {
+        return $this->normalizePublicMediaPath($this->photo_path);
+    }
+
+    public function getNormalizedQrCodePathAttribute(): ?string
+    {
+        return $this->normalizePublicMediaPath($this->qr_code_path);
+    }
+
+    public function normalizePublicMediaPath(?string $path): ?string
+    {
+        if (! $path) {
             return null;
         }
 
-        return Storage::disk('public')->url($this->qr_code_path);
+        $path = trim(str_replace('\\', '/', $path));
+
+        if (preg_match('#^https?://#i', $path)) {
+            $path = parse_url($path, PHP_URL_PATH) ?: '';
+        }
+
+        $path = ltrim($path, '/');
+
+        foreach ([
+            'storage/app/public/',
+            'app/public/',
+            'public/storage/',
+            'storage/',
+        ] as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $path = substr($path, strlen($prefix));
+                break;
+            }
+        }
+
+        return $path === '' ? null : $path;
+    }
+
+    private function publicMediaUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        $path = trim(str_replace('\\', '/', $path));
+        $isFullUrl = preg_match('#^https?://#i', $path) === 1;
+        $normalizedPath = $this->normalizePublicMediaPath($path);
+
+        if ($normalizedPath && Storage::disk('public')->exists($normalizedPath)) {
+            return $this->publicStorageUrl($normalizedPath);
+        }
+
+        if ($isFullUrl) {
+            return $path;
+        }
+
+        return null;
+    }
+
+    private function publicStorageUrl(string $path): string
+    {
+        $url = Storage::disk('public')->url(ltrim($path, '/'));
+        $appStoragePrefix = rtrim((string) config('app.url'), '/').'/storage/';
+
+        if (str_starts_with($url, $appStoragePrefix)) {
+            return '/storage/'.substr($url, strlen($appStoragePrefix));
+        }
+
+        $storagePath = parse_url($url, PHP_URL_PATH);
+
+        if (is_string($storagePath) && str_starts_with($storagePath, '/storage/')) {
+            return $storagePath;
+        }
+
+        return $url;
+    }
+
+    public function filamentPhotoImageState(): ?string
+    {
+        if ($this->equipment_photo_url && preg_match('#^https?://#i', $this->equipment_photo_url)) {
+            return $this->equipment_photo_url;
+        }
+
+        $path = $this->normalized_photo_path;
+
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        return $path;
+    }
+
+    public function filamentQrCodeImageState(): ?string
+    {
+        if ($this->qr_code_url && preg_match('#^https?://#i', $this->qr_code_url)) {
+            return $this->qr_code_url;
+        }
+
+        $path = $this->normalized_qr_code_path;
+
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        return $path;
     }
 
     public function category(): BelongsTo

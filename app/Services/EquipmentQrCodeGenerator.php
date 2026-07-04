@@ -22,7 +22,9 @@ class EquipmentQrCodeGenerator
             'outputType' => QRCode::OUTPUT_MARKUP_SVG,
         ]));
 
-        Storage::disk('public')->put($path, $qrCode->render($equipment->getQrLookupUrl()));
+        Storage::disk('public')->put($path, $qrCode->render($equipment->getQrLookupUrl()), [
+            'visibility' => 'public',
+        ]);
 
         $equipment->forceFill([
             'qr_code_path' => $path,

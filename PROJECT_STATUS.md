@@ -1072,6 +1072,30 @@ Phase 11B - Offline Data Capture & Synchronization
 - Advanced data visualization
 - Executive PDF briefing generation
 
+## Maintenance Bug Fix - Storage Media and Configuration Layout
+
+- Equipment photo public storage access: Fixed
+- Equipment photo frontend display: Fixed
+- QR code public storage access: Fixed
+- QR code frontend display: Fixed
+- Existing media path normalization: Fixed
+- System configuration form layout: Fixed
+- Storage link requirement documented: Complete
+- Tests added/updated: Complete
+- Remaining risks: Server-level permissions and storage symlink must still be verified on shared hosting
+
+## Maintenance Bug Fix - Equipment Media and QR Display Regression
+
+- Equipment photo lookup display: Fixed
+- Equipment photo Filament list display: Fixed
+- Equipment photo Filament view display: Fixed
+- QR code public lookup display: Fixed
+- QR code Filament view display: Fixed
+- Media URL normalization: Fixed
+- QR code storage path consistency: Fixed
+- Tests added/updated: Complete
+- Remaining risks: Server-level public storage symlink and file permissions must be verified during deployment
+
 ## Next Phase
 
 Phase 14B - Production Hardening and Deployment Readiness
