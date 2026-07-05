@@ -1,0 +1,306 @@
+source_row,quantity,lot_classification,seed_category,equipment_needed,clean_equipment_name,specification,unit,module,remarks
+38,1,Office Equipment,Office Equipment,Fixed Whiteboard and Blackboard,Fixed Whiteboard and Blackboard,4' x 6',unit,1 to 16,
+39,1,ICT Equipment,ICT Equipment,Laptop for lectures and laboratories,Laptop,"Apple MacBook Air Laptop
+Model: MacBook Air 13-inch (M4)
+Processor: Apple M4 chip (10-core CPU, 10-core GPU, 16-core Neural Engine)
+Memory: 16 GB Unified Memory
+Storage: 512 GB SSD
+Display: 13.6-inch Liquid Retina (2560 × 1664), P3, True Tone
+Camera: 12 MP Center Stage
+Audio: Four-speaker system with Spatial Audio
+Connectivity: Wi-Fi 6E, Bluetooth 5.3
+Ports: 2× Thunderbolt 4 / USB-C, MagSafe 3, 3.5 mm headphone jack
+Keyboard: Backlit Magic Keyboard with Touch ID
+Battery Life: Up to 18 hours
+Operating System: macOS (latest version)
+Weight: Approx. 1.24 kg",unit,1 to 16,
+40,1,Office Equipment,Office Equipment,Portable Sound system,Portable Sound System,"Portable PA sound system; built-in amplifier; Bluetooth / USB / AUX support; rechargeable battery; suitable for indoor and outdoor use
+289x472x275mm, Mixer 308x180x116mm",unit,1 to 16,
+41,1,Other Equipment,Other Equipment,"DSLR (GPS) with Tripod (EOS 7000) Kit EF-S, L-8, 135mm",DSLR Camera with Tripod,Canon EOS 7000 DSLR Kit; APS-C sensor; built-in GPS; EF-S lens kit (18–135 mm); includes tripod; suitable for photo and video documentation,unit,1 to 16,
+42,1,Other Equipment,Other Equipment,Microphone and Speaker,Microphone and Speaker,"Professional microphone and speaker system; wired or wireless microphone; suitable for presentations, meetings, and events",unit,1 to 16,
+43,1,ICT Equipment,ICT Equipment,Printer with scanner (3 n 1),Printer with Scanner,"Model: Epson EcoTank L3250 A4 All-in-One Printer
+Print/Scan/Copy functions
+Ink tank system with high page yield
+Wi-Fi & USB connectivity
+Supports A4 printing and borderless up to 4R",unit,Module 1 to 16,
+44,1,Office Equipment,Office Equipment,Smart TV,Smart Tv,Smart LED TV; minimum 50-inch display; Full HD or 4K resolution; Wi-Fi enabled; HDMI and USB ports; wall-mountable,unit,1 to 16,
+45,1,Office Equipment,Office Equipment,Multimedia Projector (fixed to classrooms and laboratories),Multimedia Projector,"Fixed multimedia projector for classrooms/laboratories; minimum 3,500 lumens; Full HD support; HDMI/VGA inputs; ceiling mount compatible",unit,1 to 16,
+46,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Virtual Reality Equipment,Virtual Reality Equipment,"Augmented Reality (AR) and Virtual Reality (VR) Headset
+AR/VR Headset with complete set of accessories
+Display: LCD with local dimming
+Resolution: 2064 x 2208 pixels per eye or higher
+RAM: 8 GB or higher
+Storage: 128 GB or higher
+with inside-out tracking
+with touch plus controllers
+with 65 inches SMART TV for casting/ screen mirroring
+with full-color pass through
+with battery (2-3 hrs active use)
+with Wi-Fi or Bluetooth Connectivity
+estimated unit cost around Php 40,000.00",unit,1 to 16,
+47,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Automatic Weather Station (Base Sensor Suite),Automatic Weather Station (base Sensor Suite),All-in-one station or modular sensors mounted on mast. Includes: Aspirated air temperature sensor; Relative humidity sensor; Barometric pressure sensor; Electronic tipping-bucket rain gauge (heated optional); 3-cup ultrasonic anemometer (wind speed & direction); Pyranometer / solar radiation sensor; Data logger with SD storage. IP65/67 enclosure. Weatherproof cabling. Compatible with WeatherMaster data ingest.,set,"2,3,4,5,6, and 7",
+48,1,ICT Equipment,ICT Equipment,Knowledge portal,Knowledge Portal Server,"Knowledge portalDual-socket platform (Dell R750 / Lenovo SR650), or single-socket with high core count (Xeon Gold / AMD EPYC)
+Memory: 128 GB+
+Storage: 2 × 1–2 TB NVMe (OS/DB) + 4 × 2–4 TB SATA/NVMe for file/backup (RAID10)
+Network: 2 × 10 GbE + 1 × 25 GbE option
+PSU: Dual redundant, high-efficiency
+Warranty: 3–5 year on-site plus optional HW support SLAs",unit,2026-01-16,
+49,1,Technical and Scientific Equipment,Technical and Scientific Equipment,"Global Water, Water Quality Sensors with Datalogger","Global Water, Water Quality Sensors with Datalogger","Measures pH, temperature, conductivity; onboard data logging",set,"8,9,11 and 14",
+50,1,Technical and Scientific Equipment,Technical and Scientific Equipment,1 Garmin GPS with echosounder to log positions and record depth/ bathymetery,Garmin GPS with Echosounder,"Garmin Striker Vivid 7sv / EchoMap UHD
+GPS + CHIRP sonar
+Depth logging & waypoint recording
+USB / SD export",unit,"2,3,4,5,6,7, and 14",
+51,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Sunshine Recorder,Sunshine Recorder,"Electronic Sunshine Duration Sensor
+Digital pyranometer-based
+Automated data logging
+Compatible with weather stations",unit,"2,3,4,5,6, and 7",
+52,1,ICT Equipment,ICT Equipment,Desktop Unit All in One,All-in-One Desktop Computer,"All-in-One Desktop (2024 spec)
+Intel Core i7 (14th gen) 
+16 GB RAM
+512 GB SSD
+Windows 11 Pro",unit,2026-01-16,
+53,1,ICT Equipment,ICT Equipment,Hard Disk Drive,Hard Disk Drive,1 TB SSD (SATA or NVMe),unit,2026-01-16,
+54,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Internet Connection,Internet Connection,"Starlink Standard Kit including 1× Dish Antenna, 1× Wi-Fi Router; Installation & Mounting; Surge protection; 1-year basic service",unit,2026-01-16,
+55,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Multiparameter Water Quality Meter,Multiparameter Water Quality Meter,"Hanna Instruments / YSI ProDSS
+pH, DO, EC, TDS, Temp
+Digital logging + USB/Bluetooth
+Field-rugged",set,"8,9,11, and 16",
+56,1,Marine and Fisheries Equipment,Marine and Fisheries Equipment,NIskin Water sampler,Niskin Water Sampler,marine-grade materials,set,"8,9,11,14, and 16",
+57,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Flow meter,Flow Meter,"Digital ultrasonic or electromagnetic flow meter
+Data logging capable",set,8 and 9,
+58,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Soil moisture monitoring equipment,Soil Moisture Monitoring Equipment,"Davis Instruments Soil Moisture Sensor
+Digital probes
+Weather station integration",set,"10,11, and 12",
+59,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Evapotranspiration (ET) gauge,Evapotranspiration (et) Gauge,ET computed via Automated Weather Station,set,"2,3,4,5,6, and 7",
+60,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Hydrometer,Hydrometer,"Specification for Hydrometer:
+Range of 0.990-1.060SG, Readability of 0.001 SG or 0.0005 SG, Calibration Temperature of 15°C or 20°C, Accuracy of ±0.001, Measurement Scale of Specific Gravity (SG) and Salinity (ppt)",set,"2,3,4,5,6, and 7",
+61,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Pressure plate extractor,Pressure Plate Extractor,,set,"10,11, and 12",
+62,1,Technical and Scientific Equipment,Technical and Scientific Equipment,"Water purifier.distillation apparatus, ph meter","Water Purifier, Distillation Apparatus, and pH Meter","Bench-top water distiller
+Digital pH meter with calibration",set,8 and 9,
+63,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Tensiometer,Tensiometer,,set,8 and 9,
+64,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Soil auger,Soil Auger,,pc,8 and 9,
+65,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Soil sensor (Davis 6345CS Fully Populated Soil Transmitter),Soil Sensor,"Davis Instruments Soil & Temp Station
+Digital transmitter
+Wireless integration",unit,8 and 9,
+66,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Binocular Microscope,Binocular Microscope,"Binocular compound microscope; 4×, 10×, 40×, 100× objectives; LED illumination; coarse & fine focus; mechanical stage",pcs,"8,10,13, and 15",
+67,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Hot Air Oven,Hot Air Oven,Laboratory hot air oven; temperature range 50–250 °C; digital temperature controller; stainless steel interior; forced air circulation,unit,"10,11,12, and 15",
+68,1,Technical and Scientific Equipment,Technical and Scientific Equipment,"Atomic Absorption Spectrophotometer, SP-IAA4530","Atomic Absorption Spectrophotometer, Sp-Iaa4530",Flame AAS system; single-element hollow cathode lamp capability; wavelength range 190–900 nm; basic software; suitable for teaching & routine analysis,unit,"10,12, and 15",
+69,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Bouyoucos hydrometer,Bouyoucos Hydrometer,ASTM-compliant soil hydrometer; calibrated for soil texture analysis; glass construction with protective casing,unit,14,
+70,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Measuring Cylinder,Measuring Cylinder,Borosilicate glass measuring cylinders; assorted sizes (100–1000 ml); chemical-resistant,pcs,"8,10,12, and 15",
+71,1,,Technical and Scientific Equipment,Beaker,Beaker,Borosilicate glass beaker set; assorted capacities; heat and chemical resistant,set,"8,10,12, and 15",
+72,1,,Technical and Scientific Equipment,Moisture box,Moisture Box,Aluminum or stainless moisture container with tight-fitting lid; corrosion-resistant,pcs,"8,10,12, and 15",
+73,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Desicator,Desiccator,Laboratory desiccator with lid; polycarbonate or glass body; includes desiccant plate,unit,"8,10,12, and 15",
+74,1,Marine and Fisheries Equipment,Marine and Fisheries Equipment,Fish Feed Pellet Extruder,Fish Feed Pellet Extruder,Single-screw pellet extruder; suitable for small-scale feed production; adjustable die size; electric motor driven,unit,11 and 16,
+75,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Micro plant grinding machine mini mill plant machine,Micro Plant Grinding Machine,Mini grain/plant grinding mill; stainless steel contact parts; suitable for laboratory feed or sample grinding,unit,12,
+76,1,Other Equipment,Other Equipment,Weighing Scale,Weighing Scale,Digital weighing scale; capacity ≥30 kg; accuracy ±1 g; LCD display,unit,"11,12, and 15",
+77,1,Supplies and Materials,Supplies and Materials,Round Basin,Round Basin,"Maximum Capacity: 8L, color: white",pcs,"8,10,12, and 15",
+78,1,Supplies and Materials,Supplies and Materials,Soil Sieve,Soil Sieve,"Mass(kg): 2.5, Dimensions (WxHxD): 455x890x95",pcs,"8,10,12, and 15",
+79,1,Other Equipment,Other Equipment,Electric Mixer,Electric Mixer,Portable electric mixer; stainless steel mixing blades; suitable for feed or sample mixing,pcs,"8,10,12, and 15",
+80,1,Other Equipment,Other Equipment,Fish food pellet drying machine,Fish Food Pellet Drying Machine,Electric pellet drying machine; temperature-controlled; suitable for small-scale fish feed production,unit,"8,10,12, and 15",
+81,1,Marine and Fisheries Equipment,Marine and Fisheries Equipment,5-in-1 Electronic Salinity Meter,5-in-1 Electronic Salinity Meter,"Measures salinity, conductivity, TDS, temperature, and pH; digital LCD display; handheld",pcs,"8,9, and 11",
+82,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Secchi Disc,Secchi Disc,Standard Secchi disc; diameter ≥20 cm; graduated rope; suitable for water transparency measurement,pcs,"8,9, and 11",
+83,1,Marine and Fisheries Equipment,Marine and Fisheries Equipment,Plankton Net,Plankton Net,Conical plankton net; fine mesh; with collection bottle; suitable for freshwater or marine sampling,pcs,14,
+84,1,Marine and Fisheries Equipment,Marine and Fisheries Equipment,GPS with camera for boat,GPS with Camera for Boat,Marine GPS unit with built-in camera; waypoint logging; waterproof design,unit,"2,3,4 and 14",
+85,1,Marine and Fisheries Equipment,Marine and Fisheries Equipment,Underwater Camera System,Underwater Camera System,Waterproof underwater camera; minimum 30 m depth rating; LED illumination; with cable and monitor,set,14,
+86,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Micropipette Set,Micropipette Set,Adjustable micropipettes; volume range covering 0.1–1000 µL; with calibration certificate,set,13 and 14,
+87,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Germination Cabinets,Germination Cabinets,Seed germination cabinet; controlled temperature; adjustable shelving,unit,12,
+88,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Fumehood,Fumehood,Laboratory fume hood; corrosion-resistant interior; exhaust fan included,unit,"12, and 15",
+89,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Tractor,Tractor,Agricultural tractor; minimum 35–45 HP diesel engine; suitable for farm and field operations,unit,10,
+90,1,Technical and Scientific Equipment,Technical and Scientific Equipment,"Thermistor, Digital w/ Thermocouple Probes and Recorders","Thermistor, Digital with Thermocouple Probes and Recorders",Digital temperature recorder; includes thermistor and thermocouple probes; data logging capability,unit,"2,3,4, and 5",
+91,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Tensile Strength Meter,Tensile Strength Meter,Digital tensile strength tester; suitable for agricultural or material testing,unit,10 and 14,
+92,1,Supplies and Materials,Supplies and Materials,Budding Knife,Budding Knife,Stainless steel budding knife; ergonomic handle,pcs,12,
+93,1,Supplies and Materials,Supplies and Materials,Prunning shears,Pruning Shears,Heavy-duty pruning shears; hardened steel blades,pcs,12,
+94,1,Supplies and Materials,Supplies and Materials,Grafting Knife,Grafting Knife,Stainless steel grafting knife; sharp blade; ergonomic handle,pcs,12,
+95,1,Supplies and Materials,Supplies and Materials,Set of Sieves,Set of Sieves,Stainless steel laboratory/soil sieves; assorted mesh sizes; suitable for soil or grain analysis,set,"8,10,11, and 12",
+96,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Field sensors,Field Sensors,"Portable field sensor unit; measures basic environmental parameters (e.g., temperature and/or moisture); digital display or data logging",unit,10,
+97,1,ICT Equipment,ICT Equipment,Mapping Drone Kit (Enterprise RTK Mapping Package) — Example model: Autel EVO II Pro RTK V3 (or equivalent enterprise RTK mapping drone),Mapping Drone Kit (enterprise RTK Mapping Package) — Example Model: Autel Evo Ii Pro RTK V3 (or Equivalent Enterprise RTK Mapping Drone),"One (1) set Multispectral Aircraft Agricultural Drone with complete accessories.
+Specifications:
+Net Weight (with propellers and RTK module) - 951 g
+Max Takeoff Weight -1,050 g
+Dimensions (Folded/Unfolded)
+- Folded (without propellers): 223×96.3×122.2 mm (Length Width Height) - Unfolded (without propellers): 347.5×283×139.6 mm (Length Width Height) Diagonal Length - Diagonal: 380.1 mm
+Max Ascent Speed - 6 m/s (Normal Mode) 8 m/s (Sport Mode)
+Max Descent Speed - 6 m/s (Normal Mode) 6 m/s (Sport Mode)
+Max Flight Speed (at sea level, no wind) - 15 m/s (Normal Mode); Flying forward: 21 m/s; flying sideways: 20 m/s; flying backwards: 19 m/s (Sport mode)
+Max Wind Speed Resistance - 12 m/s
+Max Take-off Altitude Above Sea Level - 6000 m (without a payload)
+Max Flight Time (without wind) - 43 minutes
+Inclusions:
+Base Station Power Adapter Cable
+Base Station LAN Cable
+Extra Battery Kit
+Extra Propellers
+BASE STATION TRIPOD (RH)
+High Precision GNSS Mobile Station
+Terra Software (Perpetual Version)
+High Specs Laptop
+Pilot Training with Certificate (for 2 pilots) CAAP Registration
+TPL Insurance",unit,2026-01-16,
+98,1,Other Equipment,Other Equipment,"Solar Dryer (Fish & Fruit) with set of accessories,",Solar Dryer (fish & Fruit) with Set of Accessories,"PORTASOL Multi-purpose Speed Drying Solar Trays
+Dimensions: 30"" x 30""
+2"" clearance space for ventilation between trays when stacked
+Consists of 12 trays
+One (1) hood
+resistant to rusts, suitable for drying commodities such as beans, cacao, coffee, turmeric, rice, fishes, and others",unit,,
+99,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Rotator with 10HP engine with set of accessories,Rotator with 10hp Engine with Set of Accessories,Rotary tiller/rotator; 10 HP gasoline or diesel engine; complete with accessories for soil cultivation,unit,,
+100,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Greenhouse system,Greenhouse System,Complete greenhouse system; steel frame; UV-treated plastic cover; suitable for crop production and training,unit,10 and 12,
+101,1,,Agricultural and Forestry Equipment,Protective equipment,Protective Equipment,"Personal protective equipment (PPE) set; includes gloves, face mask, goggles or equivalent; suitable for field and processing work",sets,"10,12, 13 and 15",
+102,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Solar lights,Solar Lights,Solar-powered outdoor lights; weather-resistant; with mounting accessories,unit,2026-01-16,
+103,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Cutlass,Cutlass,Heavy-duty cutlass; hardened steel blade; suitable for agricultural use,unit,10 and 12,
+104,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Spading Fork,Spading Fork,Steel spading fork; minimum 4 tines; suitable for soil preparation,unit,10 and 12,
+105,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Light Hoe,Light Hoe,Lightweight hoe; steel blade; wooden or fiberglass handle,unit,10 and 12,
+106,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,clawbar,Claw Bar,Heavy-duty steel claw bar; corrosion-resistant; suitable for farm and maintenance work,pcs,10 and 12,
+107,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Coconut milk extractor,Coconut Milk Extractor,Motorized coconut milk extractor; stainless steel food-contact parts; suitable for small-scale processin,unit,12,
+108,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,cornmiller,Corn Miller,Mechanical or electric corn milling machine; suitable for feed or food preparation,unit,12,
+109,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Coconut deshelling machine,Coconut Deshelling Machine,Mechanical coconut deshelling machine; steel construction; suitable for small-scale coconut processing,unit,12,
+110,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,cornsheller,Corn Sheller,Mechanical or motorized corn sheller; steel body; suitable for farm use,unit,12,
+111,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Ricemill,Ricemill,"Capacity: 1000-1200 kg/hr
+with rotary pre-cleaner, husker, paddy separator, emery roll whitener, and grader/sifter
+Reference supplier: Gloden Leaf Machineries and Equipment
+Kasambagan, Cebu City
+goldenleaf.machineries@gmail.com
+09173089655 / 09173209986",unit,12,
+112,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Crowbar,Crowbar,Heavy-duty steel crowbar; corrosion-resistant,pcs,10 and 12,
+113,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Grain spade,Grain Spade,Steel grain spade; suitable for handling grains and soil,unit,10 and 12,
+114,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Rake,Rake,Steel rake with handle; suitable for farm and garden use,unit,10 and 12,
+115,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Hoe,Hoe,Heavy-duty hoe; steel blade; wooden or fiberglass handle,unit,10 and 12,
+116,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Shovel,Shovel,Heavy-duty shovel; steel blade; ergonomic handle,unit,10 and 12,
+117,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Wheel Barrow,Wheel Barrow,Heavy-duty wheelbarrow; steel tray; pneumatic tire,unit,10 and 12,
+118,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Basket,Basket,Heavy-duty basket; plastic or woven material; suitable for farm produce,unit,10 and 12,
+119,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Sprinkler,Sprinkler,Portable sprinkler; suitable for irrigation; corrosion-resistant,unit,10 and 12,
+120,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Hand Trowel,Hand Trowel,Hand trowel; steel blade; ergonomic handle,unit,"10, 11 and 12",
+121,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Seedling Tray,Seedling Tray,Plastic seedling tray; multiple cells; reusable,unit,10 and 12,
+122,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Knapsack Sprayer,Knapsack Sprayer,Manual or motorized knapsack sprayer; capacity ≥16 L; adjustable nozzle,unit,12,
+123,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Prunner saw,Pruning Saw,Pruning saw; hardened steel blade; suitable for tree cutting,unit,12,
+124,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Prunner extendable tree,Extendable Tree Pruner,Extendable tree pruner; adjustable length; steel blade,unit,12,
+125,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Polyethylene Seedling bag with holes,Polyethylene Seedling Bag with Holes,UV-treated polyethylene; assorted sizes as specified; perforated for drainage,pack,12,
+126,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Planters and Seeders,Planters and Seeders,Manual planter/seeder; suitable for vegetable and grain seeds; corrosion-resistant for Rice  Planter,unit,12,
+127,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Sprayer Machine,Sprayer Machine,Motorized knapsack sprayer; ≥16 L capacity; adjustable spray nozzle,unit,12,
+128,1,,Agricultural and Forestry Equipment,Shredder,Shredder,Electric or engine-driven shredder; suitable for plant residues; safety guard included,unit,12,
+129,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Husker Machine with rolls,Husker Machine with Rolls,Mechanical rice/corn husker; adjustable rolls; continuous feed type,unit,12,
+130,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Waterless Scrubber and Peeler Machine,Waterless Scrubber and Peeler Machine,Food-grade stainless steel; motor-driven peeling system; water-efficient,unit,12,
+131,1,ICT Equipment,ICT Equipment,STELLA v10.0 for Windows,Stella V10.0 for Windows,Licensed system dynamics modeling software; Windows compatible,unit,1 to 16,
+132,1,ICT Equipment,ICT Equipment,Dell Notebook I,Dell Notebook I,"nspiron 7437 14""(Intel Core i7 (12th gen or later); 16 GB RAM; 512 GB SSD; Windows 11 Pro)",unit,1 to 16,
+133,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Ocean Optics Portable VIS/NIR Spectrometer C/N JAZ EL 350,Ocean Optics Portable VIS/NIR Spectrometer C/n Jaz El 350,"Water management studies (All crops), Portable optical sensor; supports crop water management analysis",unit,"8,9, and 12",
+134,1,ICT Equipment,ICT Equipment,Acer V3-2G Laptop,Acer V3-2g Laptop,"Soil suitability maps (All crops), Intel Core i7(13th gen); 32 GB RAM; 1 TB SSD; Windows 11 Pro",unit,1 to 16,
+135,1,,ICT Equipment,"QGIS Software (Free, downloadable online)",QGIS Software,SARAI-Enhanced Agricultural Monitoring System (SEAMS),0,"10,11,12",
+136,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Soil sensor (Davis 6345CS Fully Populated Soil Transmitter),Soil Sensor,Digital soil moisture & temperature sensor; wireless data transmission,unit,"10,11, and 12",
+137,1,Other Equipment,Other Equipment,"Keysight Technologies U1233A Digital Multimeter, 10A ac 600V ac U1233A","Keysight Technologies U1233a Digital Multimeter, 10a Ac 600v Ac U1233a",True-RMS digital multimeter; ≥10A current; high-accuracy voltage,unit,1 to 16,
+138,1,Technical and Scientific Equipment,Technical and Scientific Equipment,UAV (Unmanned Aerial vehicle: Hexcopter Type),Hexcopter UAV,RTK-capable UAV; high-resolution camera; real-time farm profiling,unit,"2 to 7,10  and 14",
+139,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Oriba Multi Quality Analyzer,Oriba Multi Quality Analyzer,Multi-parameter water analyzer; digital display; portable,set,"8,9,11 and 14",
+140,1,Other Equipment,Other Equipment,Bottle-Top Dispenser,Bottle-Top Dispenser,Chemical-resistant dispenser; adjustable volume,unit,"12,13, and 15",
+141,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Distillation Set-up,Distillation Set-Up,Laboratory water distillation unit; stainless steel condenser,unit,8 and 9,
+142,1,,Technical and Scientific Equipment,CEC Apparatus,CEC Apparatus,Soil cation exchange capacity testing apparatus; lab-grade,unit,"10,11,12",
+143,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Dual Head Infiltrometer set with insertion ring (15200) and Y connector,Dual Head Infiltrometer Set with Insertion Ring (15200) and Y Connector,"Water bag 19 liter, Measures soil infiltration; stainless steel rings",unit,"10,11, and 12",
+144,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Biosafety cabinet,Biosafety Cabinet,Class II biosafety cabinet; HEPA filtration,unit,"12,13, and 15",
+145,1,Technical and Scientific Equipment,Technical and Scientific Equipment,(mini) Orbital Shakers,(mini) Orbital Shakers,Variable speed; laboratory mixing,unit,"12,13, and 15",
+146,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Centrifuge,Centrifuge,"Model : SP-AA4530
+
+Wavelength Range : 190-900nm
+Accuracy of the Wavelength : ±0.15nm
+Receptivity of the Wavelength : ≤0.04nm
+Size(W×D×H)(mm) : 730×625×700",unit,"12,13, and 15",
+147,1,Technical and Scientific Equipment,Technical and Scientific Equipment,PCR Thermocycler,PCR Thermocycler,Full Automatic DNA Test PCR Thermocycler Machine,unit,"12,13, and 15",
+148,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Refrigerated Centrifuge,Refrigerated Centrifuge,M1416R High-Speed Benchtop Refrigerated Centrifuge,unit,"12,13, and 15",
+149,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Pipettors (single and multi-channel),Pipettors (single and Multi-Channel),Treff Transfer Pipette S Multichannel 96 Series,unit,"12,13, and 15",
+150,1,Technical and Scientific Equipment,Technical and Scientific Equipment,DNA/RNA sequencer,DNA/RNA Sequencer,,unit,"12,13, and 15",
+151,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Ultra low temperature freezer,Ultra Low Temperature Freezer,−80 °C storage; digital control,unit,"12,13, and 15",
+152,1,Technical and Scientific Equipment,Technical and Scientific Equipment,SDS-Page Electrophoresis,Sds-Page Electrophoresis,Complete electrophoresis system; gel casting accessories,unit,"12,13, and 15",
+153,1,Technical and Scientific Equipment,Technical and Scientific Equipment,UV Transilluminator w/ Gel Docs,Uv Transilluminator with Gel Docs,UV imaging system; gel documentation,unit,"12,13, and 15",
+154,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Clean bench/PCR cabinet,Clean Bench/pcr Cabinet,Laminar airflow cabinet; UV sterilization,unit,"12,13, and 15",
+155,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Protein Electrophoresis system,Protein Electrophoresis System,Vertical gel electrophoresis setup,unit,"12,13, and 15",
+156,1,,Technical and Scientific Equipment,Abrasion Scratch Tester,Abrasion Scratch Tester,Surface abrasion resistance tester,unit,"12,13, and 15",
+157,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Mandrel Set for Flexibility Test,Mandrel Set for Flexibility Test,Asphalt/soil material stability tester,unit,"12,13, and 15",
+158,1,,Technical and Scientific Equipment,Weight per Gallon Cup,Weight Per Gallon Cup,Density measurement cup; stainless steel,unit,"12,13, and 15",
+159,1,Supplies and Materials,Supplies and Materials,Nylon Monofilament Fishing Net,Nylon Monofilament Fishing Net,Durable nylon; knotless,meter,14,
+160,1,Supplies and Materials,Supplies and Materials,Plastic Net Needle,Plastic Net Needle,Plastic weaving needle,pcs,14,
+161,1,Supplies and Materials,Supplies and Materials,Polyethylyne Rope,Polyethylene Rope,UV-treated; heavy-duty,roll,14,
+162,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Bunsen Burner,Bunsen Burner,Manual brush burning tool,set,15,
+163,1,,Technical and Scientific Equipment,Smoke House,Smoke House,Enclosed smoking chamber; food-grade,unit,15,
+164,1,Other Equipment,Other Equipment,Weighing scale,Weighing Scale,Digital scale; ≥30 kg capacity,unit,15,
+165,1,Other Equipment,Other Equipment,Stainless steel table,Stainless Steel Table,Food-grade stainless steel,unit,15,
+166,1,Other Equipment,Other Equipment,Stainless steel/ food tray,Stainless Steel/ Food Tray,Corrosion-resistant,unit,15,
+167,1,Supplies and Materials,Supplies and Materials,Stainless steel Fish bone tweezer,Stainless Steel Fish Bone Tweezer,Heavy-duty stainless cookware,pcs,15,
+168,1,Other Equipment,Other Equipment,Food preparation utensils,Food Preparation Utensils,Complete food preparation utensil set; food-grade stainless steel and heat-resistant plastic,sets,15,
+169,1,Supplies and Materials,Supplies and Materials,Chopping Boards,Chopping Boards,Food-grade chopping boards; non-toxic; assorted colors/sizes,pcs,15,
+170,1,Other Equipment,Other Equipment,Measuring Cups and Spoons,Measuring Cups and Spoons,Food-grade measuring cups and spoons; complete set,set,15,
+171,1,Other Equipment,Other Equipment,Chopping Knives - Stainless,Chopping Knives - Stainless,Stainless steel chopping knives; corrosion-resistant,pcs,15,
+172,1,Other Equipment,Other Equipment,Heavy Duty Pressure Cooker,Heavy Duty Pressure Cooker,Aluminum or stainless steel pressure cooker; heavy-duty; suitable for food processing,unit,15,
+173,1,Other Equipment,Other Equipment,Automatic Cap Sealing Machine,Automatic Cap Sealing Machine,Semi-automatic cap sealing machine; suitable for bottles and jars,unit,15,
+174,1,Other Equipment,Other Equipment,Heavy Duty Food Blender,Heavy Duty Food Blender,Commercial-type food blender; stainless steel jar; high-power motor,unit,15,
+175,1,Other Equipment,Other Equipment,Heavy Duty Deep Fryer Stainless Steel,Heavy Duty Deep Fryer Stainless Steel,Electric deep fryer; stainless steel body; temperature control,unit,15,
+176,1,Supplies and Materials,Supplies and Materials,Polystyrene Boxes,Polystyrene Boxes,Food-grade polystyrene storage boxes; insulated,pcs,15,
+177,1,Supplies and Materials,Supplies and Materials,Polypropylene Boxes,Polypropylene Boxes,Food-grade polypropylene boxes; stackable; durable,pcs,15,
+178,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Peanut Grinding Machine,Peanut Grinding Machine,Electric peanut grinding machine; stainless steel contact parts,unit,15,
+179,1,Other Equipment,Other Equipment,Fruit crusher,Fruit Crusher,Mechanical or electric fruit crusher; food-grade materials,unit,15,
+180,1,Other Equipment,Other Equipment,Heavy Duty Blender,Heavy Duty Blender,"16"",Large-capacity blender; suitable for bulk food preparation",pcs,15,
+181,1,Other Equipment,Other Equipment,Mini food crops and coffee grinder machine,Mini Food Crops and Coffee Grinder Machine,Electric grinder; stainless steel grinding chamber,unit,15,
+182,1,Other Equipment,Other Equipment,Oven Toaster,Oven Toaster,15.00 x 8.25 x 8.25 Inches,pcs,15,
+183,1,Other Equipment,Other Equipment,Frying pan,Frying Pan,Heavy-duty frying pan; non-reactive surface,unit,15,
+184,1,Other Equipment,Other Equipment,Gas and Electrical Stove with oven (mp98271x),Gas and Electrical Stove with Oven,"Combination gas and electric stove with oven; dimensions approx., L-600, W - 945, H - 895",unit,15,
+185,1,Other Equipment,Other Equipment,Grill Pan,Grill Pan,Heavy-duty grill pan; heat-resistant coating,pcs,15,
+186,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Refractometer,Refractometer,"37×26×14cm, Handheld refractometer; suitable for food and liquid analysis",pcs,15,
+187,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Electronic Top Loading Balance 20kg Capacity (0.01),Electronic Top Loading Balance 20kg Capacity (0.01),Digital weighing balance; capacity ≥20 kg; LCD display,unit,15,
+188,1,Other Equipment,Other Equipment,Heavy Duty Pressure Cooker,Heavy Duty Pressure Cooker,5-liter capacity pressure cooker; heavy-duty construction,unit,15,
+189,1,Other Equipment,Other Equipment,Weighing scale,Weighing Scale,Digital weighing scale; suitable for kitchen and processing use,unit,15,
+190,1,Other Equipment,Other Equipment,Stainless steel table,Stainless Steel Table,"Stainless Steel-Open Base Table with Sink and 4 1/2"" BackSplash. Sink is 14 x 10 and has 12"" depth. Table is 12 Feet long and 24"" deep.",unit,15,
+191,1,Other Equipment,Other Equipment,Stainless steel/ food tray,Stainless Steel/ Food Tray,Stainless steel open-base table with sink; food-grade,unit,15,
+192,1,,Other Equipment,Forceps,Forceps,Stainless steel forceps; laboratory/food-handling use,pcs,15,
+193,1,Other Equipment,Other Equipment,Measuring Cup,Measuring Cup,Food-grade measuring cups,pcs,15,
+194,1,Other Equipment,Other Equipment,Measuring Spoon,Measuring Spoon,Food-grade measuring spoon,pcs,15,
+195,1,Other Equipment,Other Equipment,Non-sticky Skiller Pan,Non-Stick Skillet Pan,Non-stick skillet pan; heat-resistant,pcs,15,
+196,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Sausage Stuffer (f-dick),Sausage Stuffer,Manual or semi-automatic sausage stuffer; multiple nozzle sizes,unit,15,
+197,1,,Technical and Scientific Equipment,Assorted Knives,Assorted Knives,Assorted kitchen knife set; stainless steel,set,15,
+198,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Bacon Skinner,Bacon Skinner,Electric bacon skinner; stainless steel body; food-grade,unit,15,
+199,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Bacon Slicer,Bacon Slicer,Electric bacon slicer; stainless steel blade and body; suitable for meat processing,unit,15,
+200,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Brine Gun,Brine Gun,Stainless steel brine injection gun; food-grade; manual or pneumatic,unit,15,
+201,1,Other Equipment,Other Equipment,Chiller,Chiller,Meat chiller; temperature range 0–4 °C; stainless interior,unit,15,
+202,1,Other Equipment,Other Equipment,Meat Grinder,Meat Grinder,Heavy-duty electric meat grinder; stainless steel contact parts,unit,15,
+203,1,Other Equipment,Other Equipment,Meat Slicer,Meat Slicer,Electric meat slicer; adjustable thickness; stainless steel blade,unit,15,
+204,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Water baths and magnetic stirrers,Water Baths and Magnetic Stirrers,"Water baths and magnetic stirrers ""Tank capacity 4 litres
+Temperature setting range +25°C ... +100°C
+Temperature control range 5°C above ambient ... +100°C
+Temperature setting resolution 0.1°C
+Temperature stability ±0.1°C
+Temperature uniformity at +37°C ±0.1°C
+Stirring speed control range 250–1,000 rpm
+Digital time setting 1 min–96 hrs / non–stop (increment 1 min)
+Display LCD, 2 х 16 signs
+Digital setting of temperature, time and mixing speed +
+Plastic lid with stainless steel interior included +
+Quiet operation +
+Working volume 235х135х110 mm
+Overall dimensions (W×D×H) 340×270×250 mm
+Weight 3.4 kg
+Nominal operating voltage 230 V, 50/60 Hz or 120 V, 50/60 Hz
+Power consumption 230 V, 50 Hz/
+600 W (2.6 A)
+
+120 V, 60 Hz/
+670 W (5.6 А)
+
+100 V, 50/60 Hz/
+600 W (6.0 A)"" pcs 1  50,000.00   50,000.00",pcs,"12,13, and 15",
+205,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Nitrogen tank,Nitrogen Tank,Liquid nitrogen storage tank; approx. 22 cu. ft. capacity; vacuum-insulated,pcs,13 and 15,
+206,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Semen density analyzing equipment,Semen Density Analyzing Equipment,W-400mm× D-560mm× H-380 mm,pcs,16,
+207,1,Supplies and Materials,Supplies and Materials,Insemination Catheters (foam and spiral tip) - Pig,Insemination Catheters (foam and Spiral Tip) - Pig,60x39x29cm,pcs,16,
+208,1,Supplies and Materials,Supplies and Materials,Insemination Catheters (foam and spiral tip) - Cattle,Insemination Catheters (foam and Spiral Tip) - Cattle,60x39x29cm,pcs,16,
+209,1,,Supplies and Materials,Short and long term extenders,Short and Long Term Extenders,25×106 pms/ml (n=51) or 5×106 pms/ml (n=10,pcs,1 to 16,
+210,1,Technical and Scientific Equipment,Technical and Scientific Equipment,"Semen Packaging including bottles, tubes and bags set","Semen Packaging Including Bottles, Tubes and Bags Set","Semen straws, tubes, and storage bags; approx. 0.25 mL capacity",pcs,16,
+211,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Semen tube sealing equipments set,Semen Tube Sealing Equipments Set,Optical or digital semen density analyzer; approx. 400 × 560 × 380 mm,pcs,16,
+212,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Emulsifying machine,Emulsifying Machine,"capacity range - 1,750-3,500 kg/h, operating range - 10 bar, nominal volume, 32, cooling water requirement 60 l/h, power - 18 kwh, rpm range, dimension - 80cm x 85cm x 190cm",unit,"12,13, and 15",
+213,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Automatic semen tube packaging equipment,Automatic Semen Tube Packaging Equipment,Semi-automatic semen tube packaging machine; 0.25 mL straw capacity,pcs,16,
+214,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Portable and stationary semen storage units,Portable and Stationary Semen Storage Units,"stationary: Preset temperature at 17o Celsius
+2.5 cu ft
+Dimensions: 19"""" W, 35"""" H, 20"""" D
+Capacity: holds 100 semen tubes",pcs,16,
+215,1,Supplies and Materials,Supplies and Materials,Artificial Insemination kit,Artificial Insemination Kit,"Complete AI kit; gloves, catheters, forceps, thermometer, accessories",pcs,16,
+216,1,Supplies and Materials,Supplies and Materials,Semen plastic bottle with cap,Semen Plastic Bottle with Cap,Plastic semen bottles with caps; veterinary-grade,pcs,16,
+217,1,ICT Equipment,ICT Equipment,A.I. Equipment for Poultry,A.I. Equipment for Poultry,Poultry artificial insemination equipment set,set,16,
+218,1,,ICT Equipment,A.I. Equipment for Small and Large Ruminants,A.I. Equipment for Small and Large Ruminants,"AI equipment set for goats, sheep, and cattle",pcs,16,
+219,1,Technical and Scientific Equipment,Technical and Scientific Equipment,Eggshell Tester,Eggshell Tester,Egg shell strength or thickness tester,unit,16,
+220,1,,Technical and Scientific Equipment,Egg Incubator,Egg Incubator,"Automatic egg incubator; digital temperature control
+uni",unit,16,
+221,1,,Technical and Scientific Equipment,A.I. Equipment for Swine,A.I. Equipment for Swine,Swine artificial insemination equipment set,pcs,16,
+222,1,Agricultural and Forestry Equipment,Agricultural and Forestry Equipment,Chicken Plucker,Chicken Plucker,Electric chicken plucker; rubber fingers; stainless body,unit,16,
+223,1,Other Equipment,Other Equipment,Best Tank,Best Tank,"Food-grade tank; approx. 1,000-liter capacity",tank,16,

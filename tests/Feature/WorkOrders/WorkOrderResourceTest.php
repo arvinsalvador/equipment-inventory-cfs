@@ -287,6 +287,33 @@ class WorkOrderResourceTest extends TestCase
         $this->get('/admin/work-orders')->assertForbidden();
     }
 
+    public function test_work_order_table_searches_relationship_fields_safely(): void
+    {
+        $technician = $this->userWithRole('Technician');
+        $technician->update(['name' => 'Work Order Search Technician']);
+        $this->equipment->update(['equipment_name' => 'Work Order Search Pump']);
+        $this->workOrder->update(['assigned_to' => $technician->id]);
+
+        $this->actingAs($this->creator);
+
+        Livewire::test(ListWorkOrders::class)
+            ->assertCanSeeTableRecords([$this->workOrder])
+            ->searchTable('Work Order Search Pump')
+            ->assertCanSeeTableRecords([$this->workOrder])
+            ->searchTable('Work Order Search Technician')
+            ->assertCanSeeTableRecords([$this->workOrder])
+            ->searchTable('no matching work order relationship term')
+            ->assertCanNotSeeTableRecords([$this->workOrder]);
+    }
+
+    public function test_work_order_resource_does_not_use_unsafe_relationship_search_arrays(): void
+    {
+        $resource = file_get_contents(app_path('Filament/Resources/WorkOrders/WorkOrderResource.php'));
+
+        $this->assertStringNotContainsString("searchable(['equipment.", $resource);
+        $this->assertStringNotContainsString("searchable(['assignedTo.", $resource);
+    }
+
     private function createWorkOrder(array $overrides = []): WorkOrder
     {
         return WorkOrder::create(array_merge([

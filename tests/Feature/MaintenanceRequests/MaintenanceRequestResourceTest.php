@@ -198,6 +198,31 @@ class MaintenanceRequestResourceTest extends TestCase
         $this->get('/admin/maintenance-requests')->assertForbidden();
     }
 
+    public function test_request_table_searches_relationship_fields_safely(): void
+    {
+        $this->equipment->update(['equipment_name' => 'Request Search Microscope']);
+        $this->submitter->update(['name' => 'Request Search Submitter']);
+
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        Livewire::test(ListMaintenanceRequests::class)
+            ->assertCanSeeTableRecords([$this->request])
+            ->searchTable('Request Search Microscope')
+            ->assertCanSeeTableRecords([$this->request])
+            ->searchTable('Request Search Submitter')
+            ->assertCanSeeTableRecords([$this->request])
+            ->searchTable('no matching request relationship term')
+            ->assertCanNotSeeTableRecords([$this->request]);
+    }
+
+    public function test_request_resource_does_not_use_unsafe_relationship_search_arrays(): void
+    {
+        $resource = file_get_contents(app_path('Filament/Resources/MaintenanceRequests/MaintenanceRequestResource.php'));
+
+        $this->assertStringNotContainsString("searchable(['equipment.", $resource);
+        $this->assertStringNotContainsString("searchable(['submittedBy.", $resource);
+    }
+
     private function createRequest(array $overrides = []): MaintenanceRequest
     {
         return MaintenanceRequest::create(array_merge([

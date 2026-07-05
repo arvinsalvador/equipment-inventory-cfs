@@ -196,6 +196,32 @@ class AssetActionRequestTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_asset_action_request_table_searches_relationship_fields_safely(): void
+    {
+        $request = $this->createAssetActionRequest();
+        $this->equipment->update(['equipment_name' => 'Asset Action Search Drone']);
+        $this->administrator->update(['name' => 'Asset Action Search Requester']);
+
+        $this->actingAs($this->administrator);
+
+        Livewire::test(ListAssetActionRequests::class)
+            ->assertCanSeeTableRecords([$request])
+            ->searchTable('Asset Action Search Drone')
+            ->assertCanSeeTableRecords([$request])
+            ->searchTable('Asset Action Search Requester')
+            ->assertCanSeeTableRecords([$request])
+            ->searchTable('no matching asset action relationship term')
+            ->assertCanNotSeeTableRecords([$request]);
+    }
+
+    public function test_asset_action_resource_does_not_use_unsafe_relationship_search_arrays(): void
+    {
+        $resource = file_get_contents(app_path('Filament/Resources/AssetActionRequests/AssetActionRequestResource.php'));
+
+        $this->assertStringNotContainsString("searchable(['equipment.", $resource);
+        $this->assertStringNotContainsString("searchable(['requestedBy.", $resource);
+    }
+
     public function test_equipment_view_shows_related_asset_action_requests(): void
     {
         $request = $this->createAssetActionRequest([

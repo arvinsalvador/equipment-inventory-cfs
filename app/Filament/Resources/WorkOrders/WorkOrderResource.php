@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\WorkOrders;
 
+use App\Filament\Concerns\HasSafeRelationshipSearch;
 use App\Filament\Resources\WorkOrders\Pages\EditWorkOrder;
 use App\Filament\Resources\WorkOrders\Pages\ListWorkOrders;
 use App\Filament\Resources\WorkOrders\Pages\ViewWorkOrder;
@@ -35,6 +36,8 @@ use InvalidArgumentException;
 
 class WorkOrderResource extends Resource
 {
+    use HasSafeRelationshipSearch;
+
     protected static ?string $model = WorkOrder::class;
 
     protected static ?string $navigationLabel = 'Work Orders';
@@ -229,16 +232,25 @@ class WorkOrderResource extends Resource
                 TextColumn::make('equipment.equipment_code')
                     ->label('Equipment')
                     ->formatStateUsing(fn (WorkOrder $record): string => $record->equipment->equipment_code.' - '.$record->equipment->equipment_name)
-                    ->searchable(['equipment.equipment_code', 'equipment.equipment_name'])
+                    ->searchable(query: fn (Builder $query, string $search): Builder => self::searchEquipment($query, $search))
                     ->sortable(),
                 TextColumn::make('assignedTo.name')
                     ->label('Assigned to')
-                    ->searchable()
+                    ->searchable(query: fn (Builder $query, string $search): Builder => self::searchUserRelation($query, $search, 'assignedTo'))
                     ->placeholder('Unassigned'),
+                TextColumn::make('title')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('problem_description')
+                    ->label('Problem description')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('priority')
+                    ->searchable()
                     ->badge()
                     ->sortable(),
                 TextColumn::make('status')
+                    ->searchable()
                     ->badge()
                     ->sortable(),
                 TextColumn::make('due_date')

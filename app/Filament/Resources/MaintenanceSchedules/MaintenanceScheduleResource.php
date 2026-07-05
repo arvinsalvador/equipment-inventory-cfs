@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MaintenanceSchedules;
 
+use App\Filament\Concerns\HasSafeRelationshipSearch;
 use App\Filament\Resources\MaintenanceSchedules\Pages\CreateMaintenanceSchedule;
 use App\Filament\Resources\MaintenanceSchedules\Pages\EditMaintenanceSchedule;
 use App\Filament\Resources\MaintenanceSchedules\Pages\ListMaintenanceSchedules;
@@ -32,6 +33,8 @@ use InvalidArgumentException;
 
 class MaintenanceScheduleResource extends Resource
 {
+    use HasSafeRelationshipSearch;
+
     protected static ?string $model = MaintenanceSchedule::class;
 
     protected static ?string $navigationLabel = 'Maintenance Schedules';
@@ -139,7 +142,7 @@ class MaintenanceScheduleResource extends Resource
                 TextColumn::make('equipment.equipment_code')
                     ->label('Equipment')
                     ->formatStateUsing(fn (MaintenanceSchedule $record): string => $record->equipment->equipment_code.' - '.$record->equipment->equipment_name)
-                    ->searchable(['equipment.equipment_code', 'equipment.equipment_name'])
+                    ->searchable(query: fn (Builder $query, string $search): Builder => self::searchEquipment($query, $search))
                     ->sortable(),
                 TextColumn::make('maintenance_type')
                     ->label('Maintenance type')
@@ -147,6 +150,7 @@ class MaintenanceScheduleResource extends Resource
                     ->sortable(),
                 TextColumn::make('maintenance_frequency')
                     ->label('Maintenance frequency')
+                    ->searchable()
                     ->badge()
                     ->sortable(),
                 TextColumn::make('scheduled_date')
@@ -156,7 +160,7 @@ class MaintenanceScheduleResource extends Resource
                     ->color(fn (MaintenanceSchedule $record): string => $record->isOverdue() ? 'danger' : 'gray'),
                 TextColumn::make('assignedUser.name')
                     ->label('Assigned user')
-                    ->searchable()
+                    ->searchable(query: fn (Builder $query, string $search): Builder => self::searchUserRelation($query, $search, 'assignedUser'))
                     ->placeholder('Unassigned'),
                 TextColumn::make('priority')
                     ->badge()
@@ -170,6 +174,7 @@ class MaintenanceScheduleResource extends Resource
                 TextColumn::make('display_status')
                     ->label('Status')
                     ->state(fn (MaintenanceSchedule $record): string => $record->displayStatus())
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query->orWhere('status', 'like', "%{$search}%"))
                     ->badge()
                     ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderBy('status', $direction))
                     ->color(fn (string $state): string => match ($state) {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AssetActionRequests;
 
+use App\Filament\Concerns\HasSafeRelationshipSearch;
 use App\Filament\Resources\AssetActionRequests\Pages\CreateAssetActionRequest;
 use App\Filament\Resources\AssetActionRequests\Pages\EditAssetActionRequest;
 use App\Filament\Resources\AssetActionRequests\Pages\ListAssetActionRequests;
@@ -29,6 +30,8 @@ use InvalidArgumentException;
 
 class AssetActionRequestResource extends Resource
 {
+    use HasSafeRelationshipSearch;
+
     protected static ?string $model = AssetActionRequest::class;
 
     protected static ?string $navigationLabel = 'Asset Action Requests';
@@ -135,12 +138,21 @@ class AssetActionRequestResource extends Resource
                 TextColumn::make('equipment.equipment_code')
                     ->label('Equipment')
                     ->formatStateUsing(fn (AssetActionRequest $record): string => $record->equipment->equipment_code.' - '.$record->equipment->equipment_name)
-                    ->searchable(['equipment.equipment_code', 'equipment.equipment_name'])
+                    ->searchable(query: fn (Builder $query, string $search): Builder => self::searchEquipment($query, $search))
                     ->sortable(),
-                TextColumn::make('request_type')->label('Request Type')->badge()->sortable(),
-                TextColumn::make('priority')->badge()->sortable(),
-                TextColumn::make('status')->badge()->sortable(),
-                TextColumn::make('requestedBy.name')->label('Requested By')->searchable()->sortable(),
+                TextColumn::make('request_type')->label('Request Type')->searchable()->badge()->sortable(),
+                TextColumn::make('priority')->searchable()->badge()->sortable(),
+                TextColumn::make('status')->searchable()->badge()->sortable(),
+                TextColumn::make('requestedBy.name')
+                    ->label('Requested By')
+                    ->searchable(query: fn (Builder $query, string $search): Builder => self::searchUserRelation($query, $search, 'requestedBy'))
+                    ->sortable(),
+                TextColumn::make('reason')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('justification')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('estimated_cost')->label('Estimated Cost')->money('PHP')->sortable(),
                 TextColumn::make('created_at')->label('Created Date')->dateTime()->sortable(),
             ])

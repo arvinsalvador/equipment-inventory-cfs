@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MaintenanceRequests;
 
+use App\Filament\Concerns\HasSafeRelationshipSearch;
 use App\Filament\Resources\MaintenanceRequests\Pages\CreateMaintenanceRequest;
 use App\Filament\Resources\MaintenanceRequests\Pages\EditMaintenanceRequest;
 use App\Filament\Resources\MaintenanceRequests\Pages\ListMaintenanceRequests;
@@ -29,6 +30,8 @@ use InvalidArgumentException;
 
 class MaintenanceRequestResource extends Resource
 {
+    use HasSafeRelationshipSearch;
+
     protected static ?string $model = MaintenanceRequest::class;
 
     protected static ?string $navigationLabel = 'Maintenance Requests';
@@ -114,16 +117,22 @@ class MaintenanceRequestResource extends Resource
                 TextColumn::make('equipment.equipment_code')
                     ->label('Equipment')
                     ->formatStateUsing(fn (MaintenanceRequest $record): string => $record->equipment->equipment_code.' - '.$record->equipment->equipment_name)
-                    ->searchable(['equipment.equipment_code', 'equipment.equipment_name'])
+                    ->searchable(query: fn (Builder $query, string $search): Builder => self::searchEquipment($query, $search))
                     ->sortable(),
                 TextColumn::make('submittedBy.name')
                     ->label('Submitted by')
-                    ->searchable()
+                    ->searchable(query: fn (Builder $query, string $search): Builder => self::searchUserRelation($query, $search, 'submittedBy'))
                     ->sortable(),
+                TextColumn::make('problem_description')
+                    ->label('Problem description')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('severity')
+                    ->searchable()
                     ->badge()
                     ->sortable(),
                 TextColumn::make('status')
+                    ->searchable()
                     ->badge()
                     ->sortable(),
                 TextColumn::make('created_at')

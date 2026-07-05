@@ -1203,6 +1203,23 @@ Phase 11B - Offline Data Capture & Synchronization
 - Tests added/updated: Complete
 - Remaining risks: Actual offline sync behavior should still be validated on a real mobile browser after deployment
 
+## Demo Data Seeding - Climate Field School Equipment Dataset
+
+- Climate Field School equipment dataset seeder: Complete
+- Equipment categories seeded from lot classifications: Complete
+- Climate Field School location seeded: Complete
+- Equipment acquisition information seeded: Complete
+- Maintenance schedules seeded: Complete
+- Maintenance requests seeded: Complete
+- Work orders seeded: Complete
+- Evidence sample records seeded: Complete
+- Rule-based recommendation demo conditions seeded: Complete
+- Lifecycle and budget demo records seeded: Complete
+- Asset action request demo records seeded: Complete
+- Notifications/audit demo records seeded where supported: Complete
+- Seeder tests added/updated: Complete
+- Remaining risks: Demo values are sample data; actual acquisition cost, supplier, serial number, warranty, and maintenance records must be validated against official property records before production use
+
 ## Next Phase
 
 Phase 15D - Real APK/AAB Generation and Device Validation

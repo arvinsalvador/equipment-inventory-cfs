@@ -61,6 +61,33 @@ class MaintenanceScheduleResourceTest extends TestCase
         $this->get('/admin/maintenance-schedules')->assertForbidden();
     }
 
+    public function test_schedule_table_searches_relationship_fields_safely(): void
+    {
+        $assignedUser = $this->userWithRole('Technician');
+        $assignedUser->update(['name' => 'Schedule Search Technician']);
+        $this->equipment->update(['equipment_name' => 'Schedule Search Analyzer']);
+        $this->schedule->update(['assigned_user_id' => $assignedUser->id]);
+
+        $this->actingAs($this->userWithRole('Administrator'));
+
+        Livewire::test(ListMaintenanceSchedules::class)
+            ->assertCanSeeTableRecords([$this->schedule])
+            ->searchTable('Schedule Search Analyzer')
+            ->assertCanSeeTableRecords([$this->schedule])
+            ->searchTable('Schedule Search Technician')
+            ->assertCanSeeTableRecords([$this->schedule])
+            ->searchTable('no matching schedule relationship term')
+            ->assertCanNotSeeTableRecords([$this->schedule]);
+    }
+
+    public function test_schedule_resource_does_not_use_unsafe_relationship_search_arrays(): void
+    {
+        $resource = file_get_contents(app_path('Filament/Resources/MaintenanceSchedules/MaintenanceScheduleResource.php'));
+
+        $this->assertStringNotContainsString("searchable(['equipment.", $resource);
+        $this->assertStringNotContainsString("searchable(['assignedUser.", $resource);
+    }
+
     public function test_administrator_can_create_a_schedule(): void
     {
         $this->actingAs($this->userWithRole('Administrator'));
