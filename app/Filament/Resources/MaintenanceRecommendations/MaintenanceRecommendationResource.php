@@ -4,9 +4,11 @@ namespace App\Filament\Resources\MaintenanceRecommendations;
 
 use App\Filament\Resources\MaintenanceRecommendations\Pages\ListMaintenanceRecommendations;
 use App\Filament\Resources\MaintenanceRecommendations\Pages\ViewMaintenanceRecommendation;
+use App\Filament\Resources\MaintenanceRequests\MaintenanceRequestResource;
 use App\Models\Equipment;
 use App\Models\MaintenanceRecommendation;
 use App\Services\AuditLogService;
+use App\Services\MaintenanceRecommendationApprovalService;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -90,6 +92,12 @@ class MaintenanceRecommendationResource extends Resource
                         TextEntry::make('linkedWorkOrder.title')->label('Title')->placeholder('Not linked'),
                         TextEntry::make('linkedWorkOrder.status')->label('Status')->placeholder('Not linked')->badge(),
                     ]),
+                Section::make('Linked Maintenance Request')
+                    ->schema([
+                        TextEntry::make('linkedMaintenanceRequest.request_number')->label('Request number')->placeholder('Not linked'),
+                        TextEntry::make('linkedMaintenanceRequest.status')->label('Status')->placeholder('Not linked')->badge(),
+                        TextEntry::make('linkedMaintenanceRequest.severity')->label('Severity')->placeholder('Not linked')->badge(),
+                    ]),
                 Section::make('Linked Maintenance Schedule')
                     ->schema([
                         TextEntry::make('linkedMaintenanceSchedule.maintenance_type')->label('Maintenance type')->placeholder('Not linked'),
@@ -134,7 +142,7 @@ class MaintenanceRecommendationResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->with(['equipment', 'reviewedBy', 'resolvedBy', 'actionedBy', 'linkedWorkOrder', 'linkedMaintenanceSchedule'])
+                ->with(['equipment', 'reviewedBy', 'resolvedBy', 'actionedBy', 'linkedWorkOrder', 'linkedMaintenanceSchedule', 'linkedMaintenanceRequest'])
                 ->orderByRaw(MaintenanceRecommendation::riskRankSql())
                 ->latest('generated_at'))
             ->columns([
@@ -189,6 +197,10 @@ class MaintenanceRecommendationResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('linkedMaintenanceSchedule.maintenance_type')
                     ->label('Linked schedule')
+                    ->placeholder('None')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('linkedMaintenanceRequest.request_number')
+                    ->label('Linked request')
                     ->placeholder('None')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('generated_at')
@@ -340,17 +352,37 @@ class MaintenanceRecommendationResource extends Resource
                 Textarea::make('action_notes')
                     ->label('Action notes'),
             ])
-            ->visible(fn (MaintenanceRecommendation $record): bool => $record->isActionPending()
+            ->visible(fn (MaintenanceRecommendation $record): bool => ($record->isActionPending()
+                || $record->isActionApproved())
                 && ! $record->isResolved()
                 && ! $record->isDismissed()
                 && (auth()->user()?->can('approveAction', $record) ?? false))
             ->action(function (MaintenanceRecommendation $record, array $data): void {
                 try {
-                    $record->approveAction(auth()->user(), $data['action_notes'] ?? null);
-                    app(AuditLogService::class)->log('action_approved', 'AI Recommendation', "Recommendation action approved for {$record->title}.", auth()->user(), $record);
-                    Notification::make()->title('Recommendation action approved')->success()->send();
+                    $result = app(MaintenanceRecommendationApprovalService::class)->approve($record, auth()->user(), $data['action_notes'] ?? null);
+                    $notification = Notification::make()
+                        ->title($result['message']);
+
+                    match ($result['status']) {
+                        'success' => $notification->success(),
+                        'warning' => $notification->warning(),
+                        'info' => $notification->info(),
+                        default => $notification->danger(),
+                    };
+
+                    if ($result['maintenance_request'] !== null) {
+                        $notification
+                            ->body('Maintenance request: '.$result['maintenance_request']->request_number)
+                            ->actions([
+                                Action::make('viewMaintenanceRequest')
+                                    ->label('View Maintenance Request')
+                                    ->url(MaintenanceRequestResource::getUrl('view', ['record' => $result['maintenance_request']])),
+                            ]);
+                    }
+
+                    $notification->send();
                 } catch (InvalidArgumentException $exception) {
-                    Notification::make()->title($exception->getMessage())->danger()->send();
+                    Notification::make()->title('Failed to create maintenance request: '.$exception->getMessage())->danger()->send();
                     throw ValidationException::withMessages(['action_notes' => $exception->getMessage()]);
                 }
             });
@@ -485,6 +517,7 @@ class MaintenanceRecommendationResource extends Resource
         return match ($state) {
             'Resolved' => 'success',
             'Dismissed' => 'gray',
+            'Approved' => 'info',
             'Reviewed' => 'info',
             default => 'warning',
         };

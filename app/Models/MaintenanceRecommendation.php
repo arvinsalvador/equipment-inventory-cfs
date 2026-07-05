@@ -31,6 +31,7 @@ use InvalidArgumentException;
     'action_notes',
     'linked_work_order_id',
     'linked_maintenance_schedule_id',
+    'linked_maintenance_request_id',
 ])]
 class MaintenanceRecommendation extends Model
 {
@@ -46,6 +47,7 @@ class MaintenanceRecommendation extends Model
     public const STATUSES = [
         'Open',
         'Reviewed',
+        'Approved',
         'Resolved',
         'Dismissed',
     ];
@@ -218,6 +220,11 @@ class MaintenanceRecommendation extends Model
         return $this->belongsTo(MaintenanceSchedule::class, 'linked_maintenance_schedule_id');
     }
 
+    public function linkedMaintenanceRequest(): BelongsTo
+    {
+        return $this->belongsTo(MaintenanceRequest::class, 'linked_maintenance_request_id');
+    }
+
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('status', 'Open');
@@ -226,6 +233,11 @@ class MaintenanceRecommendation extends Model
     public function scopeReviewed(Builder $query): Builder
     {
         return $query->where('status', 'Reviewed');
+    }
+
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('status', 'Approved');
     }
 
     public function scopeResolved(Builder $query): Builder
@@ -266,6 +278,11 @@ class MaintenanceRecommendation extends Model
     public function isReviewed(): bool
     {
         return $this->status === 'Reviewed';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'Approved';
     }
 
     public function isResolved(): bool

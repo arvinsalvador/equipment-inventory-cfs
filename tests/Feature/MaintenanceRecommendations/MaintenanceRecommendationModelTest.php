@@ -75,7 +75,7 @@ class MaintenanceRecommendationModelTest extends TestCase
     public function test_risk_levels_and_status_values_are_available(): void
     {
         $this->assertSame(['Low', 'Moderate', 'High', 'Critical'], MaintenanceRecommendation::RISK_LEVELS);
-        $this->assertSame(['Open', 'Reviewed', 'Resolved', 'Dismissed'], MaintenanceRecommendation::STATUSES);
+        $this->assertSame(['Open', 'Reviewed', 'Approved', 'Resolved', 'Dismissed'], MaintenanceRecommendation::STATUSES);
     }
 
     private function createRecommendation(array $overrides = []): MaintenanceRecommendation
