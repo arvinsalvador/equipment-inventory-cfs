@@ -14,7 +14,7 @@
         ])->sum() > 0;
     @endphp
 
-    <div class="pwa-technician-dashboard space-y-5">
+    <div class="pwa-technician-dashboard space-y-5" data-offline-sync-surface="mobile-technician-dashboard">
         <x-filament::section>
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>

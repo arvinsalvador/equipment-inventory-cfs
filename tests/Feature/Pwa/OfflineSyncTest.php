@@ -91,6 +91,7 @@ class OfflineSyncTest extends TestCase
         $this->assertStringContainsString('saveDraft', $script);
         $this->assertStringContainsString('processQueue', $script);
         $this->assertStringContainsString('hasOfflineSyncSurface', $script);
+        $this->assertStringContainsString('[data-offline-sync-surface]', $script);
         $this->assertStringContainsString('if (!hasOfflineSyncSurface())', $script);
         $this->assertStringContainsString('[data-offline-form]', $script);
         $this->assertStringContainsString('[data-offline-queue-list]', $script);
@@ -111,6 +112,10 @@ class OfflineSyncTest extends TestCase
         $this->assertStringContainsString('window.addEventListener(\'storage\'', $script);
         $this->assertStringContainsString('data-offline-sync-message', $script);
         $this->assertStringContainsString('data-offline-type-count', $script);
+        $this->assertStringContainsString('claimOfflineSyncClick', $script);
+        $this->assertStringContainsString('event.stopImmediatePropagation', $script);
+        $this->assertStringNotContainsString('document.write', $script);
+        $this->assertStringNotContainsString('document.body', $script);
     }
 
     public function test_service_worker_does_not_cache_offline_sync_or_authenticated_pages(): void
@@ -122,8 +127,12 @@ class OfflineSyncTest extends TestCase
         $this->assertStringContainsString("'/admin'", $serviceWorker);
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
         $this->assertStringContainsString("'/filament'", $serviceWorker);
+        $this->assertStringContainsString('isBlockedPath(url.pathname)', $serviceWorker);
+        $this->assertStringContainsString('event.respondWith(fetch(request))', $serviceWorker);
+        $this->assertStringContainsString("request.method !== 'GET'", $serviceWorker);
         $this->assertStringNotContainsString('/admin/offline-queue', $serviceWorker);
         $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
+        $this->assertStringNotContainsString('synchronized', strtolower($serviceWorker));
     }
 
     public function test_maintenance_request_creation_sync_respects_permissions(): void

@@ -57,7 +57,7 @@ class PwaFoundationTest extends TestCase
 
         $serviceWorker = file_get_contents($path);
 
-        $this->assertStringContainsString("const CACHE_NAME = 'ai-equipment-pwa-v2'", $serviceWorker);
+        $this->assertStringContainsString("const CACHE_NAME = 'ai-equipment-pwa-v4'", $serviceWorker);
         $this->assertStringContainsString('/offline', $serviceWorker);
         $this->assertStringContainsString('/manifest.webmanifest', $serviceWorker);
         $this->assertStringContainsString('/pwa.css', $serviceWorker);

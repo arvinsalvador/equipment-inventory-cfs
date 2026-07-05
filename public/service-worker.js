@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ai-equipment-pwa-v2';
+const CACHE_NAME = 'ai-equipment-pwa-v4';
 const SHELL_ASSETS = [
     '/offline',
     '/manifest.webmanifest',
@@ -50,6 +50,8 @@ self.addEventListener('fetch', (event) => {
     }
 
     if (isBlockedPath(url.pathname)) {
+        event.respondWith(fetch(request));
+
         return;
     }
 

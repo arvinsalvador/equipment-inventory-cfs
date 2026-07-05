@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <div class="pwa-offline-workspace space-y-5">
+    <div class="pwa-offline-workspace space-y-5" data-offline-sync-surface="offline-queue">
         <x-filament::section>
             <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>

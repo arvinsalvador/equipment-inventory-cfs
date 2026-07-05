@@ -46,15 +46,24 @@ class TechnicianMobileOfflineQueueEnhancementTest extends TestCase
 
     public function test_administrator_and_technician_can_access_technician_mobile_page(): void
     {
-        $this->actingAs($this->administrator)
+        $administratorResponse = $this->actingAs($this->administrator)
             ->get('/admin/mobile-technician-dashboard')
             ->assertOk()
-            ->assertSee('Technician Mobile Dashboard');
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('Technician Mobile Dashboard')
+            ->assertSee('data-offline-sync-surface="mobile-technician-dashboard"', false);
 
-        $this->actingAs($this->technician)
+        $this->assertNotPlainSynchronizedPage($administratorResponse->getContent());
+
+        $technicianResponse = $this->actingAs($this->technician)
             ->get('/admin/mobile-technician-dashboard')
             ->assertOk()
-            ->assertSee('Technician Mobile Dashboard');
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('Technician Mobile Dashboard')
+            ->assertSee('Assigned Work Orders')
+            ->assertSee('Offline Status');
+
+        $this->assertNotPlainSynchronizedPage($technicianResponse->getContent());
     }
 
     public function test_unauthorized_user_cannot_access_technician_mobile_page(): void
@@ -114,15 +123,25 @@ class TechnicianMobileOfflineQueueEnhancementTest extends TestCase
 
     public function test_administrator_and_technician_can_access_offline_queue_page(): void
     {
-        $this->actingAs($this->administrator)
+        $administratorResponse = $this->actingAs($this->administrator)
             ->get('/admin/offline-queue')
             ->assertOk()
-            ->assertSee('Synchronization Summary');
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('Offline Queue')
+            ->assertSee('Synchronization Summary')
+            ->assertSee('data-offline-sync-surface="offline-queue"', false);
 
-        $this->actingAs($this->technician)
+        $this->assertNotPlainSynchronizedPage($administratorResponse->getContent());
+
+        $technicianResponse = $this->actingAs($this->technician)
             ->get('/admin/offline-queue')
             ->assertOk()
-            ->assertSee('Synchronization Summary');
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('Offline Queue')
+            ->assertSee('Synchronization Summary')
+            ->assertSee('Pending Queue');
+
+        $this->assertNotPlainSynchronizedPage($technicianResponse->getContent());
     }
 
     public function test_unauthorized_user_cannot_access_offline_queue_page(): void
@@ -155,15 +174,38 @@ class TechnicianMobileOfflineQueueEnhancementTest extends TestCase
     public function test_offline_sync_regression_protection_remains_in_place(): void
     {
         $serviceWorker = file_get_contents(public_path('service-worker.js'));
+        $offlineSync = file_get_contents(public_path('offline-sync.js'));
+        $mobileShell = file_get_contents(resource_path('views/pwa/mobile-shell.blade.php'));
 
         $this->assertStringContainsString("'/admin'", $serviceWorker);
         $this->assertStringContainsString("'/filament'", $serviceWorker);
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
+        $this->assertStringContainsString("'/offline-sync'", $serviceWorker);
+        $this->assertStringContainsString('isBlockedPath(url.pathname)', $serviceWorker);
         $this->assertStringNotContainsString("'/offline-sync.js'", $serviceWorker);
+        $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
+        $this->assertStringNotContainsString('/admin/offline-queue', $serviceWorker);
+
+        $this->assertStringContainsString("url('/admin/mobile-technician-dashboard')", $mobileShell);
+        $this->assertStringContainsString("url('/admin/offline-queue')", $mobileShell);
+        $this->assertStringNotContainsString('offline-sync/actions', $mobileShell);
+
+        $this->assertStringContainsString('claimOfflineSyncClick', $offlineSync);
+        $this->assertStringNotContainsString('document.write', $offlineSync);
+        $this->assertStringNotContainsString('document.body', $offlineSync);
 
         $this->get('/admin/login')
             ->assertOk()
             ->assertDontSee('offline-sync.js')
             ->assertDontSee('data-offline-sync-status', false);
+    }
+
+    private function assertNotPlainSynchronizedPage(string $content): void
+    {
+        $visibleText = strtolower(trim(preg_replace('/\s+/', ' ', strip_tags($content))));
+
+        $this->assertNotSame('synchronized', $visibleText);
+        $this->assertStringContainsString('<html', strtolower($content));
+        $this->assertGreaterThan(1000, strlen($content));
     }
 }

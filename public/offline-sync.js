@@ -7,6 +7,7 @@
     let lastSyncOutcome = null;
 
     const hasOfflineSyncSurface = () => document.querySelector([
+        '[data-offline-sync-surface]',
         '[data-offline-form]',
         '[data-offline-queue-list]',
         '[data-offline-draft-list]',
@@ -64,6 +65,15 @@
         document.querySelectorAll(selector).forEach((element) => {
             element.textContent = value;
         });
+    };
+
+    const claimOfflineSyncClick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (typeof event.stopImmediatePropagation === 'function') {
+            event.stopImmediatePropagation();
+        }
     };
 
     const syncStatus = (status, message = null) => {
@@ -365,15 +375,24 @@
         const syncNow = event.target.closest('[data-offline-sync-now]');
 
         if (draftButton) {
+            claimOfflineSyncClick(event);
             const form = draftButton.closest('[data-offline-form]');
             saveDraft(form.dataset.offlineType, serializeForm(form));
             form.reset();
         }
 
-        if (retryButton) retryItem(retryButton.dataset.offlineRetry);
-        if (removeButton) removeItem(removeButton.dataset.offlineRemove);
+        if (retryButton) {
+            claimOfflineSyncClick(event);
+            retryItem(retryButton.dataset.offlineRetry);
+        }
+
+        if (removeButton) {
+            claimOfflineSyncClick(event);
+            removeItem(removeButton.dataset.offlineRemove);
+        }
 
         if (queueDraftButton) {
+            claimOfflineSyncClick(event);
             const draft = getDrafts().find((item) => item.id === queueDraftButton.dataset.offlineQueueDraft);
             if (draft) {
                 queueItem(draft.type, draft.payload);
@@ -381,8 +400,15 @@
             }
         }
 
-        if (removeDraftButton) removeDraft(removeDraftButton.dataset.offlineRemoveDraft);
-        if (syncNow) processQueue();
+        if (removeDraftButton) {
+            claimOfflineSyncClick(event);
+            removeDraft(removeDraftButton.dataset.offlineRemoveDraft);
+        }
+
+        if (syncNow) {
+            claimOfflineSyncClick(event);
+            processQueue();
+        }
     });
 
     window.addEventListener('online', () => {
