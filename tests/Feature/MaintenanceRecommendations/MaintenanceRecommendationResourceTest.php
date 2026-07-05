@@ -3,12 +3,17 @@
 namespace Tests\Feature\MaintenanceRecommendations;
 
 use App\Filament\Resources\MaintenanceRecommendations\Pages\ListMaintenanceRecommendations;
+use App\Filament\Resources\MaintenanceRecommendations\Pages\ViewMaintenanceRecommendation;
+use App\Filament\Resources\MaintenanceRequests\Pages\ListMaintenanceRequests;
+use App\Filament\Resources\WorkOrders\Pages\ListWorkOrders;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Location;
 use App\Models\MaintenanceRecommendation;
 use App\Models\MaintenanceRequest;
 use App\Models\User;
+use App\Models\WorkOrder;
+use App\Models\WorkOrderEvidence;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -98,7 +103,7 @@ class MaintenanceRecommendationResourceTest extends TestCase
             ->assertSee('Pending');
     }
 
-    public function test_administrator_can_approve_and_execute_approved_action(): void
+    public function test_administrator_cannot_execute_approved_recommendation_until_linked_work_is_complete(): void
     {
         $administrator = $this->userWithRole('Administrator');
         $this->actingAs($administrator);
@@ -115,12 +120,12 @@ class MaintenanceRecommendationResourceTest extends TestCase
 
         Livewire::test(ListMaintenanceRecommendations::class)
             ->callTableAction('executeAction', $this->recommendation->fresh(), data: [
-                'action_notes' => 'Executed by admin.',
+                'action_notes' => 'Try to execute early.',
             ])
-            ->assertHasNoTableActionErrors();
+            ->assertHasTableActionErrors();
 
-        $this->assertSame('Executed', $this->recommendation->fresh()->action_status);
-        $this->assertNotNull($this->recommendation->fresh()->linked_maintenance_schedule_id);
+        $this->assertSame('Approved', $this->recommendation->fresh()->action_status);
+        $this->assertNull($this->recommendation->fresh()->linked_maintenance_schedule_id);
     }
 
     public function test_approve_action_creates_and_links_maintenance_request_for_actionable_recommendation(): void
@@ -204,6 +209,64 @@ class MaintenanceRecommendationResourceTest extends TestCase
         $this->assertSame(0, MaintenanceRequest::count());
     }
 
+    public function test_recommendation_to_request_to_work_order_completion_updates_linked_recommendation(): void
+    {
+        $administrator = $this->userWithRole('Administrator');
+        $technician = $this->userWithRole('Technician');
+        $recommendation = $this->createRecommendation([
+            'rule_key' => 'defective_without_work_order',
+            'risk_level' => 'High',
+        ]);
+
+        $this->actingAs($administrator);
+
+        Livewire::test(ListMaintenanceRecommendations::class)
+            ->callTableAction('approveAction', $recommendation, data: [
+                'action_notes' => 'Approve corrective work.',
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $request = $recommendation->fresh()->linkedMaintenanceRequest;
+
+        Livewire::test(ListMaintenanceRequests::class)
+            ->callTableAction('approve', $request, data: [
+                'review_remarks' => 'Approved for conversion.',
+            ])
+            ->assertHasNoTableActionErrors()
+            ->callTableAction('convertToWorkOrder', $request->fresh())
+            ->assertHasNoTableActionErrors();
+
+        $workOrder = WorkOrder::where('maintenance_request_id', $request->id)->firstOrFail();
+        $recommendation->refresh();
+
+        $this->assertSame($workOrder->id, $recommendation->linked_work_order_id);
+
+        Livewire::test(ViewMaintenanceRecommendation::class, ['record' => $recommendation->id])
+            ->assertSee($workOrder->work_order_number)
+            ->assertSee($workOrder->title)
+            ->assertSee($workOrder->status);
+
+        $workOrder->assignTo($technician)->start();
+        $this->createEvidence($workOrder, 'After maintenance');
+
+        $this->actingAs($technician);
+
+        Livewire::test(ListWorkOrders::class)
+            ->callTableAction('complete', $workOrder->fresh(), data: [
+                'action_performed' => 'Corrective maintenance completed.',
+                'completion_remarks' => 'Issue resolved.',
+                'final_equipment_condition' => 'Good',
+                'final_operational_status' => 'Available',
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $recommendation->refresh();
+
+        $this->assertSame('Executed', $recommendation->action_status);
+        $this->assertSame('Resolved', $recommendation->status);
+        $this->assertNotNull($recommendation->resolved_at);
+    }
+
     public function test_staff_and_technician_cannot_mark_recommendation_reviewed_by_default(): void
     {
         foreach (['Staff', 'Technician'] as $role) {
@@ -247,6 +310,18 @@ class MaintenanceRecommendationResourceTest extends TestCase
             'condition' => 'Good',
             'operational_status' => 'Available',
         ], $overrides));
+    }
+
+    private function createEvidence(WorkOrder $workOrder, string $type, string $path = 'work-orders/evidence/recommendation-test.jpg'): WorkOrderEvidence
+    {
+        return WorkOrderEvidence::create([
+            'work_order_id' => $workOrder->id,
+            'equipment_id' => $workOrder->equipment_id,
+            'evidence_type' => $type,
+            'image_path' => $path,
+            'uploaded_by' => $this->userWithRole('Administrator')->id,
+            'uploaded_at' => now(),
+        ]);
     }
 
     private function userWithRole(string $role): User

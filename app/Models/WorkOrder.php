@@ -584,21 +584,30 @@ class WorkOrder extends Model
     private function resolveLinkedRecommendations(?User $user = null, ?string $notes = null): void
     {
         MaintenanceRecommendation::query()
-            ->where('linked_work_order_id', $this->id)
+            ->where(function (Builder $query): void {
+                $query->where('linked_work_order_id', $this->id)
+                    ->when($this->maintenance_request_id, fn (Builder $query): Builder => $query->orWhere('linked_maintenance_request_id', $this->maintenance_request_id));
+            })
             ->each(fn (MaintenanceRecommendation $recommendation): MaintenanceRecommendation => $recommendation->resolveLinkedOutcome($user, $notes));
     }
 
     private function reopenLinkedRecommendations(?string $notes = null): void
     {
         MaintenanceRecommendation::query()
-            ->where('linked_work_order_id', $this->id)
+            ->where(function (Builder $query): void {
+                $query->where('linked_work_order_id', $this->id)
+                    ->when($this->maintenance_request_id, fn (Builder $query): Builder => $query->orWhere('linked_maintenance_request_id', $this->maintenance_request_id));
+            })
             ->each(fn (MaintenanceRecommendation $recommendation): MaintenanceRecommendation => $recommendation->reopenLinkedOutcome($notes));
     }
 
     private function cancelLinkedRecommendations(?User $user = null, ?string $notes = null): void
     {
         MaintenanceRecommendation::query()
-            ->where('linked_work_order_id', $this->id)
+            ->where(function (Builder $query): void {
+                $query->where('linked_work_order_id', $this->id)
+                    ->when($this->maintenance_request_id, fn (Builder $query): Builder => $query->orWhere('linked_maintenance_request_id', $this->maintenance_request_id));
+            })
             ->each(fn (MaintenanceRecommendation $recommendation): MaintenanceRecommendation => $recommendation->cancelLinkedOutcome($user, $notes));
     }
 

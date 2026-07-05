@@ -7,6 +7,7 @@ use App\Filament\Resources\MaintenanceRequests\Pages\CreateMaintenanceRequest;
 use App\Filament\Resources\MaintenanceRequests\Pages\EditMaintenanceRequest;
 use App\Filament\Resources\MaintenanceRequests\Pages\ListMaintenanceRequests;
 use App\Filament\Resources\MaintenanceRequests\Pages\ViewMaintenanceRequest;
+use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Models\Equipment;
 use App\Models\MaintenanceRequest;
 use App\Services\AuditLogService;
@@ -102,13 +103,25 @@ class MaintenanceRequestResource extends Resource
                         TextEntry::make('convertedBy.name')->label('Converted by')->placeholder('Not converted'),
                         TextEntry::make('converted_at')->label('Converted date')->dateTime()->placeholder('Not converted'),
                     ]),
+                Section::make('Linked Work Order')
+                    ->schema([
+                        TextEntry::make('latestWorkOrder.work_order_number')
+                            ->label('Work order number')
+                            ->url(fn (MaintenanceRequest $record): ?string => $record->latestWorkOrder
+                                ? WorkOrderResource::getUrl('view', ['record' => $record->latestWorkOrder])
+                                : null)
+                            ->placeholder('Not linked'),
+                        TextEntry::make('latestWorkOrder.title')->label('Title')->placeholder('Not linked'),
+                        TextEntry::make('latestWorkOrder.status')->label('Status')->placeholder('Not linked')->badge(),
+                        TextEntry::make('latestWorkOrder.priority')->label('Priority')->placeholder('Not linked')->badge(),
+                    ]),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['equipment', 'submittedBy'])->latest())
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['equipment', 'submittedBy', 'latestWorkOrder'])->latest())
             ->columns([
                 TextColumn::make('request_number')
                     ->label('Request number')
@@ -135,6 +148,10 @@ class MaintenanceRequestResource extends Resource
                     ->searchable()
                     ->badge()
                     ->sortable(),
+                TextColumn::make('latestWorkOrder.work_order_number')
+                    ->label('Linked work order')
+                    ->placeholder('None')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Created date')
                     ->dateTime()
@@ -239,6 +256,12 @@ class MaintenanceRequestResource extends Resource
 
                     Notification::make()
                         ->title('Work order created')
+                        ->body('Work order: '.$workOrder->work_order_number)
+                        ->actions([
+                            Action::make('viewWorkOrder')
+                                ->label('View Work Order')
+                                ->url(WorkOrderResource::getUrl('view', ['record' => $workOrder])),
+                        ])
                         ->success()
                         ->send();
                 } catch (InvalidArgumentException $exception) {

@@ -6,6 +6,8 @@ use App\Filament\Resources\WorkOrders\Pages\ListWorkOrders;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Location;
+use App\Models\MaintenanceRecommendation;
+use App\Models\MaintenanceRequest;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderEvidence;
@@ -147,6 +149,52 @@ class WorkOrderResourceTest extends TestCase
         $this->assertSame('Completed', $workOrder->fresh()->status);
         $this->assertSame($this->creator->id, $workOrder->fresh()->verified_by);
         $this->assertNotNull($workOrder->fresh()->verified_at);
+    }
+
+    public function test_verify_updates_recommendation_linked_through_maintenance_request(): void
+    {
+        $request = MaintenanceRequest::create([
+            'equipment_id' => $this->equipment->id,
+            'submitted_by' => $this->creator->id,
+            'problem_description' => 'Recommendation-created request.',
+            'severity' => 'High',
+            'status' => 'Converted',
+            'converted_by' => $this->creator->id,
+            'converted_at' => now(),
+        ]);
+        $recommendation = MaintenanceRecommendation::create([
+            'equipment_id' => $this->equipment->id,
+            'rule_key' => 'defective_without_work_order',
+            'title' => 'Defective equipment needs work',
+            'explanation' => 'A work order should resolve this recommendation.',
+            'risk_level' => 'High',
+            'recommended_action' => 'Repair the equipment.',
+            'generated_at' => now(),
+            'status' => 'Approved',
+            'action_status' => 'Approved',
+            'linked_maintenance_request_id' => $request->id,
+        ]);
+        $workOrder = $this->createWorkOrder([
+            'maintenance_request_id' => $request->id,
+            'status' => 'For verification',
+            'action_performed' => 'Repaired and tested.',
+            'completion_remarks' => 'Ready to close.',
+            'final_equipment_condition' => 'Good',
+            'final_operational_status' => 'Available',
+        ]);
+        $this->createEvidence($workOrder, 'After maintenance');
+
+        $this->actingAs($this->creator);
+
+        Livewire::test(ListWorkOrders::class)
+            ->callTableAction('verify', $workOrder)
+            ->assertHasNoTableActionErrors();
+
+        $recommendation->refresh();
+
+        $this->assertSame('Executed', $recommendation->action_status);
+        $this->assertSame('Resolved', $recommendation->status);
+        $this->assertNotNull($recommendation->resolved_at);
     }
 
     public function test_technician_cannot_verify_own_work(): void

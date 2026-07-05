@@ -225,6 +225,15 @@ class MaintenanceRecommendation extends Model
         return $this->belongsTo(MaintenanceRequest::class, 'linked_maintenance_request_id');
     }
 
+    public function effectiveLinkedWorkOrder(): ?WorkOrder
+    {
+        if ($this->linkedWorkOrder !== null) {
+            return $this->linkedWorkOrder;
+        }
+
+        return $this->linkedMaintenanceRequest?->latestWorkOrder;
+    }
+
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('status', 'Open');
@@ -364,6 +373,12 @@ class MaintenanceRecommendation extends Model
             $attributes['action_notes'] = $notes;
         }
 
+        if (! $this->isActionRejected() && ! $this->isActionCancelled()) {
+            $attributes['action_status'] = 'Executed';
+            $attributes['actioned_at'] = $this->actioned_at ?? now();
+            $attributes['actioned_by'] = $user?->id ?? $this->actioned_by;
+        }
+
         $this->forceFill($attributes)->save();
 
         return $this->refresh();
@@ -473,6 +488,10 @@ class MaintenanceRecommendation extends Model
             throw new InvalidArgumentException('Only pending or approved recommendation actions can be cancelled.');
         }
 
+        if ($this->linked_maintenance_request_id || $this->linked_work_order_id || $this->linked_maintenance_schedule_id) {
+            throw new InvalidArgumentException('This recommendation cannot be cancelled because linked maintenance work already exists.');
+        }
+
         $this->forceFill([
             'suggested_action_type' => $this->getSuggestedActionType(),
             'action_status' => 'Cancelled',
@@ -501,6 +520,10 @@ class MaintenanceRecommendation extends Model
             throw new InvalidArgumentException('Recommendation action has already been executed.');
         }
 
+        if ($this->linked_maintenance_request_id) {
+            return $this->executeLinkedMaintenanceRequest($user, $notes);
+        }
+
         return match ($this->getSuggestedActionType()) {
             'create_preventive_maintenance_schedule',
             'schedule_preventive_maintenance' => $this->executePreventiveSchedule($user, $notes),
@@ -512,6 +535,26 @@ class MaintenanceRecommendation extends Model
             'upload_after_maintenance_evidence' => $this->executeEvidenceGuidance($user, $notes),
             default => $this->executeMonitorOnly($user, $notes),
         };
+    }
+
+    private function executeLinkedMaintenanceRequest(User $user, ?string $notes = null): self
+    {
+        $request = $this->linkedMaintenanceRequest()->with('latestWorkOrder')->first();
+        $workOrder = $request?->latestWorkOrder;
+
+        if (! $workOrder || ! in_array($workOrder->status, ['Completed', 'Beyond repair'], true)) {
+            throw new InvalidArgumentException('This recommendation cannot be executed because the linked maintenance work is not yet completed.');
+        }
+
+        $this->forceFill([
+            'linked_work_order_id' => $workOrder->id,
+        ])->save();
+
+        $this->markActionExecuted($user, $notes ?: 'Linked maintenance work was completed.', [
+            'linked_work_order_id' => $workOrder->id,
+        ]);
+
+        return $this->resolveLinkedOutcome($user, $notes ?: 'Linked maintenance work was completed.');
     }
 
     private function executePreventiveSchedule(User $user, ?string $notes = null): self

@@ -264,7 +264,10 @@ class MaintenanceRequest extends Model
         }
 
         if ($this->workOrders()->exists()) {
-            return $this->latestWorkOrder()->first();
+            $workOrder = $this->latestWorkOrder()->first();
+            $this->syncLinkedRecommendations($workOrder);
+
+            return $workOrder;
         }
 
         $workOrder = WorkOrder::create([
@@ -279,6 +282,7 @@ class MaintenanceRequest extends Model
         ]);
 
         $this->markAsConverted($user);
+        $this->syncLinkedRecommendations($workOrder);
 
         return $workOrder->refresh();
     }
@@ -305,6 +309,21 @@ class MaintenanceRequest extends Model
             'Critical' => 'Critical',
             default => 'Normal',
         };
+    }
+
+    private function syncLinkedRecommendations(?WorkOrder $workOrder): void
+    {
+        if (! $workOrder) {
+            return;
+        }
+
+        MaintenanceRecommendation::query()
+            ->where('linked_maintenance_request_id', $this->id)
+            ->where(function (Builder $query): void {
+                $query->whereNull('linked_work_order_id')
+                    ->orWhere('linked_work_order_id', 0);
+            })
+            ->update(['linked_work_order_id' => $workOrder->id]);
     }
 
     /**

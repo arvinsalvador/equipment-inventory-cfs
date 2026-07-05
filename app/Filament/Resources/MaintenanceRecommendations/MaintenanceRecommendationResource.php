@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MaintenanceRecommendations;
 use App\Filament\Resources\MaintenanceRecommendations\Pages\ListMaintenanceRecommendations;
 use App\Filament\Resources\MaintenanceRecommendations\Pages\ViewMaintenanceRecommendation;
 use App\Filament\Resources\MaintenanceRequests\MaintenanceRequestResource;
+use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Models\Equipment;
 use App\Models\MaintenanceRecommendation;
 use App\Services\AuditLogService;
@@ -88,13 +89,40 @@ class MaintenanceRecommendationResource extends Resource
                     ]),
                 Section::make('Linked Work Order')
                     ->schema([
-                        TextEntry::make('linkedWorkOrder.work_order_number')->label('Work order number')->placeholder('Not linked'),
-                        TextEntry::make('linkedWorkOrder.title')->label('Title')->placeholder('Not linked'),
-                        TextEntry::make('linkedWorkOrder.status')->label('Status')->placeholder('Not linked')->badge(),
+                        TextEntry::make('effective_linked_work_order_number')
+                            ->label('Work order number')
+                            ->state(fn (MaintenanceRecommendation $record): ?string => $record->effectiveLinkedWorkOrder()?->work_order_number)
+                            ->url(fn (MaintenanceRecommendation $record): ?string => $record->effectiveLinkedWorkOrder()
+                                ? WorkOrderResource::getUrl('view', ['record' => $record->effectiveLinkedWorkOrder()])
+                                : null)
+                            ->placeholder('Not linked'),
+                        TextEntry::make('effective_linked_work_order_title')
+                            ->label('Title')
+                            ->state(fn (MaintenanceRecommendation $record): ?string => $record->effectiveLinkedWorkOrder()?->title)
+                            ->placeholder('Not linked'),
+                        TextEntry::make('effective_linked_work_order_status')
+                            ->label('Status')
+                            ->state(fn (MaintenanceRecommendation $record): ?string => $record->effectiveLinkedWorkOrder()?->status)
+                            ->placeholder('Not linked')
+                            ->badge(),
+                        TextEntry::make('effective_linked_work_order_assignee')
+                            ->label('Assigned technician')
+                            ->state(fn (MaintenanceRecommendation $record): ?string => $record->effectiveLinkedWorkOrder()?->assignedTo?->name)
+                            ->placeholder('Unassigned'),
+                        TextEntry::make('effective_linked_work_order_verified_at')
+                            ->label('Verified date')
+                            ->state(fn (MaintenanceRecommendation $record): mixed => $record->effectiveLinkedWorkOrder()?->verified_at)
+                            ->dateTime()
+                            ->placeholder('Not verified'),
                     ]),
                 Section::make('Linked Maintenance Request')
                     ->schema([
-                        TextEntry::make('linkedMaintenanceRequest.request_number')->label('Request number')->placeholder('Not linked'),
+                        TextEntry::make('linkedMaintenanceRequest.request_number')
+                            ->label('Request number')
+                            ->url(fn (MaintenanceRecommendation $record): ?string => $record->linkedMaintenanceRequest
+                                ? MaintenanceRequestResource::getUrl('view', ['record' => $record->linkedMaintenanceRequest])
+                                : null)
+                            ->placeholder('Not linked'),
                         TextEntry::make('linkedMaintenanceRequest.status')->label('Status')->placeholder('Not linked')->badge(),
                         TextEntry::make('linkedMaintenanceRequest.severity')->label('Severity')->placeholder('Not linked')->badge(),
                     ]),
@@ -142,7 +170,7 @@ class MaintenanceRecommendationResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->with(['equipment', 'reviewedBy', 'resolvedBy', 'actionedBy', 'linkedWorkOrder', 'linkedMaintenanceSchedule', 'linkedMaintenanceRequest'])
+                ->with(['equipment', 'reviewedBy', 'resolvedBy', 'actionedBy', 'linkedWorkOrder.assignedTo', 'linkedMaintenanceSchedule', 'linkedMaintenanceRequest.latestWorkOrder.assignedTo'])
                 ->orderByRaw(MaintenanceRecommendation::riskRankSql())
                 ->latest('generated_at'))
             ->columns([
@@ -193,6 +221,7 @@ class MaintenanceRecommendationResource extends Resource
                     ->sortable(),
                 TextColumn::make('linkedWorkOrder.work_order_number')
                     ->label('Linked work order')
+                    ->state(fn (MaintenanceRecommendation $record): ?string => $record->effectiveLinkedWorkOrder()?->work_order_number)
                     ->placeholder('None')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('linkedMaintenanceSchedule.maintenance_type')

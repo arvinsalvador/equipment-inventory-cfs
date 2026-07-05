@@ -7,6 +7,7 @@ use App\Filament\Resources\MaintenanceRequests\Pages\ListMaintenanceRequests;
 use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Location;
+use App\Models\MaintenanceRecommendation;
 use App\Models\MaintenanceRequest;
 use App\Models\User;
 use App\Models\WorkOrder;
@@ -161,6 +162,38 @@ class MaintenanceRequestResourceTest extends TestCase
         Livewire::test(ListMaintenanceRequests::class)
             ->assertTableActionHidden('convertToWorkOrder', $request->fresh());
 
+        $this->assertSame(1, WorkOrder::where('maintenance_request_id', $request->id)->count());
+    }
+
+    public function test_converting_recommendation_request_links_work_order_back_to_recommendation(): void
+    {
+        $administrator = $this->userWithRole('Administrator');
+        $request = $this->createRequest([
+            'submitted_by' => $this->submitter->id,
+            'status' => 'Approved',
+        ]);
+        $recommendation = MaintenanceRecommendation::create([
+            'equipment_id' => $request->equipment_id,
+            'rule_key' => 'overdue_maintenance',
+            'title' => 'Linked request recommendation',
+            'explanation' => 'Request conversion should link back.',
+            'risk_level' => 'High',
+            'recommended_action' => 'Create maintenance request.',
+            'generated_at' => now(),
+            'status' => 'Approved',
+            'action_status' => 'Approved',
+            'linked_maintenance_request_id' => $request->id,
+        ]);
+
+        $this->actingAs($administrator);
+
+        Livewire::test(ListMaintenanceRequests::class)
+            ->callTableAction('convertToWorkOrder', $request)
+            ->assertHasNoTableActionErrors();
+
+        $workOrder = WorkOrder::where('maintenance_request_id', $request->id)->firstOrFail();
+
+        $this->assertSame($workOrder->id, $recommendation->fresh()->linked_work_order_id);
         $this->assertSame(1, WorkOrder::where('maintenance_request_id', $request->id)->count());
     }
 
