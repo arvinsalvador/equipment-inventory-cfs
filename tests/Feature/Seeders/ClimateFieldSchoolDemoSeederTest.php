@@ -92,6 +92,6 @@ class ClimateFieldSchoolDemoSeederTest extends TestCase
             ->get('/admin/mobile-technician-dashboard')
             ->assertOk()
             ->assertSee('Assigned Work Orders')
-            ->assertSee('Offline Status');
+            ->assertSee('Quick Actions');
     }
 }

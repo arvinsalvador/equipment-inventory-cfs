@@ -109,12 +109,12 @@ After changing local network settings, verify:
 - `/service-worker.js` loads.
 - `/offline` loads.
 - The mobile technician dashboard loads.
-- The offline queue loads.
-- Admin pages are not replaced by offline status UI.
+- The online technician dashboard loads.
+- Admin pages are not replaced by stale PWA status UI.
 
 The service worker cache can hold older development files. Clear the browser's site data or unregister the service worker when testing changes.
 
-If an installed development PWA still opens to stale offline status text such as `Synchronized`, uninstall the PWA, clear site data for the development origin, reopen the site in the browser, then reinstall the PWA.
+If an installed development PWA still opens stale pre-rollback status text, uninstall the PWA, clear site data for the development origin, reopen the site in the browser, then reinstall the PWA.
 
 ## Troubleshooting
 

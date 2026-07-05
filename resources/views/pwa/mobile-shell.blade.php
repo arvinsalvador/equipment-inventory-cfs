@@ -20,6 +20,5 @@
         <a href="{{ url('/admin/work-orders') }}">Work Orders</a>
         <a href="{{ route('equipment.scan') }}" data-pwa-qr-link>Scan QR</a>
         <a href="{{ url('/admin/system-notifications') }}">Notifications</a>
-        <a href="{{ url('/admin/offline-queue') }}">Offline Queue</a>
     </nav>
 @endauth

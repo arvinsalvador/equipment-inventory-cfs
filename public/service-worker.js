@@ -1,7 +1,5 @@
-const CACHE_NAME = 'ai-equipment-pwa-v5';
-const OFFLINE_FALLBACK_URL = '/offline';
+const CACHE_NAME = 'ai-equipment-pwa-v6';
 const SHELL_ASSETS = [
-    OFFLINE_FALLBACK_URL,
     '/manifest.webmanifest',
     '/pwa.css',
     '/pwa.js',
@@ -15,8 +13,20 @@ const NEVER_INTERCEPT_PATHS = [
     '/livewire',
     '/login',
     '/logout',
-    '/offline-sync',
     '/browser-push',
+];
+
+const STATIC_EXTENSIONS = [
+    '.css',
+    '.js',
+    '.svg',
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.webp',
+    '.ico',
+    '.woff',
+    '.woff2',
 ];
 
 const isBlockedPath = (pathname) => NEVER_INTERCEPT_PATHS
@@ -24,15 +34,26 @@ const isBlockedPath = (pathname) => NEVER_INTERCEPT_PATHS
 
 const isShellAsset = (pathname) => SHELL_ASSETS.includes(pathname) || pathname.startsWith('/icons/');
 
-const isSafePublicNavigation = (pathname) => pathname === '/' || pathname === '/offline';
+const isStaticAsset = (pathname) => STATIC_EXTENSIONS.some((extension) => pathname.endsWith(extension));
 
 const isHtmlNavigationRequest = (request) => request.mode === 'navigate'
     || (request.headers.get('accept') || '').includes('text/html');
 
-const networkOnly = (request) => fetch(request, {
+const networkFirst = (request) => fetch(request, {
     cache: 'no-store',
     credentials: 'include',
 });
+
+const cacheFirst = (request) => caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+    if (! response.ok) {
+        return response;
+    }
+
+    const copy = response.clone();
+    caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+
+    return response;
+}));
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
@@ -59,41 +80,18 @@ self.addEventListener('fetch', (event) => {
     }
 
     if (isHtmlNavigationRequest(request)) {
-        if (isBlockedPath(url.pathname)) {
-            event.respondWith(networkOnly(request));
-
-            return;
-        }
-
-        if (isSafePublicNavigation(url.pathname)) {
-            event.respondWith(
-                networkOnly(request).catch(() => caches.match(OFFLINE_FALLBACK_URL)),
-            );
-        }
+        event.respondWith(networkFirst(request));
 
         return;
     }
 
     if (isBlockedPath(url.pathname)) {
-        event.respondWith(networkOnly(request));
+        event.respondWith(networkFirst(request));
 
         return;
     }
 
-    if (isShellAsset(url.pathname)) {
-        event.respondWith(
-            caches.match(request).then((cached) => cached || fetch(request).then((response) => {
-                if (! response.ok) {
-                    return response;
-                }
-
-                const copy = response.clone();
-                caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-
-                return response;
-            })),
-        );
-
-        return;
+    if (isShellAsset(url.pathname) || isStaticAsset(url.pathname)) {
+        event.respondWith(cacheFirst(request));
     }
 });

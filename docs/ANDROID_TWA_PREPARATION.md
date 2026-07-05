@@ -154,14 +154,13 @@ Use TWA first because the system is already a PWA and shared-hosting compatible.
 - Recommended first test browser is Chrome Android.
 - Test both direct scanner entry and QR lookup URL entry.
 
-## Offline Queue Android Compatibility Notes
+## Online-only Mobile Dashboard Android Notes
 
-- Offline queue behavior remains browser/PWA based.
-- Offline actions should sync when the device reconnects.
-- Browser storage can be limited or cleared by the OS, so technicians should reconnect regularly.
-- Admin, Filament, and Livewire routes must remain excluded from offline sync interception.
+- Offline synchronization is intentionally deferred.
 - The intended mobile entry point is the Technician Mobile Dashboard.
-- Users should verify queued actions before closing long offline sessions.
+- The installed PWA should load live data while connected.
+- Admin, Filament, and Livewire routes must remain network-first and must not be cached as app pages.
+- QR scanning, uploads, notifications, and maintenance workflows should be tested on real Android devices.
 
 ## Testing Checklist
 
@@ -171,8 +170,8 @@ Use TWA first because the system is already a PWA and shared-hosting compatible.
 - QR scanner opens over HTTPS.
 - Manual QR lookup fallback works.
 - Offline page works for safe public navigation.
-- Offline queue displays pending actions.
-- Sync resumes after reconnect.
+- Online technician dashboard loads live data.
+- Offline synchronization remains deferred.
 - Equipment photos and QR code images load from `/storage`.
 - Service worker does not hijack `/admin`, `/filament`, or `/livewire`.
 

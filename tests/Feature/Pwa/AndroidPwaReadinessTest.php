@@ -54,7 +54,8 @@ class AndroidPwaReadinessTest extends TestCase
         $this->assertStringContainsString("'/filament'", $serviceWorker);
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
         $this->assertStringContainsString("request.method !== 'GET'", $serviceWorker);
-        $this->assertStringContainsString('networkOnly(request).catch(() => caches.match(OFFLINE_FALLBACK_URL))', $serviceWorker);
+        $this->assertStringContainsString('networkFirst(request)', $serviceWorker);
+        $this->assertStringNotContainsString('OFFLINE_FALLBACK_URL', $serviceWorker);
         $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
         $this->assertStringNotContainsString('/admin/offline-queue', $serviceWorker);
 
@@ -69,8 +70,7 @@ class AndroidPwaReadinessTest extends TestCase
 
         $this->actingAs($technician)
             ->get('/admin/offline-queue')
-            ->assertOk()
-            ->assertSee('Offline Queue');
+            ->assertNotFound();
 
         $this->actingAs($technician)
             ->get(route('equipment.scan'))
@@ -98,7 +98,7 @@ class AndroidPwaReadinessTest extends TestCase
         $this->assertStringContainsString('Why Trusted Web Activity Is Recommended', $documentation);
         $this->assertStringContainsString('Capacitor Alternative', $documentation);
         $this->assertStringContainsString('QR Scanner Android Compatibility Notes', $documentation);
-        $this->assertStringContainsString('Offline Queue Android Compatibility Notes', $documentation);
+        $this->assertStringContainsString('Online-only Mobile Dashboard Android Notes', $documentation);
         $this->assertStringContainsString('Trusted Web Activity', $packagingDocumentation);
         $this->assertStringContainsString('Bubblewrap', $packagingDocumentation);
         $this->assertStringContainsString('assetlinks.json', $packagingDocumentation);
@@ -117,7 +117,7 @@ class AndroidPwaReadinessTest extends TestCase
         $this->assertContains('Offline page exists', $titles);
         $this->assertContains('Mobile dashboard exists', $titles);
         $this->assertContains('QR scanner route exists', $titles);
-        $this->assertContains('Offline queue route exists', $titles);
+        $this->assertNotContains('Offline queue route exists', $titles);
         $this->assertContains('HTTPS required for camera', $titles);
         $this->assertContains('TWA assetlinks template prepared', $titles);
         $this->assertContains('Android documentation prepared', $titles);
@@ -191,7 +191,8 @@ class AndroidPwaReadinessTest extends TestCase
         $this->assertContains('Asset Links deployed', $titles);
         $this->assertContains('PWA validated', $titles);
         $this->assertContains('Service Worker active', $titles);
-        $this->assertContains('Offline queue verified', $titles);
+        $this->assertContains('Online mobile dashboard verified', $titles);
+        $this->assertNotContains('Offline queue verified', $titles);
         $this->assertContains('QR scanner tested', $titles);
         $this->assertContains('Android documentation complete', $titles);
         $this->assertContains('Signing key prepared', $titles);

@@ -14,20 +14,19 @@
         ])->sum() > 0;
     @endphp
 
-    <div class="pwa-technician-dashboard space-y-5" data-offline-sync-surface="mobile-technician-dashboard">
+    <div class="pwa-technician-dashboard space-y-5">
         <x-filament::section>
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wide text-amber-600">Mobile technician workspace</p>
                     <h1 class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">Technician Mobile Dashboard</h1>
                     <p class="mt-2 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">
-                        Assigned work, maintenance requests, evidence needs, QR lookup, and offline synchronization for field technicians.
+                        Assigned work, maintenance requests, evidence needs, QR lookup, and notifications for field technicians.
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <x-filament::button tag="a" href="{{ route('equipment.scan') }}" icon="heroicon-o-qr-code">Scan QR Code</x-filament::button>
                     <x-filament::button tag="a" href="{{ url('/admin/work-orders') }}" color="gray" icon="heroicon-o-clipboard-document-list">View Assigned Work Orders</x-filament::button>
-                    <x-filament::button tag="a" href="{{ url('/admin/offline-queue') }}" color="gray" icon="heroicon-o-circle-stack">View Offline Queue</x-filament::button>
                     @if ($overview['can_create_maintenance_request'])
                         <x-filament::button tag="a" href="{{ url('/admin/maintenance-requests/create') }}" color="gray" icon="heroicon-o-plus-circle">Create Maintenance Request</x-filament::button>
                     @endif
@@ -64,7 +63,7 @@
                 <p class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white">{{ $overview['evidence_required_count'] }}</p>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <p class="text-xs font-semibold uppercase text-gray-500">Beyond-repair Verification</p>
+                <p class="text-xs font-semibold uppercase text-gray-500">Pending Verification</p>
                 <p class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white">{{ $overview['beyond_repair_count'] }}</p>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -84,32 +83,12 @@
         @endunless
 
         <x-filament::section>
-            <x-slot name="heading">Offline Status</x-slot>
-            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Connection</p>
-                    <p class="mt-1 text-sm font-semibold" data-pwa-online-status>Checking</p>
-                </div>
-                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Pending Offline Sync</p>
-                    <p class="mt-1 text-sm font-semibold" data-offline-pending-count>0</p>
-                </div>
-                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Failed Sync</p>
-                    <p class="mt-1 text-sm font-semibold" data-offline-failed-count>0</p>
-                </div>
-                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Last Sync</p>
-                    <p class="mt-1 text-sm font-semibold" data-offline-last-sync>Never</p>
-                </div>
-                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Status</p>
-                    <p class="mt-1 text-sm font-semibold" data-offline-sync-status>Checking</p>
-                </div>
-            </div>
-            <p class="mt-3 text-sm text-gray-600 dark:text-gray-400" data-offline-sync-message>All offline changes have been synchronized. No pending actions.</p>
-            <div class="mt-3">
-                <x-filament::button type="button" data-offline-sync-now icon="heroicon-o-arrow-path" color="gray">Sync Now</x-filament::button>
+            <x-slot name="heading">Quick Actions</x-slot>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <x-filament::button tag="a" href="{{ route('equipment.scan') }}" icon="heroicon-o-qr-code">Scan QR Code</x-filament::button>
+                <x-filament::button tag="a" href="{{ url('/admin/work-orders') }}" color="gray" icon="heroicon-o-clipboard-document-list">Open Work Orders</x-filament::button>
+                <x-filament::button tag="a" href="{{ url('/admin/maintenance-requests') }}" color="gray" icon="heroicon-o-wrench-screwdriver">Maintenance Requests</x-filament::button>
+                <x-filament::button tag="a" href="{{ url('/admin/system-notifications') }}" color="gray" icon="heroicon-o-bell">Notifications</x-filament::button>
             </div>
         </x-filament::section>
 
@@ -217,8 +196,5 @@
             </x-filament::section>
         </div>
 
-        @include('pwa.offline-workspace')
     </div>
-
-    <script src="{{ asset('offline-sync.js') }}" defer></script>
 </x-filament-panels::page>

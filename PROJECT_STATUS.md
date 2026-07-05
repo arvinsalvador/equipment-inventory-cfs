@@ -1180,28 +1180,29 @@ Phase 11B - Offline Data Capture & Synchronization
 - Tests added
 - Remaining risks: Actual APK/AAB generation and Play Store publishing require a production domain, keystore, and Android Studio environment.
 
-## Maintenance Enhancement - Technician Mobile and Offline Queue
+## Maintenance Enhancement - Online-only Technician Mobile Dashboard
 
 - Technician Mobile dashboard enhancement: Complete
 - Assigned/open work order summary: Complete
-- Technician empty state improvement: Complete
-- Offline Queue synchronization dashboard: Complete
-- Offline queue empty state improvement: Complete
-- Offline sync regression protection: Complete
+- Pending verification summary: Complete
+- QR scanner shortcut: Complete
+- Notifications shortcut: Complete
+- Online quick actions: Complete
 - Authorization review: Complete
 - Tests added/updated: Complete
-- Remaining risks: Real offline synchronization behavior should still be validated on an actual mobile device and browser after deployment
+- Remaining risks: Mobile use now requires network connectivity because offline synchronization is deferred
 
-## Maintenance Bug Fix - Mobile Dashboard and Offline Queue Rendering
+## Controlled Rollback - Online-only PWA
 
-- Mobile Home dashboard rendering: Fixed
-- Offline Queue page rendering: Fixed
-- Plain "synchronized" page replacement: Fixed
-- Bottom navigation route targets: Verified
-- Offline sync JavaScript scope: Verified
-- Service worker admin exclusions: Verified
+- Offline Queue module: Removed
+- Offline Synchronization: Deferred to a future redesigned version
+- Online-only Mobile Technician Dashboard: Complete
+- PWA Installation: Preserved
+- Manifest and basic service worker caching: Preserved
+- QR scanner, camera access, uploads, notifications, reports, and maintenance workflows: Preserved
+- Admin panel and Filament routes: Network-first and excluded from page caching
 - Tests added/updated: Complete
-- Remaining risks: Actual offline sync behavior should still be validated on a real mobile browser after deployment
+- Remaining risks: Offline data capture and queue replay are unavailable until a future version reintroduces them safely
 
 ## Demo Data Seeding - Climate Field School Equipment Dataset
 

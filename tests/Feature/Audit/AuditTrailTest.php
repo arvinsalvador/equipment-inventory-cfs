@@ -231,25 +231,12 @@ class AuditTrailTest extends TestCase
             ->get(route('reports.csv', 'equipment-inventory'))
             ->assertOk();
 
-        $this->actingAs($administrator)
-            ->postJson(route('offline-sync.actions.store'), [
-                'client_id' => 'audit-offline-1',
-                'type' => 'equipment.status_update',
-                'payload' => [
-                    'equipment_id' => $equipment->id,
-                    'condition' => 'Fair',
-                ],
-                'base_updated_at' => $equipment->fresh()->updated_at?->toJSON(),
-            ])
-            ->assertOk();
-
         $this->assertDatabaseHas('audit_logs', ['action' => 'created', 'module' => 'Equipment']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'status_changed', 'module' => 'Work Order']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'status_changed', 'module' => 'Maintenance Request']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'uploaded', 'module' => 'Evidence']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'action_executed', 'module' => 'AI Recommendation']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'exported', 'module' => 'Reports']);
-        $this->assertDatabaseHas('audit_logs', ['action' => 'submitted', 'module' => 'PWA Offline Sync']);
     }
 
     private function userWithRole(string $roleName): User
