@@ -17,10 +17,13 @@ class EquipmentQrCodeGenerator
             ])->save();
         }
 
-        $path = "equipment/qr-codes/{$equipment->qr_identifier}.svg";
+        $path = "equipment/qr-codes/{$equipment->qr_identifier}.png";
         $qrCode = new QRCode(new QROptions([
-            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+            'imageBase64' => false,
         ]));
+
+        $this->deleteSupersededQrFiles($equipment, $path);
 
         Storage::disk('public')->put($path, $qrCode->render($equipment->getQrLookupUrl()), [
             'visibility' => 'public',
@@ -37,5 +40,23 @@ class EquipmentQrCodeGenerator
         ]);
 
         return $equipment->refresh();
+    }
+
+    private function deleteSupersededQrFiles(Equipment $equipment, string $newPath): void
+    {
+        $paths = collect([
+            $equipment->qr_code_path,
+            "equipment/qr-codes/{$equipment->qr_identifier}.svg",
+        ])
+            ->filter()
+            ->map(fn (string $path): ?string => $equipment->normalizePublicMediaPath($path))
+            ->filter(fn (?string $path): bool => filled($path) && $path !== $newPath)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($paths !== []) {
+            Storage::disk('public')->delete($paths);
+        }
     }
 }

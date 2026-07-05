@@ -131,7 +131,7 @@ class Equipment extends Model
 
     public function getQrCodeUrl(): ?string
     {
-        return $this->publicMediaUrl($this->qr_code_path);
+        return $this->publicMediaUrl($this->qr_code_path, absolute: true);
     }
 
     public function getPhotoUrl(): ?string
@@ -193,7 +193,7 @@ class Equipment extends Model
         return $path === '' ? null : $path;
     }
 
-    private function publicMediaUrl(?string $path): ?string
+    private function publicMediaUrl(?string $path, bool $absolute = false): ?string
     {
         if (! $path) {
             return null;
@@ -204,7 +204,7 @@ class Equipment extends Model
         $normalizedPath = $this->normalizePublicMediaPath($path);
 
         if ($normalizedPath && Storage::disk('public')->exists($normalizedPath)) {
-            return $this->publicStorageUrl($normalizedPath);
+            return $this->publicStorageUrl($normalizedPath, absolute: $absolute);
         }
 
         if ($isFullUrl) {
@@ -214,9 +214,14 @@ class Equipment extends Model
         return null;
     }
 
-    private function publicStorageUrl(string $path): string
+    private function publicStorageUrl(string $path, bool $absolute = false): string
     {
         $url = Storage::disk('public')->url(ltrim($path, '/'));
+
+        if ($absolute) {
+            return filter_var($url, FILTER_VALIDATE_URL) ? $url : url($url);
+        }
+
         $appStoragePrefix = rtrim((string) config('app.url'), '/').'/storage/';
 
         if (str_starts_with($url, $appStoragePrefix)) {
