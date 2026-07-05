@@ -54,7 +54,7 @@ class AndroidPwaReadinessTest extends TestCase
         $this->assertStringContainsString("'/filament'", $serviceWorker);
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
         $this->assertStringContainsString("request.method !== 'GET'", $serviceWorker);
-        $this->assertStringContainsString("fetch(request).catch(() => caches.match('/offline'))", $serviceWorker);
+        $this->assertStringContainsString('networkOnly(request).catch(() => caches.match(OFFLINE_FALLBACK_URL))', $serviceWorker);
         $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
         $this->assertStringNotContainsString('/admin/offline-queue', $serviceWorker);
 

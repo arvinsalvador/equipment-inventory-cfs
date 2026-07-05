@@ -114,6 +114,8 @@ After changing local network settings, verify:
 
 The service worker cache can hold older development files. Clear the browser's site data or unregister the service worker when testing changes.
 
+If an installed development PWA still opens to stale offline status text such as `Synchronized`, uninstall the PWA, clear site data for the development origin, reopen the site in the browser, then reinstall the PWA.
+
 ## Troubleshooting
 
 Windows Firewall may block inbound traffic to port `8087` or `5173`. Allow Docker Desktop, WSL, Node, or the relevant terminal through the firewall for private networks.

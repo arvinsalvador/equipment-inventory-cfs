@@ -1,6 +1,7 @@
-const CACHE_NAME = 'ai-equipment-pwa-v4';
+const CACHE_NAME = 'ai-equipment-pwa-v5';
+const OFFLINE_FALLBACK_URL = '/offline';
 const SHELL_ASSETS = [
-    '/offline',
+    OFFLINE_FALLBACK_URL,
     '/manifest.webmanifest',
     '/pwa.css',
     '/pwa.js',
@@ -24,6 +25,14 @@ const isBlockedPath = (pathname) => NEVER_INTERCEPT_PATHS
 const isShellAsset = (pathname) => SHELL_ASSETS.includes(pathname) || pathname.startsWith('/icons/');
 
 const isSafePublicNavigation = (pathname) => pathname === '/' || pathname === '/offline';
+
+const isHtmlNavigationRequest = (request) => request.mode === 'navigate'
+    || (request.headers.get('accept') || '').includes('text/html');
+
+const networkOnly = (request) => fetch(request, {
+    cache: 'no-store',
+    credentials: 'include',
+});
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
@@ -49,8 +58,24 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    if (isHtmlNavigationRequest(request)) {
+        if (isBlockedPath(url.pathname)) {
+            event.respondWith(networkOnly(request));
+
+            return;
+        }
+
+        if (isSafePublicNavigation(url.pathname)) {
+            event.respondWith(
+                networkOnly(request).catch(() => caches.match(OFFLINE_FALLBACK_URL)),
+            );
+        }
+
+        return;
+    }
+
     if (isBlockedPath(url.pathname)) {
-        event.respondWith(fetch(request));
+        event.respondWith(networkOnly(request));
 
         return;
     }
@@ -58,6 +83,10 @@ self.addEventListener('fetch', (event) => {
     if (isShellAsset(url.pathname)) {
         event.respondWith(
             caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+                if (! response.ok) {
+                    return response;
+                }
+
                 const copy = response.clone();
                 caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
 
@@ -66,11 +95,5 @@ self.addEventListener('fetch', (event) => {
         );
 
         return;
-    }
-
-    if (request.mode === 'navigate' && isSafePublicNavigation(url.pathname)) {
-        event.respondWith(
-            fetch(request).catch(() => caches.match('/offline')),
-        );
     }
 });

@@ -128,7 +128,7 @@ class OfflineSyncTest extends TestCase
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
         $this->assertStringContainsString("'/filament'", $serviceWorker);
         $this->assertStringContainsString('isBlockedPath(url.pathname)', $serviceWorker);
-        $this->assertStringContainsString('event.respondWith(fetch(request))', $serviceWorker);
+        $this->assertStringContainsString('event.respondWith(networkOnly(request))', $serviceWorker);
         $this->assertStringContainsString("request.method !== 'GET'", $serviceWorker);
         $this->assertStringNotContainsString('/admin/offline-queue', $serviceWorker);
         $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);

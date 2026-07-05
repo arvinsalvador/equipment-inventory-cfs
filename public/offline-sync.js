@@ -5,6 +5,7 @@
     const syncUrl = '/offline-sync/actions';
     let syncInProgress = false;
     let lastSyncOutcome = null;
+    let handlersRegistered = false;
 
     const hasOfflineSyncSurface = () => document.querySelector([
         '[data-offline-sync-surface]',
@@ -357,86 +358,96 @@
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
 
-    document.addEventListener('submit', (event) => {
-        const form = event.target.closest('[data-offline-form]');
-        if (!form) return;
+    const registerOfflineSyncHandlers = () => {
+        if (handlersRegistered) {
+            return;
+        }
 
-        event.preventDefault();
-        queueItem(form.dataset.offlineType, serializeForm(form));
-        form.reset();
-    });
+        handlersRegistered = true;
 
-    document.addEventListener('click', (event) => {
-        const draftButton = event.target.closest('[data-offline-save-draft]');
-        const retryButton = event.target.closest('[data-offline-retry]');
-        const removeButton = event.target.closest('[data-offline-remove]');
-        const queueDraftButton = event.target.closest('[data-offline-queue-draft]');
-        const removeDraftButton = event.target.closest('[data-offline-remove-draft]');
-        const syncNow = event.target.closest('[data-offline-sync-now]');
+        document.addEventListener('submit', (event) => {
+            const form = event.target.closest('[data-offline-form]');
+            if (!form) return;
 
-        if (draftButton) {
-            claimOfflineSyncClick(event);
-            const form = draftButton.closest('[data-offline-form]');
-            saveDraft(form.dataset.offlineType, serializeForm(form));
+            event.preventDefault();
+            queueItem(form.dataset.offlineType, serializeForm(form));
             form.reset();
-        }
+        });
 
-        if (retryButton) {
-            claimOfflineSyncClick(event);
-            retryItem(retryButton.dataset.offlineRetry);
-        }
+        document.addEventListener('click', (event) => {
+            const draftButton = event.target.closest('[data-offline-save-draft]');
+            const retryButton = event.target.closest('[data-offline-retry]');
+            const removeButton = event.target.closest('[data-offline-remove]');
+            const queueDraftButton = event.target.closest('[data-offline-queue-draft]');
+            const removeDraftButton = event.target.closest('[data-offline-remove-draft]');
+            const syncNow = event.target.closest('[data-offline-sync-now]');
 
-        if (removeButton) {
-            claimOfflineSyncClick(event);
-            removeItem(removeButton.dataset.offlineRemove);
-        }
-
-        if (queueDraftButton) {
-            claimOfflineSyncClick(event);
-            const draft = getDrafts().find((item) => item.id === queueDraftButton.dataset.offlineQueueDraft);
-            if (draft) {
-                queueItem(draft.type, draft.payload);
-                removeDraft(draft.id);
+            if (draftButton) {
+                claimOfflineSyncClick(event);
+                const form = draftButton.closest('[data-offline-form]');
+                saveDraft(form.dataset.offlineType, serializeForm(form));
+                form.reset();
             }
-        }
 
-        if (removeDraftButton) {
-            claimOfflineSyncClick(event);
-            removeDraft(removeDraftButton.dataset.offlineRemoveDraft);
-        }
+            if (retryButton) {
+                claimOfflineSyncClick(event);
+                retryItem(retryButton.dataset.offlineRetry);
+            }
 
-        if (syncNow) {
-            claimOfflineSyncClick(event);
-            processQueue();
-        }
-    });
+            if (removeButton) {
+                claimOfflineSyncClick(event);
+                removeItem(removeButton.dataset.offlineRemove);
+            }
 
-    window.addEventListener('online', () => {
-        render();
-        processQueue();
-    });
-    window.addEventListener('offline', render);
-    window.addEventListener('storage', (event) => {
-        if ([queueKey, draftKey, lastSyncKey].includes(event.key)) {
+            if (queueDraftButton) {
+                claimOfflineSyncClick(event);
+                const draft = getDrafts().find((item) => item.id === queueDraftButton.dataset.offlineQueueDraft);
+                if (draft) {
+                    queueItem(draft.type, draft.payload);
+                    removeDraft(draft.id);
+                }
+            }
+
+            if (removeDraftButton) {
+                claimOfflineSyncClick(event);
+                removeDraft(removeDraftButton.dataset.offlineRemoveDraft);
+            }
+
+            if (syncNow) {
+                claimOfflineSyncClick(event);
+                processQueue();
+            }
+        });
+
+        window.addEventListener('online', () => {
             render();
-        }
-    });
+            processQueue();
+        });
+        window.addEventListener('offline', render);
+        window.addEventListener('storage', (event) => {
+            if ([queueKey, draftKey, lastSyncKey].includes(event.key)) {
+                render();
+            }
+        });
+
+        window.AiEquipmentOffline = {
+            queueItem,
+            saveDraft,
+            getQueue,
+            getDrafts,
+            processQueue,
+            retryItem,
+            removeItem,
+        };
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
         if (!hasOfflineSyncSurface()) {
             return;
         }
 
+        registerOfflineSyncHandlers();
         render();
         if (navigator.onLine) processQueue();
     });
-
-    window.AiEquipmentOffline = {
-        queueItem,
-        saveDraft,
-        getQueue,
-        getDrafts,
-        processQueue,
-        retryItem,
-        removeItem,
-    };
 })();

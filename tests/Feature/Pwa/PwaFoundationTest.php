@@ -44,6 +44,8 @@ class PwaFoundationTest extends TestCase
 
         $this->assertSame('AI Based Equipment Inventory and Maintenance', $manifest['name']);
         $this->assertSame('AI Equipment', $manifest['short_name']);
+        $this->assertSame('/admin/mobile-technician-dashboard?source=pwa', $manifest['start_url']);
+        $this->assertStringNotContainsString('offline-sync', $manifest['start_url']);
         $this->assertSame('standalone', $manifest['display']);
         $this->assertSame('portrait', $manifest['orientation']);
         $this->assertNotEmpty($manifest['icons']);
@@ -57,19 +59,23 @@ class PwaFoundationTest extends TestCase
 
         $serviceWorker = file_get_contents($path);
 
-        $this->assertStringContainsString("const CACHE_NAME = 'ai-equipment-pwa-v4'", $serviceWorker);
+        $this->assertStringContainsString("const CACHE_NAME = 'ai-equipment-pwa-v5'", $serviceWorker);
+        $this->assertStringNotContainsString('ai-equipment-pwa-v4', $serviceWorker);
         $this->assertStringContainsString('/offline', $serviceWorker);
         $this->assertStringContainsString('/manifest.webmanifest', $serviceWorker);
         $this->assertStringContainsString('/pwa.css', $serviceWorker);
         $this->assertStringContainsString('/pwa.js', $serviceWorker);
         $this->assertStringContainsString("request.mode === 'navigate'", $serviceWorker);
+        $this->assertStringContainsString("request.headers.get('accept')", $serviceWorker);
+        $this->assertStringContainsString('isHtmlNavigationRequest(request)', $serviceWorker);
+        $this->assertStringContainsString('networkOnly(request)', $serviceWorker);
         $this->assertStringContainsString("'/admin'", $serviceWorker);
         $this->assertStringContainsString("'/filament'", $serviceWorker);
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
         $this->assertStringContainsString("'/login'", $serviceWorker);
         $this->assertStringContainsString("'/logout'", $serviceWorker);
         $this->assertStringContainsString("request.method !== 'GET'", $serviceWorker);
-        $this->assertStringContainsString("fetch(request).catch(() => caches.match('/offline'))", $serviceWorker);
+        $this->assertStringContainsString('networkOnly(request).catch(() => caches.match(OFFLINE_FALLBACK_URL))', $serviceWorker);
         $this->assertStringContainsString('isBlockedPath(url.pathname)', $serviceWorker);
         $this->assertStringNotContainsString("'/admin/login'", $serviceWorker);
         $this->assertStringNotContainsString("url.pathname === '/admin/login'", $serviceWorker);
@@ -92,6 +98,35 @@ class PwaFoundationTest extends TestCase
     {
         $this->assertStringNotContainsString('document.body', file_get_contents(public_path('pwa.js')));
         $this->assertStringNotContainsString('document.body', file_get_contents(public_path('offline-sync.js')));
+        $this->assertStringNotContainsString('document.write', file_get_contents(public_path('offline-sync.js')));
+        $this->assertStringNotContainsString('location.href', file_get_contents(public_path('offline-sync.js')));
+        $this->assertStringNotContainsString('window.location', file_get_contents(public_path('offline-sync.js')));
+        $this->assertStringContainsString("setText('[data-offline-sync-status]'", file_get_contents(public_path('offline-sync.js')));
+        $this->assertStringContainsString('registerOfflineSyncHandlers', file_get_contents(public_path('offline-sync.js')));
+        $this->assertStringContainsString('if (!hasOfflineSyncSurface())', file_get_contents(public_path('offline-sync.js')));
+    }
+
+    public function test_installed_pwa_entry_pages_return_full_html_not_sync_status_text(): void
+    {
+        $dashboardResponse = $this->actingAs($this->technician)
+            ->get('/admin/mobile-technician-dashboard?source=pwa')
+            ->assertOk()
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('Technician Mobile Dashboard')
+            ->assertSee('data-offline-sync-surface="mobile-technician-dashboard"', false);
+
+        $this->assertNotSame('Synchronized', trim($dashboardResponse->getContent()));
+        $this->assertGreaterThan(1000, strlen($dashboardResponse->getContent()));
+
+        $queueResponse = $this->actingAs($this->technician)
+            ->get('/admin/offline-queue')
+            ->assertOk()
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('Offline Queue')
+            ->assertSee('data-offline-sync-surface="offline-queue"', false);
+
+        $this->assertNotSame('Synchronized', trim($queueResponse->getContent()));
+        $this->assertGreaterThan(1000, strlen($queueResponse->getContent()));
     }
 
     public function test_admin_login_returns_filament_login_page_not_offline_shell(): void
