@@ -331,6 +331,67 @@ class MaintenanceRecommendation extends Model
         return $this;
     }
 
+    public function resolveLinkedOutcome(?User $user = null, ?string $notes = null): self
+    {
+        if ($this->isDismissed()) {
+            return $this->refresh();
+        }
+
+        $attributes = [
+            'status' => 'Resolved',
+            'resolved_by' => $user?->id ?? $this->resolved_by ?? $this->actioned_by,
+            'resolved_at' => $this->resolved_at ?? now(),
+        ];
+
+        if (filled($notes) && ! filled($this->action_notes)) {
+            $attributes['action_notes'] = $notes;
+        }
+
+        $this->forceFill($attributes)->save();
+
+        return $this->refresh();
+    }
+
+    public function reopenLinkedOutcome(?string $notes = null): self
+    {
+        if ($this->isDismissed()) {
+            return $this->refresh();
+        }
+
+        $attributes = [
+            'status' => 'Reviewed',
+            'resolved_by' => null,
+            'resolved_at' => null,
+        ];
+
+        if (filled($notes)) {
+            $attributes['action_notes'] = trim(($this->action_notes ? $this->action_notes."\n" : '').$notes);
+        }
+
+        $this->forceFill($attributes)->save();
+
+        return $this->refresh();
+    }
+
+    public function cancelLinkedOutcome(?User $user = null, ?string $notes = null): self
+    {
+        if ($this->isDismissed()) {
+            return $this->refresh();
+        }
+
+        $this->forceFill([
+            'status' => 'Reviewed',
+            'action_status' => 'Cancelled',
+            'actioned_by' => $user?->id ?? $this->actioned_by,
+            'actioned_at' => now(),
+            'action_notes' => $notes ?: 'Linked maintenance record was cancelled.',
+            'resolved_by' => null,
+            'resolved_at' => null,
+        ])->save();
+
+        return $this->refresh();
+    }
+
     public function dismiss(User $user): self
     {
         $this->forceFill([

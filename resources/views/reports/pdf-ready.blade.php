@@ -5,11 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $definition['name'] }} PDF Ready</title>
     <style>
-        @page { margin: 14mm 12mm; size: landscape; }
+        @page {
+            margin: 14mm 12mm;
+            size: landscape;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                color: #6b7280;
+                font-size: 9px;
+            }
+        }
         * { box-sizing: border-box; }
         body { color: #111827; font-family: Arial, sans-serif; font-size: 11px; margin: 0; }
-        header { border-bottom: 2px solid #111827; margin-bottom: 14px; padding-bottom: 10px; }
+        header { align-items: center; border-bottom: 2px solid #111827; display: flex; gap: 12px; margin-bottom: 14px; padding-bottom: 10px; }
         h1 { font-size: 20px; margin: 4px 0; }
+        .brand-mark { align-items: center; border: 1px solid #111827; border-radius: 6px; display: flex; font-size: 10px; font-weight: 700; height: 42px; justify-content: center; width: 42px; }
+        .header-copy { flex: 1; }
         .system { color: #374151; font-size: 12px; font-weight: 700; text-transform: uppercase; }
         .meta { color: #4b5563; margin-top: 4px; }
         .toolbar { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 14px; padding: 10px; }
@@ -33,9 +43,12 @@
     </div>
 
     <header>
-        <div class="system">{{ $reportHeaderName }}</div>
-        <h1>{{ $definition['name'] }}</h1>
-        <div class="meta">Generated {{ now()->format('Y-m-d H:i') }}@if ($includeGeneratedBy && auth()->user()) by {{ auth()->user()->name }}@endif | {{ $rows->count() }} record{{ $rows->count() === 1 ? '' : 's' }}</div>
+        <div class="brand-mark">CFS</div>
+        <div class="header-copy">
+            <div class="system">{{ $reportHeaderName }}</div>
+            <h1>{{ $definition['name'] }}</h1>
+            <div class="meta">Generated {{ now()->format('Y-m-d H:i') }}@if ($includeGeneratedBy && auth()->user()) by {{ auth()->user()->name }}@endif | {{ $rows->count() }} record{{ $rows->count() === 1 ? '' : 's' }} | Selected columns: {{ collect($columns)->pluck('label')->join(', ') }}</div>
+        </div>
     </header>
 
     <section class="filters">
@@ -47,28 +60,30 @@
         @endforelse
     </section>
 
-    <table>
-        <thead>
-            <tr>
-                @foreach ($columns as $column)
-                    <th>{{ $column['label'] }}</th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($rows as $row)
+    @if ($rows->isEmpty())
+        <section class="filters">
+            No records matched the selected filters.
+        </section>
+    @else
+        <table>
+            <thead>
                 <tr>
                     @foreach ($columns as $column)
-                        <td>{{ $row[$column['key']] ?? '' }}</td>
+                        <th>{{ $column['label'] }}</th>
                     @endforeach
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="{{ count($columns) }}">No report records found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($rows as $row)
+                    <tr>
+                        @foreach ($columns as $column)
+                            <td>{{ $row[$column['key']] ?? '' }}</td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
     <footer>
         {{ $reportFooterText }}

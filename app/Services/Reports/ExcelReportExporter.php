@@ -15,7 +15,10 @@ class ExcelReportExporter
     {
         return response()->streamDownload(function () use ($title, $columns, $rows, $filters): void {
             echo "\xEF\xBB\xBF";
-            echo '<html><head><meta charset="utf-8"></head><body>';
+            echo '<html><head><meta charset="utf-8"><style>';
+            echo 'body{font-family:Arial,sans-serif;} h1{font-size:20px;margin:0 0 6px;} p{color:#4b5563;margin:0 0 12px;}';
+            echo 'table{border-collapse:collapse;} th{background:#f3f4f6;font-weight:700;} th,td{border:1px solid #d1d5db;padding:7px;vertical-align:top;}';
+            echo '</style></head><body>';
             echo '<h1>'.$this->escape($title).'</h1>';
             echo '<p>Generated '.$this->escape(now()->format('Y-m-d H:i')).'</p>';
 

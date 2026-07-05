@@ -58,9 +58,9 @@ class ReportRegistry
     /**
      * @return array<int, array{key: string, label: string}>
      */
-    public function columns(string $slug): array
+    public function columns(string $slug, bool $respectSelection = true): array
     {
-        return match ($slug) {
+        $columns = match ($slug) {
             'equipment-inventory' => $this->columnsFrom([
                 'equipment_code' => 'Equipment code', 'property_number' => 'Property number', 'equipment_name' => 'Equipment name', 'category' => 'Category', 'location' => 'Current location', 'brand' => 'Brand', 'model' => 'Model', 'serial_number' => 'Serial number', 'condition' => 'Condition', 'operational_status' => 'Operational status', 'custodian' => 'Custodian', 'acquisition_date' => 'Acquisition date', 'warranty_expiration_date' => 'Warranty expiration date', 'archived_status' => 'Archived status',
             ]),
@@ -82,6 +82,8 @@ class ReportRegistry
             'budget-plan-items' => $this->columnsFrom(['fiscal_year' => 'Fiscal year', 'equipment' => 'Equipment', 'item_type' => 'Item type', 'priority' => 'Priority', 'estimated_cost' => 'Estimated cost', 'status' => 'Status', 'forecast_reason' => 'Forecast reason']),
             default => throw new InvalidArgumentException('Unknown report.'),
         };
+
+        return $respectSelection ? $this->selectedColumns($columns) : $columns;
     }
 
     /**
@@ -170,6 +172,27 @@ class ReportRegistry
     private function columnsFrom(array $columns): array
     {
         return collect($columns)->map(fn (string $label, string $key) => compact('key', 'label'))->values()->all();
+    }
+
+    /**
+     * @param  array<int, array{key: string, label: string}>  $columns
+     * @return array<int, array{key: string, label: string}>
+     */
+    private function selectedColumns(array $columns): array
+    {
+        $selected = request()->query('columns', []);
+
+        if (! is_array($selected) || $selected === []) {
+            return $columns;
+        }
+
+        $selected = array_values(array_filter($selected, 'is_string'));
+        $filtered = collect($columns)
+            ->filter(fn (array $column): bool => in_array($column['key'], $selected, true))
+            ->values()
+            ->all();
+
+        return $filtered === [] ? $columns : $filtered;
     }
 
     private function filterLabel(string $filter): string

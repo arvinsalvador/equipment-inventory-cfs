@@ -82,6 +82,35 @@ class PrintableReportExportTest extends TestCase
         $this->assertStringNotContainsString('Excel Hidden Equipment', $content);
     }
 
+    public function test_pdf_and_excel_exports_use_selected_columns_only(): void
+    {
+        $this->createEquipment('EQ-COL-001', 'Column Selected Equipment', 'Good');
+
+        $this->actingAs($this->administrator)
+            ->get(route('reports.pdf', [
+                'report' => 'equipment-inventory',
+                'columns' => ['equipment_code', 'equipment_name'],
+            ]))
+            ->assertOk()
+            ->assertSee('Equipment code')
+            ->assertSee('Equipment name')
+            ->assertDontSee('Property number')
+            ->assertDontSee('Current location');
+
+        $content = $this->actingAs($this->administrator)
+            ->get(route('reports.excel', [
+                'report' => 'equipment-inventory',
+                'columns' => ['equipment_code', 'equipment_name'],
+            ]))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertStringContainsString('Equipment code', $content);
+        $this->assertStringContainsString('Equipment name', $content);
+        $this->assertStringNotContainsString('Property number', $content);
+        $this->assertStringNotContainsString('Current location', $content);
+    }
+
     public function test_ai_recommendation_pdf_and_excel_exports_render(): void
     {
         $equipment = $this->createEquipment('EQ-AI-001', 'AI Export Equipment', 'Good');

@@ -82,6 +82,45 @@ class ReportFrameworkTest extends TestCase
         }
     }
 
+    public function test_report_center_renders_professional_builder_sections(): void
+    {
+        $response = $this->actingAs($this->administrator)
+            ->get('/admin/reports?report=equipment-inventory');
+
+        $response
+            ->assertOk()
+            ->assertSee('Report Center')
+            ->assertSee('Professional Report Builder')
+            ->assertSee('Report Type')
+            ->assertSee('Filters')
+            ->assertSee('Columns to Include')
+            ->assertSee('Sorting & Grouping', false)
+            ->assertSee('Output Options')
+            ->assertSee('Generate Report')
+            ->assertSee('Report Summary')
+            ->assertSee('Preview')
+            ->assertSee('PDF Preview')
+            ->assertSee('Open PDF')
+            ->assertSee('Download PDF')
+            ->assertSee('Print PDF')
+            ->assertSee('md:grid-cols-2')
+            ->assertSee('xl:grid-cols-4')
+            ->assertSee('<iframe', false);
+    }
+
+    public function test_report_center_column_picker_controls_preview_and_pdf_links(): void
+    {
+        $response = $this->actingAs($this->administrator)
+            ->get('/admin/reports?report=equipment-inventory&columns%5B0%5D=equipment_code&columns%5B1%5D=equipment_name');
+
+        $response
+            ->assertOk()
+            ->assertSee('Equipment code')
+            ->assertSee('Equipment name')
+            ->assertSee('columns%5B0%5D=equipment_code', false)
+            ->assertSee('columns%5B1%5D=equipment_name', false);
+    }
+
     public function test_authorized_user_can_access_core_report_pages(): void
     {
         $this->createMaintenanceSchedule();
@@ -229,6 +268,21 @@ class ReportFrameworkTest extends TestCase
             ->streamedContent();
 
         $this->assertStringContainsString('Equipment,Rule,Title,"Risk level"', $recommendationCsv);
+    }
+
+    public function test_csv_export_uses_selected_columns_only(): void
+    {
+        $csv = $this->actingAs($this->administrator)
+            ->get(route('reports.csv', [
+                'report' => 'equipment-inventory',
+                'columns' => ['equipment_code', 'equipment_name'],
+            ]))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertStringContainsString('"Equipment code","Equipment name"', $csv);
+        $this->assertStringNotContainsString('Property number', $csv);
+        $this->assertStringNotContainsString('Category', $csv);
     }
 
     public function test_unauthorized_user_cannot_export_csv(): void

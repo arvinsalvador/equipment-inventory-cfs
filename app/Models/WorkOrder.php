@@ -496,6 +496,7 @@ class WorkOrder extends Model
         ]))->save();
 
         $this->updateEquipmentFinalState();
+        $this->resolveLinkedRecommendations(auth()->user(), 'Linked work order was completed.');
 
         return $this->refresh();
     }
@@ -511,6 +512,7 @@ class WorkOrder extends Model
         ], $attributes))->save();
 
         $this->updateEquipmentFinalState();
+        $this->resolveLinkedRecommendations(auth()->user(), 'Linked work order was marked beyond repair.');
 
         return $this->refresh();
     }
@@ -539,6 +541,8 @@ class WorkOrder extends Model
             'status' => $this->isForVerification() ? 'Completed' : $this->status,
         ])->save();
 
+        $this->resolveLinkedRecommendations($user, 'Linked work order was verified.');
+
         return $this->refresh();
     }
 
@@ -557,6 +561,8 @@ class WorkOrder extends Model
             'remarks' => $reason,
         ])->save();
 
+        $this->reopenLinkedRecommendations('Linked work order was reopened: '.$reason);
+
         return $this->refresh();
     }
 
@@ -570,7 +576,30 @@ class WorkOrder extends Model
             'rejection_or_cancellation_reason' => $reason,
         ])->save();
 
+        $this->cancelLinkedRecommendations(auth()->user(), 'Linked work order was cancelled: '.$reason);
+
         return $this->refresh();
+    }
+
+    private function resolveLinkedRecommendations(?User $user = null, ?string $notes = null): void
+    {
+        MaintenanceRecommendation::query()
+            ->where('linked_work_order_id', $this->id)
+            ->each(fn (MaintenanceRecommendation $recommendation): MaintenanceRecommendation => $recommendation->resolveLinkedOutcome($user, $notes));
+    }
+
+    private function reopenLinkedRecommendations(?string $notes = null): void
+    {
+        MaintenanceRecommendation::query()
+            ->where('linked_work_order_id', $this->id)
+            ->each(fn (MaintenanceRecommendation $recommendation): MaintenanceRecommendation => $recommendation->reopenLinkedOutcome($notes));
+    }
+
+    private function cancelLinkedRecommendations(?User $user = null, ?string $notes = null): void
+    {
+        MaintenanceRecommendation::query()
+            ->where('linked_work_order_id', $this->id)
+            ->each(fn (MaintenanceRecommendation $recommendation): MaintenanceRecommendation => $recommendation->cancelLinkedOutcome($user, $notes));
     }
 
     private function updateEquipmentFinalState(): void

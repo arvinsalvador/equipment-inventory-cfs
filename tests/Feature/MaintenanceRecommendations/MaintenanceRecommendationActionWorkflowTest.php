@@ -9,6 +9,7 @@ use App\Models\MaintenanceRecommendation;
 use App\Models\MaintenanceSchedule;
 use App\Models\User;
 use App\Models\WorkOrder;
+use App\Models\WorkOrderEvidence;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
@@ -118,6 +119,65 @@ class MaintenanceRecommendationActionWorkflowTest extends TestCase
         $this->assertSame('High', $inspection->linkedWorkOrder->priority);
     }
 
+    public function test_linked_work_order_lifecycle_synchronizes_recommendation_status(): void
+    {
+        $recommendation = $this->createRecommendation(['rule_key' => 'defective_without_work_order'])
+            ->approveAction($this->administrator)
+            ->executeAction($this->administrator);
+
+        $workOrder = $recommendation->linkedWorkOrder;
+        $this->createEvidence($workOrder, 'After maintenance');
+
+        $workOrder->forceFill([
+            'status' => 'For verification',
+            'action_performed' => 'Repaired and tested.',
+            'final_equipment_condition' => 'Good',
+            'final_operational_status' => 'Available',
+        ])->save();
+
+        $workOrder->complete('Completed with evidence.');
+
+        $this->assertSame('Resolved', $recommendation->fresh()->status);
+        $this->assertSame($this->administrator->id, $recommendation->fresh()->resolved_by);
+        $this->assertNotNull($recommendation->fresh()->resolved_at);
+        $this->assertSame('Executed', $recommendation->fresh()->action_status);
+
+        $workOrder->fresh()->reopen('Issue returned after completion.');
+
+        $this->assertSame('Reviewed', $recommendation->fresh()->status);
+        $this->assertNull($recommendation->fresh()->resolved_by);
+        $this->assertNull($recommendation->fresh()->resolved_at);
+
+        $workOrder->fresh()->cancel('Converted work was no longer valid.');
+
+        $this->assertSame('Reviewed', $recommendation->fresh()->status);
+        $this->assertSame('Cancelled', $recommendation->fresh()->action_status);
+        $this->assertStringContainsString('Linked work order was cancelled', $recommendation->fresh()->action_notes);
+    }
+
+    public function test_linked_schedule_lifecycle_synchronizes_recommendation_status(): void
+    {
+        $completedRecommendation = $this->createRecommendation(['rule_key' => 'due_soon'])
+            ->approveAction($this->administrator)
+            ->executeAction($this->administrator);
+
+        $completedRecommendation->linkedMaintenanceSchedule->complete($this->administrator, 'Preventive task done.');
+
+        $this->assertSame('Resolved', $completedRecommendation->fresh()->status);
+        $this->assertSame($this->administrator->id, $completedRecommendation->fresh()->resolved_by);
+        $this->assertSame('Executed', $completedRecommendation->fresh()->action_status);
+
+        $cancelledRecommendation = $this->createRecommendation(['rule_key' => 'overdue_maintenance'])
+            ->approveAction($this->administrator)
+            ->executeAction($this->administrator);
+
+        $cancelledRecommendation->linkedMaintenanceSchedule->cancel('Duplicate schedule.', $this->administrator);
+
+        $this->assertSame('Reviewed', $cancelledRecommendation->fresh()->status);
+        $this->assertSame('Cancelled', $cancelledRecommendation->fresh()->action_status);
+        $this->assertStringContainsString('Linked maintenance schedule was cancelled', $cancelledRecommendation->fresh()->action_notes);
+    }
+
     public function test_monitor_only_executes_without_creating_records(): void
     {
         $recommendation = $this->createRecommendation([
@@ -150,6 +210,18 @@ class MaintenanceRecommendationActionWorkflowTest extends TestCase
         $this->assertFalse($recommendation->isActionExecuted());
         $this->assertSame($workOrder->id, $recommendation->linked_work_order_id);
         $this->assertDatabaseCount('work_order_evidences', 0);
+    }
+
+    private function createEvidence(WorkOrder $workOrder, string $type): WorkOrderEvidence
+    {
+        return WorkOrderEvidence::create([
+            'work_order_id' => $workOrder->id,
+            'equipment_id' => $workOrder->equipment_id,
+            'evidence_type' => $type,
+            'image_path' => 'work-orders/evidence/recommendation-sync.jpg',
+            'uploaded_by' => $this->administrator->id,
+            'uploaded_at' => now(),
+        ]);
     }
 
     private function expectInvalidArgument(callable $callback): void

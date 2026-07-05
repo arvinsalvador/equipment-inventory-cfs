@@ -234,6 +234,8 @@ class MaintenanceSchedule extends Model
             'next_maintenance_date' => $nextScheduledDate?->toDateString(),
         ]);
 
+        $this->resolveLinkedRecommendations($user, 'Linked maintenance schedule was completed.');
+
         if ($nextScheduledDate !== null) {
             self::firstOrCreate(
                 ['generated_from_schedule_id' => $this->id],
@@ -295,7 +297,23 @@ class MaintenanceSchedule extends Model
             'cancellation_reason' => $reason,
         ])->save();
 
+        $this->cancelLinkedRecommendations($user, 'Linked maintenance schedule was cancelled: '.$reason);
+
         return $this->refresh();
+    }
+
+    private function resolveLinkedRecommendations(?User $user = null, ?string $notes = null): void
+    {
+        MaintenanceRecommendation::query()
+            ->where('linked_maintenance_schedule_id', $this->id)
+            ->each(fn (MaintenanceRecommendation $recommendation): MaintenanceRecommendation => $recommendation->resolveLinkedOutcome($user, $notes));
+    }
+
+    private function cancelLinkedRecommendations(?User $user = null, ?string $notes = null): void
+    {
+        MaintenanceRecommendation::query()
+            ->where('linked_maintenance_schedule_id', $this->id)
+            ->each(fn (MaintenanceRecommendation $recommendation): MaintenanceRecommendation => $recommendation->cancelLinkedOutcome($user, $notes));
     }
 
     /**
