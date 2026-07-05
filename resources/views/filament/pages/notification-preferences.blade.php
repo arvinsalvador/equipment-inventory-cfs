@@ -68,9 +68,7 @@
 
             @php($browserPushReadiness = $this->browserPushReadiness())
 
-            <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200">
-                Browser push delivery will be enabled in a future PWA phase. These settings prepare your account for browser notifications.
-            </div>
+            @include('pwa.browser-push-controls')
 
             <div class="mt-4 grid gap-4 md:grid-cols-2">
                 @foreach ([
@@ -78,10 +76,14 @@
                     'critical_browser_push_enabled' => 'Critical alerts',
                     'maintenance_browser_push_enabled' => 'Maintenance alerts',
                     'work_order_browser_push_enabled' => 'Work order alerts',
+                    'maintenance_request_browser_push_enabled' => 'Maintenance request alerts',
                     'ai_recommendation_browser_push_enabled' => 'AI recommendation alerts',
                     'lifecycle_browser_push_enabled' => 'Lifecycle alerts',
                     'warranty_browser_push_enabled' => 'Warranty alerts',
                     'evidence_browser_push_enabled' => 'Evidence alerts',
+                    'budget_browser_push_enabled' => 'Budget notifications',
+                    'asset_action_browser_push_enabled' => 'Asset action requests',
+                    'executive_browser_push_enabled' => 'Executive notifications',
                 ] as $field => $label)
                     <label class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4 text-sm font-medium text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white">
                         <span>{{ $label }}</span>

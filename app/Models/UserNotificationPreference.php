@@ -27,10 +27,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'critical_browser_push_enabled',
     'maintenance_browser_push_enabled',
     'work_order_browser_push_enabled',
+    'maintenance_request_browser_push_enabled',
     'ai_recommendation_browser_push_enabled',
     'lifecycle_browser_push_enabled',
     'warranty_browser_push_enabled',
     'evidence_browser_push_enabled',
+    'budget_browser_push_enabled',
+    'asset_action_browser_push_enabled',
+    'executive_browser_push_enabled',
 ])]
 class UserNotificationPreference extends Model
 {
@@ -54,17 +58,23 @@ class UserNotificationPreference extends Model
         'Equipment Lifecycle' => 'lifecycle_alerts',
         'Warranty' => 'warranty_alerts',
         'Evidence' => 'evidence_alerts',
+        'Budget' => 'system_alerts',
+        'Asset Action' => 'system_alerts',
+        'Executive' => 'system_alerts',
         'System' => 'system_alerts',
     ];
 
     public const BROWSER_PUSH_CATEGORY_COLUMNS = [
         'Preventive Maintenance' => 'maintenance_browser_push_enabled',
         'Work Order' => 'work_order_browser_push_enabled',
-        'Maintenance Request' => 'maintenance_browser_push_enabled',
+        'Maintenance Request' => 'maintenance_request_browser_push_enabled',
         'AI Recommendation' => 'ai_recommendation_browser_push_enabled',
         'Equipment Lifecycle' => 'lifecycle_browser_push_enabled',
         'Warranty' => 'warranty_browser_push_enabled',
         'Evidence' => 'evidence_browser_push_enabled',
+        'Budget' => 'budget_browser_push_enabled',
+        'Asset Action' => 'asset_action_browser_push_enabled',
+        'Executive' => 'executive_browser_push_enabled',
         'System' => 'critical_browser_push_enabled',
     ];
 
@@ -126,10 +136,14 @@ class UserNotificationPreference extends Model
             'critical_browser_push_enabled' => 'boolean',
             'maintenance_browser_push_enabled' => 'boolean',
             'work_order_browser_push_enabled' => 'boolean',
+            'maintenance_request_browser_push_enabled' => 'boolean',
             'ai_recommendation_browser_push_enabled' => 'boolean',
             'lifecycle_browser_push_enabled' => 'boolean',
             'warranty_browser_push_enabled' => 'boolean',
             'evidence_browser_push_enabled' => 'boolean',
+            'budget_browser_push_enabled' => 'boolean',
+            'asset_action_browser_push_enabled' => 'boolean',
+            'executive_browser_push_enabled' => 'boolean',
         ];
     }
 }

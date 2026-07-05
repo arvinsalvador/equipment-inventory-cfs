@@ -8,8 +8,10 @@ use App\Models\BrowserPushSubscription;
 use App\Models\User;
 use App\Models\UserNotificationPreference;
 use App\Services\BrowserPushPreparationService;
+use App\Notifications\BrowserPushNotification;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -30,6 +32,12 @@ class BrowserPushPreparationTest extends TestCase
 
         $this->staff = $this->userWithRole('Staff');
         $this->administrator = $this->userWithRole('Administrator');
+
+        config([
+            'webpush.vapid.public_key' => 'test-public-key',
+            'webpush.vapid.private_key' => 'test-private-key',
+            'webpush.vapid.subject' => 'mailto:admin@seims.site',
+        ]);
     }
 
     public function test_browser_push_subscription_model_relationship_scopes_and_helpers_work(): void
@@ -121,8 +129,9 @@ class BrowserPushPreparationTest extends TestCase
         ]);
 
         $this->assertSame('https://push.example.test/endpoint', $subscription->endpoint);
+        $this->assertSame(hash('sha256', 'https://push.example.test/endpoint'), $subscription->endpoint_hash);
         $this->assertTrue($service->userHasActiveSubscription($this->staff));
-        $this->assertSame('Ready for future browser push delivery', $service->getReadinessForUser($this->staff)['status']);
+        $this->assertSame('Ready for browser push delivery', $service->getReadinessForUser($this->staff)['status']);
 
         $service->revokeSubscription($subscription);
         $this->assertFalse($service->userHasActiveSubscription($this->staff));
@@ -134,17 +143,49 @@ class BrowserPushPreparationTest extends TestCase
             'endpoint' => 'https://push.example.test/guest',
         ])->assertUnauthorized();
 
+        config([
+            'webpush.vapid.public_key' => null,
+            'webpush.vapid.private_key' => null,
+        ]);
+
+        $this->actingAs($this->staff)->postJson(route('push-subscriptions.store'), [
+            'endpoint' => 'https://push.example.test/missing-vapid',
+        ])->assertStatus(503)->assertJson(['status' => 'disabled']);
+
+        config([
+            'webpush.vapid.public_key' => 'test-public-key',
+            'webpush.vapid.private_key' => 'test-private-key',
+        ]);
+
+        $this->actingAs($this->staff)->postJson(route('push-subscriptions.store'), [])
+            ->assertUnprocessable();
+
         $response = $this->actingAs($this->staff)->postJson(route('browser-push.subscriptions.store'), [
             'endpoint' => 'https://push.example.test/staff',
-            'public_key' => 'public-key',
-            'auth_token' => 'auth-token',
+            'keys' => [
+                'p256dh' => 'public-key',
+                'auth' => 'auth-token',
+            ],
             'content_encoding' => 'aes128gcm',
             'device_name' => 'Staff browser',
+            'browser' => 'Chrome',
+            'platform' => 'Android',
         ]);
 
         $response->assertCreated()->assertJson(['status' => 'registered']);
         $subscription = BrowserPushSubscription::firstOrFail();
         $this->assertSame($this->staff->id, $subscription->user_id);
+        $this->assertSame('public-key', $subscription->public_key);
+        $this->assertSame('Chrome', $subscription->browser);
+
+        $this->actingAs($this->staff)->postJson(route('push-subscriptions.store'), [
+            'endpoint' => 'https://push.example.test/staff',
+            'public_key' => 'updated-public-key',
+            'auth_token' => 'updated-auth-token',
+        ])->assertCreated();
+
+        $this->assertSame(1, BrowserPushSubscription::count());
+        $this->assertSame('updated-public-key', $subscription->fresh()->public_key);
 
         $other = BrowserPushSubscription::create([
             'user_id' => $this->administrator->id,
@@ -169,7 +210,7 @@ class BrowserPushPreparationTest extends TestCase
             ->get('/admin/notification-preferences')
             ->assertOk()
             ->assertSee('Browser Push Notifications')
-            ->assertSee('Browser push delivery will be enabled in a future PWA phase')
+            ->assertSee('Enable Browser Notifications')
             ->assertSee('Active subscriptions');
 
         Livewire::actingAs($this->staff)
@@ -178,10 +219,14 @@ class BrowserPushPreparationTest extends TestCase
             ->set('critical_browser_push_enabled', true)
             ->set('maintenance_browser_push_enabled', true)
             ->set('work_order_browser_push_enabled', true)
+            ->set('maintenance_request_browser_push_enabled', true)
             ->set('ai_recommendation_browser_push_enabled', true)
             ->set('lifecycle_browser_push_enabled', true)
             ->set('warranty_browser_push_enabled', true)
             ->set('evidence_browser_push_enabled', true)
+            ->set('budget_browser_push_enabled', true)
+            ->set('asset_action_browser_push_enabled', true)
+            ->set('executive_browser_push_enabled', true)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -190,6 +235,8 @@ class BrowserPushPreparationTest extends TestCase
         $this->assertTrue($preference->browser_push_enabled);
         $this->assertTrue($preference->critical_browser_push_enabled);
         $this->assertTrue($preference->work_order_browser_push_enabled);
+        $this->assertTrue($preference->maintenance_request_browser_push_enabled);
+        $this->assertTrue($preference->budget_browser_push_enabled);
     }
 
     public function test_browser_push_devices_page_renders_current_user_subscriptions_and_revokes_own_only(): void
@@ -215,12 +262,38 @@ class BrowserPushPreparationTest extends TestCase
         Livewire::actingAs($this->staff)
             ->test(BrowserPushDevices::class)
             ->assertSee('Browser push readiness')
+            ->assertSee('Send Test Browser Notification')
             ->assertSee('Own browser')
             ->assertDontSee('Other browser')
             ->call('revoke', $own->id)
             ->assertHasNoErrors();
 
         $this->assertTrue($own->fresh()->isRevoked());
+    }
+
+    public function test_administrator_can_send_test_browser_notification(): void
+    {
+        Notification::fake();
+
+        $this->administrator->notificationPreference()->create([
+            'browser_push_enabled' => true,
+            'critical_browser_push_enabled' => true,
+        ]);
+
+        BrowserPushSubscription::create([
+            'user_id' => $this->administrator->id,
+            'endpoint' => 'https://push.example.test/admin-device',
+            'public_key' => 'public-key',
+            'auth_token' => 'auth-token',
+            'content_encoding' => 'aes128gcm',
+        ]);
+
+        Livewire::actingAs($this->administrator)
+            ->test(BrowserPushDevices::class)
+            ->call('sendTestToCurrentUser')
+            ->assertHasNoErrors();
+
+        Notification::assertSentTo($this->administrator, BrowserPushNotification::class);
     }
 
     private function userWithRole(string $role): User

@@ -55,8 +55,8 @@ class AndroidPwaReadinessTest extends TestCase
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
         $this->assertStringContainsString("request.method !== 'GET'", $serviceWorker);
         $this->assertStringContainsString('networkFirst(request)', $serviceWorker);
+        $this->assertStringContainsString("self.addEventListener('push'", $serviceWorker);
         $this->assertStringNotContainsString('OFFLINE_FALLBACK_URL', $serviceWorker);
-        $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
         $this->assertStringNotContainsString('/admin/offline-queue', $serviceWorker);
 
         $technician = $this->userWithRole('Technician');

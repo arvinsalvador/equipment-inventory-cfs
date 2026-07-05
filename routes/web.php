@@ -1,10 +1,9 @@
 <?php
 
 use App\Http\Controllers\ReportController;
-use App\Models\BrowserPushSubscription;
+use App\Http\Controllers\BrowserPushSubscriptionController;
 use App\Models\Equipment;
 use App\Models\MaintenanceRecommendation;
-use App\Services\BrowserPushPreparationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -82,37 +81,11 @@ Route::middleware('auth')->prefix('reports')->name('reports.')->group(function (
 });
 
 Route::prefix('browser-push')->name('browser-push.')->group(function (): void {
-    Route::post('/subscriptions', function (Request $request, BrowserPushPreparationService $service) {
-        abort_unless($request->user() !== null, 401);
-
-        $data = $request->validate([
-            'endpoint' => ['required', 'string'],
-            'public_key' => ['nullable', 'string'],
-            'auth_token' => ['nullable', 'string'],
-            'content_encoding' => ['nullable', 'string', 'max:255'],
-            'user_agent' => ['nullable', 'string'],
-            'device_name' => ['nullable', 'string', 'max:255'],
-            'metadata' => ['nullable', 'array'],
-        ]);
-
-        $subscription = $service->registerSubscription($request->user(), $data);
-
-        return response()->json([
-            'id' => $subscription->id,
-            'status' => 'registered',
-        ], 201);
-    })->name('subscriptions.store');
-
-    Route::delete('/subscriptions/{subscription}', function (
-        Request $request,
-        BrowserPushSubscription $subscription,
-        BrowserPushPreparationService $service
-    ) {
-        abort_unless($request->user() !== null, 401);
-        abort_unless($subscription->user_id === $request->user()->id, 403);
-
-        $service->revokeSubscription($subscription);
-
-        return response()->json(['status' => 'revoked']);
-    })->name('subscriptions.destroy');
+    Route::post('/subscriptions', [BrowserPushSubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::delete('/subscriptions/current', [BrowserPushSubscriptionController::class, 'destroyCurrent'])->name('subscriptions.destroy-current');
+    Route::delete('/subscriptions/{subscription}', [BrowserPushSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
 });
+
+Route::post('/push-subscriptions', [BrowserPushSubscriptionController::class, 'store'])->name('push-subscriptions.store');
+Route::delete('/push-subscriptions/current', [BrowserPushSubscriptionController::class, 'destroyCurrent'])->name('push-subscriptions.destroy-current');
+Route::delete('/push-subscriptions/{subscription}', [BrowserPushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');

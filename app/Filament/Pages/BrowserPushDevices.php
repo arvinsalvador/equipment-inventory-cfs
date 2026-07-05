@@ -3,7 +3,9 @@
 namespace App\Filament\Pages;
 
 use App\Models\BrowserPushSubscription;
+use App\Models\User;
 use App\Services\BrowserPushPreparationService;
+use App\Services\BrowserPushService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 
@@ -18,6 +20,8 @@ class BrowserPushDevices extends Page
     protected static ?string $navigationLabel = 'Browser Push Devices';
 
     protected static ?int $navigationSort = 45;
+
+    public ?int $test_user_id = null;
 
     public static function canAccess(): bool
     {
@@ -62,5 +66,48 @@ class BrowserPushDevices extends Page
             ->title('Browser push subscription revoked')
             ->success()
             ->send();
+    }
+
+    public function sendTestToCurrentUser(): void
+    {
+        $this->notifyTestResult(app(BrowserPushService::class)->sendTestToUser(auth()->user()));
+    }
+
+    public function sendTestToSelectedUser(): void
+    {
+        abort_unless(auth()->user()?->hasRole('Administrator'), 403);
+
+        $user = User::query()->findOrFail($this->test_user_id);
+
+        $this->notifyTestResult(app(BrowserPushService::class)->sendTestToUser($user), $user->name);
+    }
+
+    public function usersForTest()
+    {
+        return User::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+    }
+
+    /**
+     * @param  array{attempted:bool,sent:int,reason:?string}  $result
+     */
+    private function notifyTestResult(array $result, ?string $recipient = null): void
+    {
+        $title = $result['sent'] > 0
+            ? 'Test browser notification sent'
+            : 'Test browser notification not sent';
+
+        $body = $result['sent'] > 0
+            ? 'Delivered to '.$result['sent'].' active device'.($recipient ? " for {$recipient}" : '').'.'
+            : ($result['reason'] ?? 'No active browser push device was available.');
+
+        $notification = Notification::make()
+            ->title($title)
+            ->body($body);
+
+        $result['sent'] > 0 ? $notification->success() : $notification->warning();
+
+        $notification->send();
     }
 }

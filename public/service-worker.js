@@ -1,8 +1,9 @@
-const CACHE_NAME = 'ai-equipment-pwa-v6';
+const CACHE_NAME = 'ai-equipment-pwa-v7';
 const SHELL_ASSETS = [
     '/manifest.webmanifest',
     '/pwa.css',
     '/pwa.js',
+    '/browser-push.js',
     '/icons/pwa-icon.svg',
     '/icons/pwa-maskable.svg',
 ];
@@ -14,7 +15,10 @@ const NEVER_INTERCEPT_PATHS = [
     '/login',
     '/logout',
     '/browser-push',
+    '/push-subscriptions',
 ];
+
+const DEFAULT_NOTIFICATION_URL = '/admin/mobile-technician-dashboard';
 
 const STATIC_EXTENSIONS = [
     '.css',
@@ -94,4 +98,51 @@ self.addEventListener('fetch', (event) => {
     if (isShellAsset(url.pathname) || isStaticAsset(url.pathname)) {
         event.respondWith(cacheFirst(request));
     }
+});
+
+self.addEventListener('push', (event) => {
+    let payload = {};
+
+    if (event.data) {
+        try {
+            payload = event.data.json();
+        } catch (error) {
+            payload = { body: event.data.text() };
+        }
+    }
+
+    const title = payload.title || 'SEIMS Notification';
+    const options = {
+        body: payload.body || '',
+        icon: payload.icon || '/icons/pwa-icon.svg',
+        badge: payload.badge || '/icons/pwa-maskable.svg',
+        tag: payload.tag || 'seims-browser-push',
+        data: {
+            url: payload.data?.url || payload.url || DEFAULT_NOTIFICATION_URL,
+        },
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const targetUrl = new URL(event.notification.data?.url || DEFAULT_NOTIFICATION_URL, self.location.origin).href;
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            const matchingClient = clientList.find((client) => client.url.startsWith(self.location.origin));
+
+            if (matchingClient) {
+                if ('navigate' in matchingClient) {
+                    matchingClient.navigate(targetUrl);
+                }
+
+                return matchingClient.focus();
+            }
+
+            return clients.openWindow(targetUrl);
+        }),
+    );
 });

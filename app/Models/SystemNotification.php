@@ -54,6 +54,9 @@ class SystemNotification extends Model
         'Equipment Lifecycle',
         'Warranty',
         'Evidence',
+        'Budget',
+        'Asset Action',
+        'Executive',
         'System',
     ];
 

@@ -59,10 +59,14 @@ class PwaFoundationTest extends TestCase
 
         $serviceWorker = file_get_contents($path);
 
-        $this->assertStringContainsString("const CACHE_NAME = 'ai-equipment-pwa-v6'", $serviceWorker);
+        $this->assertStringContainsString("const CACHE_NAME = 'ai-equipment-pwa-v7'", $serviceWorker);
         $this->assertStringContainsString('/manifest.webmanifest', $serviceWorker);
         $this->assertStringContainsString('/pwa.css', $serviceWorker);
         $this->assertStringContainsString('/pwa.js', $serviceWorker);
+        $this->assertStringContainsString('/browser-push.js', $serviceWorker);
+        $this->assertStringContainsString("self.addEventListener('push'", $serviceWorker);
+        $this->assertStringContainsString("self.addEventListener('notificationclick'", $serviceWorker);
+        $this->assertStringContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
         $this->assertStringContainsString("request.mode === 'navigate'", $serviceWorker);
         $this->assertStringContainsString("request.headers.get('accept')", $serviceWorker);
         $this->assertStringContainsString('isHtmlNavigationRequest(request)', $serviceWorker);
@@ -73,11 +77,11 @@ class PwaFoundationTest extends TestCase
         $this->assertStringContainsString("'/livewire'", $serviceWorker);
         $this->assertStringContainsString("'/login'", $serviceWorker);
         $this->assertStringContainsString("'/logout'", $serviceWorker);
+        $this->assertStringContainsString("'/push-subscriptions'", $serviceWorker);
         $this->assertStringContainsString("request.method !== 'GET'", $serviceWorker);
         $this->assertStringNotContainsString('OFFLINE_FALLBACK_URL', $serviceWorker);
         $this->assertStringNotContainsString('sync', strtolower($serviceWorker));
         $this->assertStringNotContainsString('indexeddb', strtolower($serviceWorker));
-        $this->assertStringNotContainsString('/admin/mobile-technician-dashboard', $serviceWorker);
         $this->assertStringNotContainsString('/admin/offline-queue', $serviceWorker);
     }
 
@@ -96,6 +100,9 @@ class PwaFoundationTest extends TestCase
         $this->assertStringNotContainsString('document.write', file_get_contents(public_path('pwa.js')));
         $this->assertStringNotContainsString('location.href', file_get_contents(public_path('pwa.js')));
         $this->assertStringNotContainsString('offline-sync', file_get_contents(public_path('pwa.js')));
+        $this->assertStringNotContainsString('document.body', file_get_contents(public_path('browser-push.js')));
+        $this->assertStringNotContainsString('document.write', file_get_contents(public_path('browser-push.js')));
+        $this->assertStringNotContainsString('location.href', file_get_contents(public_path('browser-push.js')));
     }
 
     public function test_installed_pwa_dashboard_returns_full_html_not_sync_status_text(): void

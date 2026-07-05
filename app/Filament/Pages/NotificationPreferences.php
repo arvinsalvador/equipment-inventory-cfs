@@ -56,6 +56,8 @@ class NotificationPreferences extends Page
 
     public bool $work_order_browser_push_enabled = false;
 
+    public bool $maintenance_request_browser_push_enabled = false;
+
     public bool $ai_recommendation_browser_push_enabled = false;
 
     public bool $lifecycle_browser_push_enabled = false;
@@ -63,6 +65,12 @@ class NotificationPreferences extends Page
     public bool $warranty_browser_push_enabled = false;
 
     public bool $evidence_browser_push_enabled = false;
+
+    public bool $budget_browser_push_enabled = false;
+
+    public bool $asset_action_browser_push_enabled = false;
+
+    public bool $executive_browser_push_enabled = false;
 
     public static function canAccess(): bool
     {
@@ -92,10 +100,14 @@ class NotificationPreferences extends Page
         $this->critical_browser_push_enabled = (bool) $preference->critical_browser_push_enabled;
         $this->maintenance_browser_push_enabled = (bool) $preference->maintenance_browser_push_enabled;
         $this->work_order_browser_push_enabled = (bool) $preference->work_order_browser_push_enabled;
+        $this->maintenance_request_browser_push_enabled = (bool) $preference->maintenance_request_browser_push_enabled;
         $this->ai_recommendation_browser_push_enabled = (bool) $preference->ai_recommendation_browser_push_enabled;
         $this->lifecycle_browser_push_enabled = (bool) $preference->lifecycle_browser_push_enabled;
         $this->warranty_browser_push_enabled = (bool) $preference->warranty_browser_push_enabled;
         $this->evidence_browser_push_enabled = (bool) $preference->evidence_browser_push_enabled;
+        $this->budget_browser_push_enabled = (bool) $preference->budget_browser_push_enabled;
+        $this->asset_action_browser_push_enabled = (bool) $preference->asset_action_browser_push_enabled;
+        $this->executive_browser_push_enabled = (bool) $preference->executive_browser_push_enabled;
     }
 
     public function save(): void
@@ -124,10 +136,14 @@ class NotificationPreferences extends Page
             'critical_browser_push_enabled' => $this->critical_browser_push_enabled,
             'maintenance_browser_push_enabled' => $this->maintenance_browser_push_enabled,
             'work_order_browser_push_enabled' => $this->work_order_browser_push_enabled,
+            'maintenance_request_browser_push_enabled' => $this->maintenance_request_browser_push_enabled,
             'ai_recommendation_browser_push_enabled' => $this->ai_recommendation_browser_push_enabled,
             'lifecycle_browser_push_enabled' => $this->lifecycle_browser_push_enabled,
             'warranty_browser_push_enabled' => $this->warranty_browser_push_enabled,
             'evidence_browser_push_enabled' => $this->evidence_browser_push_enabled,
+            'budget_browser_push_enabled' => $this->budget_browser_push_enabled,
+            'asset_action_browser_push_enabled' => $this->asset_action_browser_push_enabled,
+            'executive_browser_push_enabled' => $this->executive_browser_push_enabled,
         ]);
 
         Notification::make()

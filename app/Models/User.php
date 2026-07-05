@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password'])]
@@ -45,6 +46,14 @@ class User extends Authenticatable implements FilamentUser
     public function activeBrowserPushSubscriptions(): HasMany
     {
         return $this->hasMany(BrowserPushSubscription::class)->active();
+    }
+
+    /**
+     * @return Collection<int, BrowserPushSubscription>
+     */
+    public function routeNotificationForWebPush(): Collection
+    {
+        return $this->activeBrowserPushSubscriptions()->get();
     }
 
     public function wantsNotificationCategory(string $category): bool

@@ -58,7 +58,7 @@ class SystemNotificationService
             return null;
         }
 
-        return SystemNotification::create([
+        $notification = SystemNotification::create([
             'user_id' => $user?->id,
             'title' => $title,
             'message' => $message,
@@ -72,6 +72,10 @@ class SystemNotificationService
             'expires_at' => $expiresAt,
             'metadata' => $metadata,
         ]);
+
+        app(BrowserPushService::class)->sendForNotification($notification);
+
+        return $notification;
     }
 
     /**

@@ -5,23 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use NotificationChannels\WebPush\PushSubscription;
 
 #[Fillable([
     'user_id',
     'endpoint',
+    'endpoint_hash',
     'public_key',
     'auth_token',
     'content_encoding',
     'user_agent',
     'device_name',
+    'browser',
+    'platform',
     'is_active',
     'last_seen_at',
+    'last_used_at',
     'revoked_at',
     'metadata',
 ])]
-class BrowserPushSubscription extends Model
+class BrowserPushSubscription extends PushSubscription
 {
     use HasFactory;
 
@@ -71,9 +75,21 @@ class BrowserPushSubscription extends Model
 
     public function markSeen(): self
     {
-        $this->forceFill(['last_seen_at' => now()])->save();
+        $this->forceFill([
+            'last_seen_at' => now(),
+            'last_used_at' => now(),
+        ])->save();
 
         return $this->refresh();
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $subscription): void {
+            if (filled($subscription->endpoint)) {
+                $subscription->endpoint_hash = hash('sha256', $subscription->endpoint);
+            }
+        });
     }
 
     protected function casts(): array
@@ -81,6 +97,7 @@ class BrowserPushSubscription extends Model
         return [
             'is_active' => 'boolean',
             'last_seen_at' => 'datetime',
+            'last_used_at' => 'datetime',
             'revoked_at' => 'datetime',
             'metadata' => 'array',
         ];
