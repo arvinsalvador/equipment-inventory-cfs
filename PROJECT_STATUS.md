@@ -843,16 +843,13 @@ To run scheduled notifications in production, configure the server cron:
 - Browser push device/subscription display: Complete
 - Authorization: Complete
 - Tests added: Complete
-- Remaining risks: Real browser push delivery is deferred until the PWA/service-worker phase
+- Remaining risks: Browser push delivery now exists; production verification still requires HTTPS, VAPID keys, supported browsers, and registered devices
 
 ## Phase 10C Deferred Items
 
-- Real browser push message delivery
-- Service worker push handling
-- VAPID key configuration
-- PWA install behavior
-- Push notification permission prompt
-- Mobile push notifications
+- Native Android Firebase Push
+- iOS Safari Push improvements
+- Scheduled notification campaigns
 - SMS notifications
 
 ## Phase 10 Complete Status

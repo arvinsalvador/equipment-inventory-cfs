@@ -35,6 +35,18 @@ return new class extends Migration
                 ->where('id', $subscription->id)
                 ->update(['endpoint_hash' => hash('sha256', $subscription->endpoint)]));
 
+        DB::table('browser_push_subscriptions')
+            ->select('user_id', 'endpoint_hash', DB::raw('MAX(id) as keep_id'), DB::raw('COUNT(*) as duplicate_count'))
+            ->whereNotNull('endpoint_hash')
+            ->groupBy('user_id', 'endpoint_hash')
+            ->having('duplicate_count', '>', 1)
+            ->get()
+            ->each(fn (object $group): int => DB::table('browser_push_subscriptions')
+                ->where('user_id', $group->user_id)
+                ->where('endpoint_hash', $group->endpoint_hash)
+                ->where('id', '!=', $group->keep_id)
+                ->delete());
+
         Schema::table('browser_push_subscriptions', function (Blueprint $table): void {
             $table->unique(['user_id', 'endpoint_hash'], 'browser_push_user_endpoint_hash_unique');
         });

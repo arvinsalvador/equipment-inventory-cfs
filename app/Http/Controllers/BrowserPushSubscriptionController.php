@@ -24,7 +24,7 @@ class BrowserPushSubscriptionController extends Controller
             ], 503);
         }
 
-        $data = $request->validate([
+        $validator = validator($request->all(), [
             'endpoint' => ['required', 'string', 'max:2048'],
             'keys' => ['nullable', 'array'],
             'keys.p256dh' => ['nullable', 'string'],
@@ -39,6 +39,14 @@ class BrowserPushSubscriptionController extends Controller
             'metadata' => ['nullable', 'array'],
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Invalid push subscription payload.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
         $subscription = $preparationService->registerSubscription($request->user(), $data);
 
         return response()->json([
@@ -64,10 +72,18 @@ class BrowserPushSubscriptionController extends Controller
     {
         abort_unless($request->user() !== null, 401);
 
-        $data = $request->validate([
+        $validator = validator($request->all(), [
             'endpoint' => ['required', 'string', 'max:2048'],
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Invalid push subscription payload.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
         $preparationService->revokeCurrentSubscription($request->user(), $data['endpoint']);
 
         return response()->json(['status' => 'revoked']);

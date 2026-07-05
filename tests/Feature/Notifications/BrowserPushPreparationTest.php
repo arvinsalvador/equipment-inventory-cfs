@@ -7,8 +7,8 @@ use App\Filament\Pages\NotificationPreferences;
 use App\Models\BrowserPushSubscription;
 use App\Models\User;
 use App\Models\UserNotificationPreference;
-use App\Services\BrowserPushPreparationService;
 use App\Notifications\BrowserPushNotification;
+use App\Services\BrowserPushPreparationService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -158,7 +158,7 @@ class BrowserPushPreparationTest extends TestCase
         ]);
 
         $this->actingAs($this->staff)->postJson(route('push-subscriptions.store'), [])
-            ->assertUnprocessable();
+            ->assertStatus(422);
 
         $response = $this->actingAs($this->staff)->postJson(route('browser-push.subscriptions.store'), [
             'endpoint' => 'https://push.example.test/staff',

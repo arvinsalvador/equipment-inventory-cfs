@@ -99,7 +99,7 @@ class ProductionReadinessService
             $this->item('Scheduler cron ready', 'review', 'Laravel scheduler needs a hosting cron entry.', 'Run php artisan schedule:run every minute.'),
             $this->item('Email queue strategy ready', 'review', 'Queued email notifications require a configured queue worker.', 'Choose sync, database queue, or hosting-supported worker.'),
             $this->item('Failed jobs monitored', 'review', 'Failed queued jobs should be reviewed regularly.', 'Add failed job review to administrator operating procedures.'),
-            $this->item('Browser push preparation only', 'ready', 'Browser push is prepared but should be verified separately per browser.', 'Treat push notifications as optional until production testing is complete.'),
+            $this->item('Browser push delivery ready', config('webpush.vapid.public_key') && config('webpush.vapid.private_key') ? 'ready' : 'review', 'Browser push delivery is implemented and depends on VAPID keys plus browser support.', 'Set VAPID keys, register a test device, and send a test browser notification.'),
             $this->item('Notification defaults configured', 'review', 'Notification preferences and defaults should be seeded.', 'Run seeders and review notification defaults.'),
             $this->item('Maintenance reminders ready', 'review', 'Maintenance reminders depend on scheduler and mail readiness.', 'Test a reminder flow after scheduler is active.'),
             $this->item('Work order notifications ready', 'review', 'Work-order notifications depend on mail and queue settings.', 'Test assignment and verification notifications.'),
