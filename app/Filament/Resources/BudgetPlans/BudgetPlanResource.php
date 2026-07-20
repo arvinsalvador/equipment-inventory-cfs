@@ -12,6 +12,8 @@ use App\Services\BudgetForecastingService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
@@ -57,6 +59,18 @@ class BudgetPlanResource extends Resource
                             ->maxValue(2100)
                             ->default(now()->year)
                             ->required(),
+                        DatePicker::make('budget_date')
+                            ->label('Budget Date')
+                            ->default(now())
+                            ->required(),
+                        Select::make('funds')
+                            ->label('Funds')
+                            ->options(BudgetPlan::fundOptions())
+                            ->searchable()
+                            ->preload(),
+                        TextInput::make('purchase_order_number')
+                            ->label('Purchase Order Number (PO #)')
+                            ->maxLength(255),
                         TextInput::make('total_estimated_budget')
                             ->label('Total estimated budget')
                             ->numeric()
@@ -79,6 +93,9 @@ class BudgetPlanResource extends Resource
                         TextEntry::make('plan_number')->label('Plan number'),
                         TextEntry::make('title'),
                         TextEntry::make('fiscal_year')->label('Fiscal year'),
+                        TextEntry::make('budget_date')->label('Budget Date')->date()->placeholder('None'),
+                        TextEntry::make('funds')->label('Funds')->placeholder('None'),
+                        TextEntry::make('purchase_order_number')->label('Purchase Order Number (PO #)')->placeholder('None'),
                         TextEntry::make('status')->badge(),
                         TextEntry::make('total_estimated_budget')->label('Total estimated budget')->money('PHP'),
                         TextEntry::make('preparedBy.name')->label('Prepared by'),
@@ -95,11 +112,14 @@ class BudgetPlanResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['preparedBy', 'approvedBy'])->latest())
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['preparedBy', 'approvedBy'])->orderByDesc('budget_date')->latest('created_at'))
             ->columns([
                 TextColumn::make('plan_number')->label('Plan Number')->searchable()->sortable(),
                 TextColumn::make('title')->searchable()->sortable(),
                 TextColumn::make('fiscal_year')->label('Fiscal Year')->sortable(),
+                TextColumn::make('budget_date')->label('Budget Date')->date()->sortable(),
+                TextColumn::make('funds')->label('Funds')->badge()->sortable(),
+                TextColumn::make('purchase_order_number')->label('PO #')->searchable()->toggleable(),
                 TextColumn::make('status')->badge()->sortable(),
                 TextColumn::make('total_estimated_budget')->label('Total Estimated Budget')->money('PHP')->sortable(),
                 TextColumn::make('preparedBy.name')->label('Prepared By')->searchable()->sortable(),
@@ -109,6 +129,7 @@ class BudgetPlanResource extends Resource
             ->filters([
                 SelectFilter::make('fiscal_year')->label('Fiscal Year')->options(fn (): array => BudgetPlan::query()->orderByDesc('fiscal_year')->pluck('fiscal_year', 'fiscal_year')->all()),
                 SelectFilter::make('status')->options(BudgetPlan::statusOptions()),
+                SelectFilter::make('funds')->label('Funds')->options(BudgetPlan::fundOptions()),
             ])
             ->recordActions([
                 ViewAction::make(),

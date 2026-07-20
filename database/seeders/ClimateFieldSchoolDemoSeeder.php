@@ -35,32 +35,32 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
      */
     private const DATA_FILE = 'data/climate-field-school-equipment.csv';
 
-    /** @var array<string, string> */
-    private const CATEGORY_DESCRIPTIONS = [
-        'Office Equipment' => 'Classroom, presentation, and administrative equipment for Climate Field School operations.',
-        'ICT Equipment' => 'Computing, networking, data, software, and digital learning equipment.',
-        'Other Equipment' => 'General support tools and processing equipment used across field school modules.',
-        'Technical and Scientific Equipment' => 'Laboratory, monitoring, analytical, and scientific training equipment.',
-        'Marine and Fisheries Equipment' => 'Marine, fisheries, water sampling, and aquaculture training equipment.',
-        'Agricultural and Forestry Equipment' => 'Farm, forestry, crop production, and field operation equipment.',
-        'Supplies and Materials' => 'Reusable supplies and field/laboratory materials tracked for demo inventory visibility.',
-        'A.I. Equipment for Poultry' => 'Artificial insemination equipment and accessories for poultry modules.',
-        'A.I. Equipment for Small and Large Ruminants' => 'Artificial insemination equipment and accessories for ruminant modules.',
-        'A.I. Equipment for Swine' => 'Artificial insemination equipment and accessories for swine modules.',
+    /** @var array<string, array{name: string, description: string, prefix: string}> */
+    private const GOVERNMENT_CATEGORIES = [
+        '10604010' => ['name' => 'Building', 'description' => 'Building assets used for Climate Field School operations.', 'prefix' => 'BLD'],
+        '10604020' => ['name' => 'School Buildings', 'description' => 'School building assets and improvements.', 'prefix' => 'SCH'],
+        '10604990' => ['name' => 'Other Structures', 'description' => 'Other structure assets supporting field school operations.', 'prefix' => 'STR'],
+        '10605020' => ['name' => 'Office Equipment', 'description' => 'Presentation, classroom, and administrative equipment.', 'prefix' => 'OFF'],
+        '10607010' => ['name' => 'Furniture & Fixtures', 'description' => 'Furniture, fixtures, and classroom fittings.', 'prefix' => 'FNF'],
+        '10605030' => ['name' => 'Information and Communication Technology Equipment', 'description' => 'Computing, networking, camera, software, and digital learning equipment.', 'prefix' => 'ICT'],
+        '10607020' => ['name' => 'Books', 'description' => 'Books, learning references, and library materials.', 'prefix' => 'BKS'],
+        '10605040' => ['name' => 'Agricultural, Fishery & Forestry Equipment', 'description' => 'Agricultural, fishery, forestry, aquaculture, and field operation equipment.', 'prefix' => 'AFF'],
+        '10605110' => ['name' => 'Medical, Dental & Laboratory Equipment', 'description' => 'Clinical, laboratory, and diagnostic equipment.', 'prefix' => 'MDL'],
+        '10605140' => ['name' => 'Technical & Scientific Equipment', 'description' => 'Technical, scientific, calibration, monitoring, and analytical equipment.', 'prefix' => 'TSE'],
     ];
 
     /** @var array<string, string> */
-    private const CATEGORY_PREFIXES = [
-        'Office Equipment' => 'OFF',
-        'ICT Equipment' => 'ICT',
-        'Other Equipment' => 'OTH',
-        'Technical and Scientific Equipment' => 'TECH',
-        'Marine and Fisheries Equipment' => 'MAR',
-        'Agricultural and Forestry Equipment' => 'AGR',
-        'Supplies and Materials' => 'SUP',
-        'A.I. Equipment for Poultry' => 'AIP',
-        'A.I. Equipment for Small and Large Ruminants' => 'AIR',
-        'A.I. Equipment for Swine' => 'AIS',
+    private const SEED_CATEGORY_ACCOUNT_CODES = [
+        'Office Equipment' => '10605020',
+        'ICT Equipment' => '10605030',
+        'Other Equipment' => '10605020',
+        'Technical and Scientific Equipment' => '10605140',
+        'Marine and Fisheries Equipment' => '10605040',
+        'Agricultural and Forestry Equipment' => '10605040',
+        'Supplies and Materials' => '10605020',
+        'A.I. Equipment for Poultry' => '10605040',
+        'A.I. Equipment for Small and Large Ruminants' => '10605040',
+        'A.I. Equipment for Swine' => '10605040',
     ];
 
     public function run(): void
@@ -160,12 +160,15 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
     {
         $categories = [];
 
-        foreach (self::CATEGORY_DESCRIPTIONS as $name => $description) {
-            $categories[$name] = EquipmentCategory::create([
-                'name' => $name,
-                'description' => $description,
-                'is_active' => true,
-            ]);
+        foreach (self::GOVERNMENT_CATEGORIES as $accountCode => $category) {
+            $categories[$accountCode] = EquipmentCategory::updateOrCreate(
+                ['account_code' => $accountCode],
+                [
+                    'name' => $category['name'],
+                    'description' => $category['description'],
+                    'is_active' => true,
+                ],
+            );
         }
 
         return $categories;
@@ -181,19 +184,20 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
         $sequence = 1;
 
         foreach ($this->equipmentRows() as $row) {
-            $categoryName = $this->categoryName($row);
-            $category = $categories[$categoryName];
+            $accountCode = $this->accountCode($row);
+            $category = $categories[$accountCode];
+            $categoryName = $category->name;
             $quantity = max(1, (int) ($row['quantity'] ?: 1));
 
             for ($copy = 1; $copy <= $quantity; $copy++) {
-                $code = sprintf('CFS-%s-%04d', self::CATEGORY_PREFIXES[$categoryName] ?? 'EQP', $sequence);
+                $code = sprintf('CFS-%s-%04d', self::GOVERNMENT_CATEGORIES[$accountCode]['prefix'] ?? 'EQP', $sequence);
                 $acquiredAt = $this->deterministicDate($row['source_row'].$row['clean_equipment_name']);
                 $cost = $this->sampleCost($row['clean_equipment_name'], $categoryName);
                 $condition = $this->conditionForSequence($sequence);
 
                 $equipment = Equipment::create([
                     'equipment_code' => $code,
-                    'property_number' => sprintf('CFS-PSF-%04d', $sequence),
+                    'property_number' => sprintf('%s-CFS-%04d', $accountCode, $sequence),
                     'equipment_name' => $row['clean_equipment_name'],
                     'equipment_category_id' => $category->id,
                     'description' => $row['specification'] ?: 'Demo specification pending validation from official property records.',
@@ -505,6 +509,9 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
                 'plan_number' => sprintf('BP-CFS-2026-%04d', $planIndex + 1),
                 'title' => $planData[0],
                 'fiscal_year' => 2026,
+                'budget_date' => now()->subMonths($planIndex)->toDateString(),
+                'funds' => ['GAA', 'IGF', 'Trust Fund'][$planIndex % 3],
+                'purchase_order_number' => $planIndex === 1 ? 'PO-CFS-2026-0002' : null,
                 'description' => $planData[2],
                 'status' => $planData[1],
                 'prepared_by' => $users['staff']->id,
@@ -600,17 +607,25 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
      */
     private function categoryName(array $row): string
     {
-        $name = $row['clean_equipment_name'];
+        return self::GOVERNMENT_CATEGORIES[$this->accountCode($row)]['name'];
+    }
 
-        foreach (['A.I. Equipment for Poultry', 'A.I. Equipment for Small and Large Ruminants', 'A.I. Equipment for Swine'] as $category) {
-            if ($name === $category) {
-                return $category;
-            }
-        }
+    /**
+     * @param  array<string, string>  $row
+     */
+    private function accountCode(array $row): string
+    {
+        $name = strtolower($row['clean_equipment_name']);
+        $seedCategory = $row['seed_category'];
 
-        return array_key_exists($row['seed_category'], self::CATEGORY_DESCRIPTIONS)
-            ? $row['seed_category']
-            : 'Other Equipment';
+        return match (true) {
+            str_contains($name, 'book'), str_contains($name, 'manual') => '10607020',
+            str_contains($name, 'chair'), str_contains($name, 'table'), str_contains($name, 'cabinet'), str_contains($name, 'shelf') => '10607010',
+            str_contains($name, 'clinic'), str_contains($name, 'medical'), str_contains($name, 'dental') => '10605110',
+            str_contains($name, 'laptop'), str_contains($name, 'computer'), str_contains($name, 'printer'), str_contains($name, 'camera'), str_contains($name, 'software'), str_contains($name, 'server'), str_contains($name, 'projector'), str_contains($name, 'gps') => '10605030',
+            str_contains($name, 'building') => '10604020',
+            default => self::SEED_CATEGORY_ACCOUNT_CODES[$seedCategory] ?? '10605020',
+        };
     }
 
     private function deterministicDate(string $seed): CarbonImmutable
@@ -647,9 +662,8 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
             str_contains($text, 'smart tv'),
             str_contains($text, 'sound'),
             str_contains($text, 'gps') => 45000.00,
-            $category === 'Supplies and Materials' => 3500.00,
-            $category === 'Agricultural and Forestry Equipment' => 25000.00,
-            $category === 'Marine and Fisheries Equipment' => 35000.00,
+            $category === 'Books' => 3500.00,
+            $category === 'Agricultural, Fishery & Forestry Equipment' => 25000.00,
             default => 15000.00,
         };
     }
@@ -669,10 +683,10 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
     private function maintenanceFrequency(string $category): string
     {
         return match ($category) {
-            'ICT Equipment', 'Office Equipment' => 'Monthly',
-            'Technical and Scientific Equipment', 'Marine and Fisheries Equipment' => 'Quarterly',
-            'Agricultural and Forestry Equipment' => 'Semi-annually',
-            'Supplies and Materials' => 'Annually',
+            'Information and Communication Technology Equipment', 'Office Equipment' => 'Monthly',
+            'Technical & Scientific Equipment', 'Medical, Dental & Laboratory Equipment' => 'Quarterly',
+            'Agricultural, Fishery & Forestry Equipment' => 'Semi-annually',
+            'Books' => 'Annually',
             default => 'Annually',
         };
     }
@@ -688,7 +702,7 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
 
     private function warrantyYears(string $category): int
     {
-        return in_array($category, ['ICT Equipment', 'Technical and Scientific Equipment', 'Marine and Fisheries Equipment'], true) ? 3 : 1;
+        return in_array($category, ['Information and Communication Technology Equipment', 'Technical & Scientific Equipment', 'Medical, Dental & Laboratory Equipment'], true) ? 3 : 1;
     }
 
     private function brandFor(string $name, string $specification): ?string
@@ -732,8 +746,8 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
     private function supplierFor(string $name, string $category): string
     {
         return match (true) {
-            $category === 'ICT Equipment' => 'ICT Equipment Supplier',
-            $category === 'Technical and Scientific Equipment' => 'Scientific Equipment Supplier',
+            $category === 'Information and Communication Technology Equipment' => 'ICT Equipment Supplier',
+            $category === 'Technical & Scientific Equipment' => 'Scientific Equipment Supplier',
             str_contains(strtolower($name), 'laboratory') => 'Laboratory Equipment Supplier',
             default => 'Demo Supplier A',
         };
@@ -742,9 +756,9 @@ class ClimateFieldSchoolDemoSeeder extends Seeder
     private function maintenanceType(Equipment $equipment): string
     {
         return match ($equipment->category?->name) {
-            'ICT Equipment', 'Office Equipment' => 'Routine cleaning and functionality check',
-            'Technical and Scientific Equipment', 'Marine and Fisheries Equipment' => 'Calibration and inspection',
-            'Agricultural and Forestry Equipment' => 'Field readiness inspection',
+            'Information and Communication Technology Equipment', 'Office Equipment' => 'Routine cleaning and functionality check',
+            'Technical & Scientific Equipment', 'Medical, Dental & Laboratory Equipment' => 'Calibration and inspection',
+            'Agricultural, Fishery & Forestry Equipment' => 'Field readiness inspection',
             default => 'Preventive maintenance',
         };
     }

@@ -9,6 +9,21 @@ class CreateEquipment extends CreateRecord
 {
     protected static string $resource = EquipmentResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Create New Equipment';
+    }
+
+    public function getHeading(): string
+    {
+        return 'Create New Equipment';
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Create';
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         if (! auth()->user()?->can('equipment.archive')) {

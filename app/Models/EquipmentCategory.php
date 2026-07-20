@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['name', 'description', 'is_active'])]
+#[Fillable(['account_code', 'name', 'description', 'is_active'])]
 class EquipmentCategory extends Model
 {
     use HasFactory;
@@ -15,6 +15,16 @@ class EquipmentCategory extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function displayName(): string
+    {
+        return trim(collect([$this->account_code, $this->name])->filter()->implode(' - '));
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->displayName();
     }
 
     /**

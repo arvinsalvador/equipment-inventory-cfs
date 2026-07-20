@@ -18,10 +18,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             SystemSettingsSeeder::class,
             MasterDataSeeder::class,
-            SampleEquipmentSeeder::class,
-            MaintenanceScheduleSeeder::class,
-            MaintenanceRequestSeeder::class,
-            WorkOrderSeeder::class,
+            OfficialEquipmentInventorySeeder::class,
         ]);
     }
 }

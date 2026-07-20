@@ -9,14 +9,16 @@ use Illuminate\Database\Seeder;
 class MasterDataSeeder extends Seeder
 {
     public const EQUIPMENT_CATEGORIES = [
-        'Weather monitoring equipment',
-        'Agricultural equipment',
-        'Laboratory equipment',
-        'Computers',
-        'Air-conditioning units',
-        'Office equipment',
-        'Water systems',
-        'Other equipment',
+        '10604010' => 'Building',
+        '10604020' => 'School Buildings',
+        '10604990' => 'Other Structures',
+        '10605020' => 'Office Equipment',
+        '10607010' => 'Furniture & Fixtures',
+        '10605030' => 'Information and Communication Technology Equipment',
+        '10607020' => 'Books',
+        '10605040' => 'Agricultural, Fishery & Forestry Equipment',
+        '10605110' => 'Medical, Dental & Laboratory Equipment',
+        '10605140' => 'Technical & Scientific Equipment',
     ];
 
     public function run(): void
@@ -46,11 +48,27 @@ class MasterDataSeeder extends Seeder
             ['type' => 'Other', 'is_active' => true]
         );
 
-        foreach (self::EQUIPMENT_CATEGORIES as $category) {
-            EquipmentCategory::updateOrCreate(
-                ['name' => $category],
-                ['is_active' => true]
-            );
+        foreach (self::EQUIPMENT_CATEGORIES as $accountCode => $category) {
+            $record = EquipmentCategory::query()
+                ->where('account_code', $accountCode)
+                ->orWhere('name', $category)
+                ->first();
+
+            if ($record) {
+                $record->update([
+                    'account_code' => $accountCode,
+                    'name' => $category,
+                    'is_active' => true,
+                ]);
+
+                continue;
+            }
+
+            EquipmentCategory::create([
+                'account_code' => $accountCode,
+                'name' => $category,
+                'is_active' => true,
+            ]);
         }
     }
 }

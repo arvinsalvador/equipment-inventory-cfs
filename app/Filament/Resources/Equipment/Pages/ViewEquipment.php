@@ -10,6 +10,21 @@ class ViewEquipment extends ViewRecord
 {
     protected static string $resource = EquipmentResource::class;
 
+    public function getTitle(): string
+    {
+        return 'View Equipment';
+    }
+
+    public function getHeading(): string
+    {
+        return 'View Equipment';
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'View';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

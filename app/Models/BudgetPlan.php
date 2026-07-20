@@ -14,6 +14,9 @@ use InvalidArgumentException;
     'plan_number',
     'title',
     'fiscal_year',
+    'budget_date',
+    'funds',
+    'purchase_order_number',
     'description',
     'total_estimated_budget',
     'status',
@@ -38,11 +41,19 @@ class BudgetPlan extends Model
         'Cancelled',
     ];
 
+    public const FUNDS = [
+        'GAA',
+        'IGF',
+        'Trust Fund',
+        'Income',
+    ];
+
     protected static function booted(): void
     {
         static::creating(function (BudgetPlan $plan): void {
             $plan->plan_number ??= self::makePlanNumber((int) ($plan->fiscal_year ?: now()->year));
             $plan->status ??= 'Draft';
+            $plan->budget_date ??= now()->toDateString();
             $plan->total_estimated_budget ??= 0;
         });
 
@@ -72,6 +83,11 @@ class BudgetPlan extends Model
     public static function statusOptions(): array
     {
         return array_combine(self::STATUSES, self::STATUSES);
+    }
+
+    public static function fundOptions(): array
+    {
+        return array_combine(self::FUNDS, self::FUNDS);
     }
 
     public function items(): HasMany
@@ -162,6 +178,7 @@ class BudgetPlan extends Model
     {
         return [
             'fiscal_year' => 'integer',
+            'budget_date' => 'date',
             'total_estimated_budget' => 'decimal:2',
             'reviewed_at' => 'datetime',
             'approved_at' => 'datetime',

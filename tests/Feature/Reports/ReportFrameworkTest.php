@@ -116,7 +116,7 @@ class ReportFrameworkTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Equipment code')
-            ->assertSee('Equipment name')
+            ->assertSee('Equipment Name / Article')
             ->assertSee('columns%5B0%5D=equipment_code', false)
             ->assertSee('columns%5B1%5D=equipment_name', false);
     }
@@ -251,7 +251,7 @@ class ReportFrameworkTest extends TestCase
             ->assertOk()
             ->streamedContent();
 
-        $this->assertStringContainsString('"Equipment code","Property number","Equipment name"', $inventoryCsv);
+        $this->assertStringContainsString('"Equipment code","Property number","Equipment Name / Article"', $inventoryCsv);
 
         $workOrderCsv = $this->actingAs($this->administrator)
             ->get(route('reports.csv', ['report' => 'work-orders', 'status' => 'Completed']))
@@ -280,7 +280,7 @@ class ReportFrameworkTest extends TestCase
             ->assertOk()
             ->streamedContent();
 
-        $this->assertStringContainsString('"Equipment code","Equipment name"', $csv);
+        $this->assertStringContainsString('"Equipment code","Equipment Name / Article"', $csv);
         $this->assertStringNotContainsString('Property number', $csv);
         $this->assertStringNotContainsString('Category', $csv);
     }

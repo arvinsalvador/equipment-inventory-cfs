@@ -10,6 +10,21 @@ class EditEquipment extends EditRecord
 {
     protected static string $resource = EquipmentResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Edit Equipment';
+    }
+
+    public function getHeading(): string
+    {
+        return 'Edit Equipment';
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Edit';
+    }
+
     private ?int $previousLocationId = null;
 
     private ?string $locationTransferRemarks = null;
