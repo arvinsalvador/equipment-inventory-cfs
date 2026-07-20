@@ -82,12 +82,12 @@ class EquipmentResource extends Resource
                             ->label('Property number')
                             ->maxLength(255),
                         TextInput::make('equipment_name')
-                            ->label('Equipment name')
+                            ->label('Equipment Name / Article')
                             ->required()
                             ->maxLength(255),
                         Select::make('equipment_category_id')
                             ->label('Category')
-                            ->options(fn (): array => EquipmentCategory::active()->orderBy('name')->pluck('name', 'id')->all())
+                            ->options(fn (): array => EquipmentCategory::active()->orderBy('account_code')->orderBy('name')->get()->mapWithKeys(fn (EquipmentCategory $category): array => [$category->id => $category->display_name])->all())
                             ->searchable()
                             ->preload()
                             ->required(),
@@ -171,8 +171,9 @@ class EquipmentResource extends Resource
                             ->visible(fn (Equipment $record): bool => filled($record->filamentPhotoImageState())),
                         TextEntry::make('equipment_code')->label('Equipment code'),
                         TextEntry::make('property_number')->label('Property number')->placeholder('None'),
-                        TextEntry::make('equipment_name')->label('Equipment name'),
-                        TextEntry::make('category.name')->label('Category'),
+                        TextEntry::make('equipment_name')->label('Equipment Name / Article'),
+                        TextEntry::make('category.account_code')->label('Account Code')->placeholder('None'),
+                        TextEntry::make('category.name')->label('Category')->placeholder('None'),
                         TextEntry::make('currentLocation.name')->label('Current location'),
                         TextEntry::make('qr_identifier')->label('QR identifier')->placeholder('Not assigned'),
                         TextEntry::make('qr_lookup_url')
@@ -365,7 +366,11 @@ class EquipmentResource extends Resource
                     ->searchable()
                     ->placeholder('None'),
                 TextColumn::make('equipment_name')
-                    ->label('Equipment name')
+                    ->label('Equipment Name / Article')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('category.account_code')
+                    ->label('Account Code')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('category.name')
@@ -409,7 +414,7 @@ class EquipmentResource extends Resource
             ->filters([
                 SelectFilter::make('equipment_category_id')
                     ->label('Category')
-                    ->relationship('category', 'name'),
+                    ->options(fn (): array => EquipmentCategory::query()->orderBy('account_code')->orderBy('name')->get()->mapWithKeys(fn (EquipmentCategory $category): array => [$category->id => $category->display_name])->all()),
                 SelectFilter::make('current_location_id')
                     ->label('Current location')
                     ->relationship('currentLocation', 'name'),

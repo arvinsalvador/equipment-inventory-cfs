@@ -93,7 +93,7 @@ class PrintableReportExportTest extends TestCase
             ]))
             ->assertOk()
             ->assertSee('Equipment code')
-            ->assertSee('Equipment name')
+            ->assertSee('Equipment Name / Article')
             ->assertDontSee('Property number')
             ->assertDontSee('Current location');
 
@@ -106,7 +106,7 @@ class PrintableReportExportTest extends TestCase
             ->streamedContent();
 
         $this->assertStringContainsString('Equipment code', $content);
-        $this->assertStringContainsString('Equipment name', $content);
+        $this->assertStringContainsString('Equipment Name / Article', $content);
         $this->assertStringNotContainsString('Property number', $content);
         $this->assertStringNotContainsString('Current location', $content);
     }

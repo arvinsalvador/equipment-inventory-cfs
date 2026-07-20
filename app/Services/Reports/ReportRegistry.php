@@ -62,9 +62,9 @@ class ReportRegistry
     {
         $columns = match ($slug) {
             'equipment-inventory' => $this->columnsFrom([
-                'equipment_code' => 'Equipment code', 'property_number' => 'Property number', 'equipment_name' => 'Equipment name', 'category' => 'Category', 'location' => 'Current location', 'brand' => 'Brand', 'model' => 'Model', 'serial_number' => 'Serial number', 'condition' => 'Condition', 'operational_status' => 'Operational status', 'custodian' => 'Custodian', 'acquisition_date' => 'Acquisition date', 'warranty_expiration_date' => 'Warranty expiration date', 'archived_status' => 'Archived status',
+                'equipment_code' => 'Equipment code', 'property_number' => 'Property number', 'equipment_name' => 'Equipment Name / Article', 'account_code' => 'Account Code', 'category' => 'Category', 'location' => 'Current location', 'brand' => 'Brand', 'model' => 'Model', 'serial_number' => 'Serial number', 'condition' => 'Condition', 'operational_status' => 'Operational status', 'custodian' => 'Custodian', 'acquisition_date' => 'Acquisition date', 'acquisition_cost' => 'Acquisition cost', 'warranty_expiration_date' => 'Warranty expiration date', 'archived_status' => 'Archived status',
             ]),
-            'equipment-by-category' => $this->columnsFrom(['category' => 'Category', 'active_count' => 'Active equipment count', 'archived_count' => 'Archived equipment count', 'total_count' => 'Total equipment count']),
+            'equipment-by-category' => $this->columnsFrom(['account_code' => 'Account Code', 'category' => 'Category', 'active_count' => 'Active equipment count', 'archived_count' => 'Archived equipment count', 'total_count' => 'Total equipment count']),
             'equipment-by-location' => $this->columnsFrom(['location' => 'Location', 'active_count' => 'Active equipment count', 'archived_count' => 'Archived equipment count', 'total_count' => 'Total equipment count']),
             'equipment-by-condition' => $this->columnsFrom(['condition' => 'Condition', 'equipment_count' => 'Equipment count']),
             'maintenance-schedules' => $this->columnsFrom(['equipment' => 'Equipment', 'maintenance_type' => 'Maintenance type', 'frequency' => 'Frequency', 'scheduled_date' => 'Scheduled date', 'assigned_user' => 'Assigned user', 'priority' => 'Priority', 'status' => 'Status', 'completed_date' => 'Completed date']),
@@ -72,13 +72,13 @@ class ReportRegistry
             'maintenance-requests' => $this->columnsFrom(['request_number' => 'Request number', 'equipment' => 'Equipment', 'submitted_by' => 'Submitted by', 'severity' => 'Severity', 'status' => 'Status', 'created_date' => 'Created date', 'reviewed_date' => 'Reviewed date', 'converted_date' => 'Converted date']),
             'work-orders' => $this->columnsFrom(['work_order_number' => 'Work order number', 'equipment' => 'Equipment', 'created_by' => 'Created by', 'assigned_to' => 'Assigned to', 'priority' => 'Priority', 'status' => 'Status', 'created_date' => 'Created date', 'started_date' => 'Started date', 'completed_date' => 'Completed date', 'verified_date' => 'Verified date']),
             'completed-work-orders' => $this->columnsFrom(['work_order_number' => 'Work order number', 'equipment' => 'Equipment', 'assigned_to' => 'Assigned to', 'completed_date' => 'Completed date', 'verified_date' => 'Verified date', 'final_equipment_condition' => 'Final equipment condition', 'final_operational_status' => 'Final operational status', 'action_performed' => 'Action performed']),
-            'beyond-repair-equipment' => $this->columnsFrom(['equipment_code' => 'Equipment code', 'equipment_name' => 'Equipment name', 'category' => 'Category', 'location' => 'Location', 'work_order_number' => 'Work order number', 'findings' => 'Findings', 'beyond_repair_reason' => 'Beyond-repair reason', 'recommended_action' => 'Recommended action', 'evidence_count' => 'Evidence count', 'date_marked' => 'Date marked']),
+            'beyond-repair-equipment' => $this->columnsFrom(['equipment_code' => 'Equipment code', 'equipment_name' => 'Equipment Name / Article', 'account_code' => 'Account Code', 'category' => 'Category', 'location' => 'Location', 'work_order_number' => 'Work order number', 'findings' => 'Findings', 'beyond_repair_reason' => 'Beyond-repair reason', 'recommended_action' => 'Recommended action', 'evidence_count' => 'Evidence count', 'date_marked' => 'Date marked']),
             'ai-recommendations' => $this->columnsFrom(['equipment' => 'Equipment', 'rule' => 'Rule', 'title' => 'Title', 'risk_level' => 'Risk level', 'suggested_action' => 'Suggested action', 'action_status' => 'Action status', 'recommendation_status' => 'Recommendation status', 'generated_date' => 'Generated date', 'reviewed_date' => 'Reviewed date', 'resolved_date' => 'Resolved date']),
             'equipment-transfer-history' => $this->columnsFrom(['equipment' => 'Equipment', 'from_location' => 'From location', 'to_location' => 'To location', 'transferred_by' => 'Transferred by', 'transfer_date' => 'Transfer date', 'remarks' => 'Remarks']),
             'equipment-maintenance-history' => $this->columnsFrom(['date' => 'Date', 'equipment' => 'Equipment', 'activity_type' => 'Activity type', 'reference_number' => 'Reference number', 'status' => 'Status', 'actor' => 'Performed/Submitted/Assigned by', 'summary' => 'Summary']),
-            'equipment-lifecycle' => $this->columnsFrom(['equipment_code' => 'Equipment code', 'equipment_name' => 'Equipment name', 'category' => 'Category', 'location' => 'Location', 'health_score' => 'Health score', 'health_grade' => 'Health grade', 'lifecycle_status' => 'Lifecycle status', 'replacement_recommendation' => 'Replacement recommendation', 'estimated_remaining_life' => 'Estimated remaining life', 'estimated_end_of_life_date' => 'Estimated end-of-life date', 'repair_count' => 'Repair count', 'total_maintenance_cost' => 'Total maintenance cost', 'last_calculated_date' => 'Last calculated date']),
+            'equipment-lifecycle' => $this->columnsFrom(['equipment_code' => 'Equipment code', 'equipment_name' => 'Equipment Name / Article', 'account_code' => 'Account Code', 'category' => 'Category', 'location' => 'Location', 'acquisition_date' => 'Acquisition date', 'acquisition_cost' => 'Acquisition cost', 'health_score' => 'Health score', 'health_grade' => 'Health grade', 'lifecycle_status' => 'Lifecycle status', 'replacement_recommendation' => 'Replacement recommendation', 'estimated_remaining_life' => 'Estimated remaining life', 'estimated_end_of_life_date' => 'Estimated end-of-life date', 'repair_count' => 'Repair count', 'total_maintenance_cost' => 'Total maintenance cost', 'last_calculated_date' => 'Last calculated date']),
             'asset-action-requests' => $this->columnsFrom(['request_number' => 'Request number', 'equipment' => 'Equipment', 'request_type' => 'Request type', 'priority' => 'Priority', 'status' => 'Status', 'estimated_cost' => 'Estimated cost', 'requested_by' => 'Requested by', 'approved_by' => 'Approved by', 'created_date' => 'Created date', 'completed_date' => 'Completed date']),
-            'budget-plans' => $this->columnsFrom(['plan_number' => 'Plan number', 'fiscal_year' => 'Fiscal year', 'status' => 'Status', 'total_estimated_budget' => 'Total estimated budget', 'prepared_by' => 'Prepared by', 'approved_by' => 'Approved by']),
+            'budget-plans' => $this->columnsFrom(['plan_number' => 'Plan number', 'fiscal_year' => 'Fiscal year', 'budget_date' => 'Budget Date', 'funds' => 'Funds', 'purchase_order_number' => 'Purchase Order Number (PO #)', 'status' => 'Status', 'total_estimated_budget' => 'Total estimated budget', 'prepared_by' => 'Prepared by', 'approved_by' => 'Approved by']),
             'budget-plan-items' => $this->columnsFrom(['fiscal_year' => 'Fiscal year', 'equipment' => 'Equipment', 'item_type' => 'Item type', 'priority' => 'Priority', 'estimated_cost' => 'Estimated cost', 'status' => 'Status', 'forecast_reason' => 'Forecast reason']),
             default => throw new InvalidArgumentException('Unknown report.'),
         };
@@ -121,7 +121,7 @@ class ReportRegistry
     {
         return [
             'equipment' => Equipment::query()->orderBy('equipment_code')->pluck('equipment_name', 'id')->all(),
-            'category' => EquipmentCategory::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'category' => EquipmentCategory::query()->orderBy('account_code')->orderBy('name')->get()->mapWithKeys(fn (EquipmentCategory $category): array => [$category->id => $category->display_name])->all(),
             'location' => Location::query()->orderBy('name')->pluck('name', 'id')->all(),
             'from_location' => Location::query()->orderBy('name')->pluck('name', 'id')->all(),
             'to_location' => Location::query()->orderBy('name')->pluck('name', 'id')->all(),
@@ -233,6 +233,7 @@ class ReportRegistry
                 'equipment_code' => $equipment->equipment_code,
                 'property_number' => $equipment->property_number,
                 'equipment_name' => $equipment->equipment_name,
+                'account_code' => $equipment->category?->account_code,
                 'category' => $equipment->category?->name,
                 'location' => $equipment->currentLocation?->name,
                 'brand' => $equipment->brand,
@@ -242,6 +243,7 @@ class ReportRegistry
                 'operational_status' => $equipment->operational_status,
                 'custodian' => $equipment->custodian,
                 'acquisition_date' => $this->dateValue($equipment->acquisition_date),
+                'acquisition_cost' => $equipment->acquisition_cost,
                 'warranty_expiration_date' => $this->dateValue($equipment->warranty_expiration_date),
                 'archived_status' => $equipment->is_archived ? 'Archived' : 'Active',
             ]);
@@ -251,11 +253,11 @@ class ReportRegistry
     {
         return EquipmentCategory::query()
             ->leftJoin('equipment', 'equipment_categories.id', '=', 'equipment.equipment_category_id')
-            ->select('equipment_categories.name as category')
+            ->select('equipment_categories.account_code as account_code', 'equipment_categories.name as category')
             ->selectRaw('sum(case when equipment.is_archived = 0 then 1 else 0 end) as active_count')
             ->selectRaw('sum(case when equipment.is_archived = 1 then 1 else 0 end) as archived_count')
             ->selectRaw('count(equipment.id) as total_count')
-            ->groupBy('equipment_categories.id', 'equipment_categories.name')
+            ->groupBy('equipment_categories.id', 'equipment_categories.account_code', 'equipment_categories.name')
             ->orderBy('equipment_categories.name')
             ->get()
             ->map(fn ($row) => (array) $row->getAttributes());
@@ -413,6 +415,7 @@ class ReportRegistry
             ->map(fn (WorkOrder $workOrder) => [
                 'equipment_code' => $workOrder->equipment?->equipment_code,
                 'equipment_name' => $workOrder->equipment?->equipment_name,
+                'account_code' => $workOrder->equipment?->category?->account_code,
                 'category' => $workOrder->equipment?->category?->name,
                 'location' => $workOrder->equipment?->currentLocation?->name,
                 'work_order_number' => $workOrder->work_order_number,
@@ -523,8 +526,11 @@ class ReportRegistry
             ->map(fn (Equipment $equipment) => [
                 'equipment_code' => $equipment->equipment_code,
                 'equipment_name' => $equipment->equipment_name,
+                'account_code' => $equipment->category?->account_code,
                 'category' => $equipment->category?->name,
                 'location' => $equipment->currentLocation?->name,
+                'acquisition_date' => $this->dateValue($equipment->acquisition_date),
+                'acquisition_cost' => $equipment->acquisition_cost,
                 'health_score' => $equipment->lifecycleProfile?->health_score,
                 'health_grade' => $equipment->lifecycleProfile?->health_grade,
                 'lifecycle_status' => $equipment->lifecycleProfile?->lifecycle_status,
@@ -569,12 +575,15 @@ class ReportRegistry
             ->with(['preparedBy', 'approvedBy'])
             ->when($filters['fiscal_year'] ?? null, fn ($query, $year) => $query->where('fiscal_year', $year))
             ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
-            ->orderByDesc('fiscal_year')
+            ->orderByDesc('budget_date')
             ->orderByDesc('created_at')
             ->get()
             ->map(fn (BudgetPlan $plan) => [
                 'plan_number' => $plan->plan_number,
                 'fiscal_year' => $plan->fiscal_year,
+                'budget_date' => $this->dateValue($plan->budget_date),
+                'funds' => $plan->funds,
+                'purchase_order_number' => $plan->purchase_order_number,
                 'status' => $plan->status,
                 'total_estimated_budget' => $plan->total_estimated_budget,
                 'prepared_by' => $plan->preparedBy?->name,

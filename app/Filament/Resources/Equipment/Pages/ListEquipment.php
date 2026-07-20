@@ -11,6 +11,21 @@ class ListEquipment extends ListRecords
 {
     protected static string $resource = EquipmentResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Master List of Equipments';
+    }
+
+    public function getHeading(): string
+    {
+        return 'Master List of Equipments';
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Equipment';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

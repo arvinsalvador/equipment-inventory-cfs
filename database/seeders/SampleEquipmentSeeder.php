@@ -19,9 +19,9 @@ class SampleEquipmentSeeder extends Seeder
     {
         $building = Location::where('name', 'Climate Field School Building')->first();
         $mainRoom = Location::where('name', 'Climate Field School Main Room')->first();
-        $weather = EquipmentCategory::where('name', 'Weather monitoring equipment')->first();
-        $computers = EquipmentCategory::where('name', 'Computers')->first();
-        $office = EquipmentCategory::where('name', 'Office equipment')->first();
+        $weather = EquipmentCategory::where('account_code', '10605140')->first();
+        $computers = EquipmentCategory::where('account_code', '10605030')->first();
+        $office = EquipmentCategory::where('account_code', '10605020')->first();
 
         if (! $building || ! $mainRoom || ! $weather || ! $computers || ! $office) {
             return;

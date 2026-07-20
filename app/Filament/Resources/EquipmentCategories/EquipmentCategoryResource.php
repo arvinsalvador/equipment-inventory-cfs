@@ -36,7 +36,13 @@ class EquipmentCategoryResource extends Resource
     {
         return $schema
             ->components([
+                TextInput::make('account_code')
+                    ->label('Account Code')
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(20),
                 TextInput::make('name')
+                    ->label('Category Name')
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
@@ -53,7 +59,12 @@ class EquipmentCategoryResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('account_code')
+                    ->label('Account Code')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
+                    ->label('Category')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('description')

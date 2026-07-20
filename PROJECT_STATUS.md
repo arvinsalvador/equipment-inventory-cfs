@@ -1291,3 +1291,21 @@ Phase 16 - System Stabilization, Validation, and User Acceptance Testing
 - Image upload limits must be designed before the evidence module.
 - Protected maintenance evidence must not be exposed through public URLs.
 - Browser camera QR scanning depends on BarcodeDetector support, camera permissions, and HTTPS or localhost secure-context requirements; manual lookup remains available as fallback.
+
+## Official Equipment Inventory Import and Label Corrections
+
+- Equipment sidebar label restored: Complete
+- Master List of Equipments list heading: Complete
+- Create New Equipment heading: Complete
+- View Equipment heading: Complete
+- Edit Equipment heading: Complete
+- Category account code/name separation: Complete
+- Official account-code categories: Complete
+- Official document equipment import: Complete
+- Previous demo equipment removed: Complete
+- Related workflow demo data regenerated from imported equipment: Complete
+- Date and unit-value normalization: Complete
+- Location extraction: Complete
+- Reports/search compatibility: Complete
+- Tests added/updated: Complete
+- Remaining risks: Imported source values with missing property numbers, ambiguous article/description content, malformed amounts, or incomplete dates require manual Supply Office validation
