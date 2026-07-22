@@ -42,6 +42,7 @@ class ViewEquipment extends ViewRecord
                 EquipmentResource::openQrCodeFileAction(),
                 EquipmentResource::generateQrCodeAction(),
                 EquipmentResource::recalculateLifecycleAction(),
+                EquipmentResource::refreshRecommendationsAction(),
                 EquipmentResource::createAssetActionRequestAction(),
             ])
                 ->label('More Actions')

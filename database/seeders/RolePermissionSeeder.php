@@ -44,6 +44,7 @@ class RolePermissionSeeder extends Seeder
         'offline-queue.view',
         'recommendations.view',
         'recommendations.review',
+        'recommendations.refresh',
         'reports.view',
         'audit.view',
         'audit.export',

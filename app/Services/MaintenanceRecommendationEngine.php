@@ -4,11 +4,19 @@ namespace App\Services;
 
 use App\Models\Equipment;
 use App\Models\MaintenanceRecommendation;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class MaintenanceRecommendationEngine
 {
+    public const ACTIVE_RECOMMENDATION_STATUSES = [
+        'Open',
+        'Reviewed',
+        'Approved',
+    ];
+
     /**
-     * @return array{equipment_checked: int, created: int, updated: int}
+     * @return array{equipment_checked: int, created: int, updated: int, unchanged: int, skipped: int, errors: int}
      */
     public function generateForAllEquipment(): array
     {
@@ -16,40 +24,81 @@ class MaintenanceRecommendationEngine
             'equipment_checked' => 0,
             'created' => 0,
             'updated' => 0,
+            'unchanged' => 0,
+            'skipped' => 0,
+            'errors' => 0,
         ];
 
         Equipment::query()
             ->with(['workOrders', 'maintenanceSchedules'])
             ->each(function (Equipment $equipment) use (&$summary): void {
-                $result = $this->generateForEquipment($equipment);
+                try {
+                    $result = $this->generateForEquipment($equipment);
 
-                $summary['equipment_checked']++;
-                $summary['created'] += $result['created'];
-                $summary['updated'] += $result['updated'];
+                    $summary['equipment_checked'] += $result['equipment_checked'];
+                    $summary['created'] += $result['created'];
+                    $summary['updated'] += $result['updated'];
+                    $summary['unchanged'] += $result['unchanged'];
+                    $summary['skipped'] += $result['skipped'];
+                } catch (Throwable $exception) {
+                    $summary['errors']++;
+
+                    Log::warning('Recommendation refresh failed for equipment.', [
+                        'equipment_id' => $equipment->id,
+                        'message' => $exception->getMessage(),
+                    ]);
+                }
             });
 
         return $summary;
     }
 
     /**
-     * @return array{created: int, updated: int}
+     * @return array{equipment_checked: int, created: int, updated: int, unchanged: int, skipped: int, errors: int}
      */
     public function generateForEquipment(Equipment $equipment): array
     {
         $result = [
+            'equipment_checked' => 0,
             'created' => 0,
             'updated' => 0,
+            'unchanged' => 0,
+            'skipped' => 0,
+            'errors' => 0,
         ];
 
-        foreach ($this->matchingRules($equipment->refresh()) as $recommendation) {
+        $equipment = $equipment->refresh();
+
+        if (! $this->isEligibleEquipment($equipment)) {
+            $result['skipped']++;
+
+            return $result;
+        }
+
+        $result['equipment_checked']++;
+
+        foreach ($this->matchingRules($equipment) as $recommendation) {
             $existing = MaintenanceRecommendation::query()
-                ->open()
+                ->whereIn('status', self::ACTIVE_RECOMMENDATION_STATUSES)
                 ->where('equipment_id', $equipment->id)
                 ->where('rule_key', $recommendation['rule_key'])
                 ->first();
 
+            $attributes = array_merge($recommendation, [
+                'suggested_action_type' => MaintenanceRecommendation::RULE_ACTION_TYPES[$recommendation['rule_key']] ?? 'monitor_only',
+            ]);
+
             if ($existing) {
-                $existing->forceFill(array_merge($recommendation, [
+                $hasChanged = collect($attributes)
+                    ->contains(fn (mixed $value, string $key): bool => $existing->{$key} != $value);
+
+                if (! $hasChanged) {
+                    $result['unchanged']++;
+
+                    continue;
+                }
+
+                $existing->forceFill(array_merge($attributes, [
                     'generated_at' => now(),
                 ]))->save();
 
@@ -58,7 +107,7 @@ class MaintenanceRecommendationEngine
                 continue;
             }
 
-            MaintenanceRecommendation::create(array_merge($recommendation, [
+            MaintenanceRecommendation::create(array_merge($attributes, [
                 'equipment_id' => $equipment->id,
                 'generated_at' => now(),
                 'status' => 'Open',
@@ -68,6 +117,12 @@ class MaintenanceRecommendationEngine
         }
 
         return $result;
+    }
+
+    public function isEligibleEquipment(Equipment $equipment): bool
+    {
+        return ! $equipment->is_archived
+            && $equipment->operational_status !== 'Disposed';
     }
 
     /**

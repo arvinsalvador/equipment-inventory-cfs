@@ -15,6 +15,7 @@ use App\Models\Location;
 use App\Models\MaintenanceRecommendation;
 use App\Services\EquipmentLifecycleAnalyzer;
 use App\Services\EquipmentQrCodeGenerator;
+use App\Services\MaintenanceRecommendationEngine;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -546,6 +547,34 @@ class EquipmentResource extends Resource
 
                 Notification::make()
                     ->title('Lifecycle analysis recalculated')
+                    ->success()
+                    ->send();
+            });
+    }
+
+    public static function refreshRecommendationsAction(): Action
+    {
+        return Action::make('refreshRecommendations')
+            ->label('Refresh Recommendations')
+            ->icon('heroicon-o-arrow-path')
+            ->color('primary')
+            ->requiresConfirmation()
+            ->modalHeading('Refresh recommendations for this equipment')
+            ->modalDescription('Scan this equipment with the existing rule-based recommendation engine.')
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('refresh', MaintenanceRecommendation::class) ?? false)
+            ->action(function (Equipment $record): void {
+                $summary = app(MaintenanceRecommendationEngine::class)->generateForEquipment($record);
+
+                Notification::make()
+                    ->title('Recommendation refresh completed')
+                    ->body(implode("\n", [
+                        'Equipment scanned: '.$summary['equipment_checked'],
+                        'New recommendations: '.$summary['created'],
+                        'Existing recommendations updated: '.$summary['updated'],
+                        'Unchanged recommendations: '.$summary['unchanged'],
+                        'Skipped equipment: '.$summary['skipped'],
+                        'Errors: '.$summary['errors'],
+                    ]))
                     ->success()
                     ->send();
             });
