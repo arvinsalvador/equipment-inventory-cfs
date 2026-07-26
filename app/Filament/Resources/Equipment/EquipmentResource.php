@@ -494,6 +494,47 @@ class EquipmentResource extends Resource
             ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
     }
 
+    public static function viewPmsChartAction(): Action
+    {
+        return Action::make('viewPmsChart')
+            ->label('View PMS Chart')
+            ->icon('heroicon-o-clipboard-document-list')
+            ->url(fn (Equipment $record): string => route('equipment.pms-chart.show', $record))
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
+    public static function printPmsChartAction(): Action
+    {
+        return Action::make('printPmsChart')
+            ->label('Print PMS Chart')
+            ->icon('heroicon-o-printer')
+            ->url(fn (Equipment $record): string => route('equipment.pms-chart.print', $record))
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
+    public static function downloadPmsChartAction(): Action
+    {
+        return Action::make('downloadPmsChart')
+            ->label('Download PDF')
+            ->icon('heroicon-o-document-arrow-down')
+            ->color('success')
+            ->url(fn (Equipment $record): string => route('equipment.pms-chart.pdf', $record))
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
+    public static function openPmsChartAction(): Action
+    {
+        return Action::make('openPmsChart')
+            ->label('Open in New Tab')
+            ->icon('heroicon-o-arrow-top-right-on-square')
+            ->url(fn (Equipment $record): string => route('equipment.pms-chart.show', $record))
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
     public static function generateQrCodeAction(): Action
     {
         return Action::make('generateQrCode')

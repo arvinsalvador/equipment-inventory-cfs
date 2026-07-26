@@ -36,6 +36,16 @@ class ViewEquipment extends ViewRecord
             EquipmentResource::viewPropertyCardAction(),
             EquipmentResource::openQrLookupAction(),
             ActionGroup::make([
+                EquipmentResource::viewPmsChartAction(),
+                EquipmentResource::printPmsChartAction(),
+                EquipmentResource::downloadPmsChartAction(),
+                EquipmentResource::openPmsChartAction(),
+            ])
+                ->label('PMS Chart')
+                ->icon('heroicon-o-clipboard-document-list')
+                ->color('primary')
+                ->button(),
+            ActionGroup::make([
                 EquipmentResource::printPropertyCardAction(),
                 EquipmentResource::downloadPropertyCardAction(),
                 EquipmentResource::openPropertyCardAction(),

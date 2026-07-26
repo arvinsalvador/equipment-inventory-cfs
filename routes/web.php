@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BrowserPushSubscriptionController;
+use App\Http\Controllers\EquipmentPmsChartController;
 use App\Http\Controllers\EquipmentPropertyCardController;
 use App\Http\Controllers\ReportController;
 use App\Models\Equipment;
@@ -74,6 +75,9 @@ Route::post('/equipment/scan/manual', function (Request $request) {
 })->name('equipment.scan.manual');
 
 Route::middleware('auth')->prefix('equipment')->name('equipment.')->group(function (): void {
+    Route::get('/{equipment}/pms-chart', [EquipmentPmsChartController::class, 'show'])->name('pms-chart.show');
+    Route::get('/{equipment}/pms-chart/print', [EquipmentPmsChartController::class, 'print'])->name('pms-chart.print');
+    Route::get('/{equipment}/pms-chart/pdf', [EquipmentPmsChartController::class, 'pdf'])->name('pms-chart.pdf');
     Route::get('/{equipment}/property-card', [EquipmentPropertyCardController::class, 'show'])->name('property-card.show');
     Route::get('/{equipment}/property-card/print', [EquipmentPropertyCardController::class, 'print'])->name('property-card.print');
     Route::get('/{equipment}/property-card/pdf', [EquipmentPropertyCardController::class, 'pdf'])->name('property-card.pdf');
