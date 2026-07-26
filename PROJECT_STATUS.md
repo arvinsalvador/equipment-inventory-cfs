@@ -1309,3 +1309,34 @@ Phase 16 - System Stabilization, Validation, and User Acceptance Testing
 - Reports/search compatibility: Complete
 - Tests added/updated: Complete
 - Remaining risks: Imported source values with missing property numbers, ambiguous article/description content, malformed amounts, or incomplete dates require manual Supply Office validation
+
+## Equipment Property Card and Account Code Report
+
+- Printable Equipment Property Card: Complete
+- Equipment image rendering: Complete
+- Equipment image placeholder: Complete
+- Text auto-shrink support: Complete
+- Property Card PDF/print output: Complete
+- Equipment View integration: Complete
+- Equipment-by-Account-Code report: Complete
+- Account-code grouping: Complete
+- Per-account-code subtotals: Complete
+- Grand total: Complete
+- Location-as-remarks mapping: Complete
+- Print/PDF/Excel/CSV support: Complete
+- Tests added/updated: Complete
+- Remaining risks: Final physical card size, image clarity, font readability, and sticker-paper output must be validated using the actual printer and label material
+
+## Recommendation Engine Refresh and Trigger Stabilization
+
+- Existing recommendation engine audited: Complete
+- Manual Refresh Recommendations action: Complete
+- Single-equipment refresh: Complete
+- Duplicate prevention verified: Complete
+- Rule trigger fields documented: Complete
+- Automatic affected-equipment refresh: Deferred
+- Daily scheduled safety scan: Complete
+- Authorization: Complete
+- Audit logging: Complete
+- Tests added/updated: Complete
+- Remaining risks: Rule thresholds and warning windows must be confirmed against the campus maintenance policy before final production use

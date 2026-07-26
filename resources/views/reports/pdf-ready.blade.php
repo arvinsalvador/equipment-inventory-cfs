@@ -30,6 +30,13 @@
         th, td { border: 1px solid #d1d5db; padding: 5px; text-align: left; vertical-align: top; }
         th { background: #f3f4f6; font-size: 9px; text-transform: uppercase; }
         footer { border-top: 1px solid #d1d5db; color: #6b7280; margin-top: 14px; padding-top: 8px; }
+        .account-code-section { margin-top: 18px; page-break-inside: avoid; }
+        .account-code-section h2 { font-size: 16px; font-weight: 400; margin: 0 0 8px; text-align: center; }
+        .subtotal-row td { font-weight: 700; text-align: right; }
+        .grand-total { border: 1px solid #111827; display: flex; font-weight: 700; justify-content: flex-end; gap: 28px; margin-top: 14px; padding: 8px 10px; }
+        .currency { text-align: right; white-space: nowrap; }
+        .wrap { overflow-wrap: anywhere; white-space: normal; }
+        .account-code-empty { border: 1px solid #d1d5db; padding: 12px; }
         @media print {
             .toolbar { display: none; }
             body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -60,7 +67,9 @@
         @endforelse
     </section>
 
-    @if ($rows->isEmpty())
+    @if ($slug === 'equipment-by-account-code')
+        @include('reports.partials.account-code-equipment-table')
+    @elseif ($rows->isEmpty())
         <section class="filters">
             No records matched the selected filters.
         </section>

@@ -15,6 +15,7 @@ use App\Models\Location;
 use App\Models\MaintenanceRecommendation;
 use App\Services\EquipmentLifecycleAnalyzer;
 use App\Services\EquipmentQrCodeGenerator;
+use App\Services\MaintenanceRecommendationEngine;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -429,6 +430,7 @@ class EquipmentResource extends Resource
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                self::viewPropertyCardAction(),
                 self::openQrLookupAction(),
                 self::openQrCodeFileAction(),
                 self::generateQrCodeAction(),
@@ -448,11 +450,56 @@ class EquipmentResource extends Resource
             ]);
     }
 
+    public static function viewPropertyCardAction(): Action
+    {
+        return Action::make('viewPropertyCard')
+            ->label('View Property Card')
+            ->icon('heroicon-o-identification')
+            ->color('primary')
+            ->url(fn (Equipment $record): string => route('equipment.property-card.show', $record))
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
+    public static function printPropertyCardAction(): Action
+    {
+        return Action::make('printPropertyCard')
+            ->label('Print Card')
+            ->icon('heroicon-o-printer')
+            ->color('gray')
+            ->url(fn (Equipment $record): string => route('equipment.property-card.print', $record))
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
+    public static function downloadPropertyCardAction(): Action
+    {
+        return Action::make('downloadPropertyCard')
+            ->label('Download PDF')
+            ->icon('heroicon-o-document-arrow-down')
+            ->color('success')
+            ->url(fn (Equipment $record): string => route('equipment.property-card.pdf', $record))
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
+    public static function openPropertyCardAction(): Action
+    {
+        return Action::make('openPropertyCard')
+            ->label('Open Card in New Tab')
+            ->icon('heroicon-o-arrow-top-right-on-square')
+            ->color('gray')
+            ->url(fn (Equipment $record): string => route('equipment.property-card.show', $record))
+            ->openUrlInNewTab()
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
+    }
+
     public static function generateQrCodeAction(): Action
     {
         return Action::make('generateQrCode')
-            ->label(fn (Equipment $record): string => $record->qr_code_path ? 'Regenerate QR Code' : 'Generate QR Code')
+            ->label(fn (Equipment $record): string => $record->qr_code_path ? 'Regenerate QR' : 'Generate QR')
             ->icon('heroicon-o-qr-code')
+            ->color('warning')
             ->requiresConfirmation()
             ->visible(fn (Equipment $record): bool => auth()->user()?->can('update', $record) ?? false)
             ->action(function (Equipment $record): void {
@@ -470,6 +517,7 @@ class EquipmentResource extends Resource
         return Action::make('openQrLookup')
             ->label('Open QR Lookup')
             ->icon('heroicon-o-arrow-top-right-on-square')
+            ->color('gray')
             ->url(fn (Equipment $record): string => $record->getQrLookupUrl())
             ->openUrlInNewTab()
             ->visible(fn (Equipment $record): bool => auth()->user()?->can('view', $record) ?? false);
@@ -478,8 +526,9 @@ class EquipmentResource extends Resource
     public static function openQrCodeFileAction(): Action
     {
         return Action::make('openQrCodeFile')
-            ->label('Open QR Code File')
+            ->label('View QR File')
             ->icon('heroicon-o-document-arrow-down')
+            ->color('gray')
             ->url(fn (Equipment $record): string => $record->getQrCodeUrl() ?? '#')
             ->openUrlInNewTab()
             ->visible(fn (Equipment $record): bool => filled($record->getQrCodeUrl()) && (auth()->user()?->can('view', $record) ?? false));
@@ -490,6 +539,7 @@ class EquipmentResource extends Resource
         return Action::make('recalculateLifecycle')
             ->label('Recalculate Lifecycle')
             ->icon('heroicon-o-arrow-path')
+            ->color('warning')
             ->requiresConfirmation()
             ->visible(fn (Equipment $record): bool => auth()->user()?->can('update', $record) ?? false)
             ->action(function (Equipment $record): void {
@@ -502,11 +552,40 @@ class EquipmentResource extends Resource
             });
     }
 
+    public static function refreshRecommendationsAction(): Action
+    {
+        return Action::make('refreshRecommendations')
+            ->label('Refresh Recommendations')
+            ->icon('heroicon-o-arrow-path')
+            ->color('primary')
+            ->requiresConfirmation()
+            ->modalHeading('Refresh recommendations for this equipment')
+            ->modalDescription('Scan this equipment with the existing rule-based recommendation engine.')
+            ->visible(fn (Equipment $record): bool => auth()->user()?->can('refresh', MaintenanceRecommendation::class) ?? false)
+            ->action(function (Equipment $record): void {
+                $summary = app(MaintenanceRecommendationEngine::class)->generateForEquipment($record);
+
+                Notification::make()
+                    ->title('Recommendation refresh completed')
+                    ->body(implode("\n", [
+                        'Equipment scanned: '.$summary['equipment_checked'],
+                        'New recommendations: '.$summary['created'],
+                        'Existing recommendations updated: '.$summary['updated'],
+                        'Unchanged recommendations: '.$summary['unchanged'],
+                        'Skipped equipment: '.$summary['skipped'],
+                        'Errors: '.$summary['errors'],
+                    ]))
+                    ->success()
+                    ->send();
+            });
+    }
+
     public static function createAssetActionRequestAction(): Action
     {
         return Action::make('createAssetActionRequest')
-            ->label('Create Asset Action Request')
+            ->label('Create Asset Request')
             ->icon('heroicon-o-arrow-path-rounded-square')
+            ->color('gray')
             ->url(fn (Equipment $record): string => AssetActionRequestResource::getUrl('create').'?equipment_id='.$record->id)
             ->visible(fn (Equipment $record): bool => auth()->user()?->can('create', AssetActionRequest::class) ?? false);
     }

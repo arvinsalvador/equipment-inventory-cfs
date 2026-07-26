@@ -19,9 +19,26 @@ Artisan::command('maintenance:generate-recommendations', function (MaintenanceRe
     $this->line('Equipment checked: '.$summary['equipment_checked']);
     $this->line('Recommendations created: '.$summary['created']);
     $this->line('Recommendations updated: '.$summary['updated']);
+    $this->line('Recommendations unchanged: '.$summary['unchanged']);
+    $this->line('Equipment skipped: '.$summary['skipped']);
+    $this->line('Errors: '.$summary['errors']);
 
-    return self::SUCCESS;
+    return $summary['errors'] > 0 ? self::FAILURE : self::SUCCESS;
 })->purpose('Generate rule-based maintenance recommendations for all equipment');
+
+Artisan::command('recommendations:refresh', function (MaintenanceRecommendationEngine $engine): int {
+    $summary = $engine->generateForAllEquipment();
+
+    $this->info('Recommendation refresh completed.');
+    $this->line('Equipment scanned: '.$summary['equipment_checked']);
+    $this->line('New recommendations: '.$summary['created']);
+    $this->line('Existing recommendations updated: '.$summary['updated']);
+    $this->line('Unchanged recommendations: '.$summary['unchanged']);
+    $this->line('Skipped equipment: '.$summary['skipped']);
+    $this->line('Errors: '.$summary['errors']);
+
+    return $summary['errors'] > 0 ? self::FAILURE : self::SUCCESS;
+})->purpose('Refresh rule-based maintenance recommendations for all eligible equipment');
 
 Artisan::command('equipment:analyze-lifecycle', function (EquipmentLifecycleAnalyzer $analyzer): int {
     $summary = $analyzer->analyzeAll();
@@ -83,6 +100,7 @@ Artisan::command('notifications:send-weekly-digest', function (NotificationEmail
     return self::SUCCESS;
 })->purpose('Send opted-in weekly notification digest emails');
 
+Schedule::command('recommendations:refresh')->dailyAt('01:30');
 Schedule::command('notifications:generate')->hourly();
 Schedule::command('notifications:send-daily-digest')->dailyAt('08:00');
 Schedule::command('notifications:send-weekly-digest')->weeklyOn(1, '08:00');

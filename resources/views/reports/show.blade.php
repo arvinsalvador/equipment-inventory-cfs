@@ -21,6 +21,13 @@
         th { background: #f9fafb; color: #4b5563; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
         .table-wrap { overflow-x: auto; }
         .muted { color: #6b7280; font-size: 13px; }
+        .account-code-section { margin-top: 18px; page-break-inside: avoid; }
+        .account-code-section h2 { font-size: 18px; font-weight: 400; margin: 0 0 10px; text-align: center; }
+        .subtotal-row td { font-weight: 700; text-align: right; }
+        .grand-total { border: 1px solid #111827; display: flex; font-weight: 700; justify-content: flex-end; gap: 28px; margin-top: 14px; padding: 8px 10px; }
+        .currency { text-align: right; white-space: nowrap; }
+        .wrap { overflow-wrap: anywhere; white-space: normal; }
+        .account-code-empty { border: 1px solid #d1d5db; padding: 12px; }
     </style>
 </head>
 <body>
@@ -63,30 +70,34 @@
 
         <section>
             <p class="muted">{{ $rows->count() }} result{{ $rows->count() === 1 ? '' : 's' }}</p>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            @foreach ($columns as $column)
-                                <th>{{ $column['label'] }}</th>
-                            @endforeach
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($rows as $row)
+            @if ($slug === 'equipment-by-account-code')
+                @include('reports.partials.account-code-equipment-table')
+            @else
+                <div class="table-wrap">
+                    <table>
+                        <thead>
                             <tr>
                                 @foreach ($columns as $column)
-                                    <td>{{ $row[$column['key']] ?? '' }}</td>
+                                    <th>{{ $column['label'] }}</th>
                                 @endforeach
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="{{ count($columns) }}">No report records found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @forelse ($rows as $row)
+                                <tr>
+                                    @foreach ($columns as $column)
+                                        <td>{{ $row[$column['key']] ?? '' }}</td>
+                                    @endforeach
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="{{ count($columns) }}">No report records found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </section>
     </main>
 </body>

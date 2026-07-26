@@ -22,6 +22,11 @@ class MaintenanceRecommendationPolicy
         return $user->can('recommendations.review');
     }
 
+    public function refresh(User $user): bool
+    {
+        return $user->can('recommendations.refresh');
+    }
+
     public function resolve(User $user, MaintenanceRecommendation $maintenanceRecommendation): bool
     {
         return $user->can('recommendations.review');

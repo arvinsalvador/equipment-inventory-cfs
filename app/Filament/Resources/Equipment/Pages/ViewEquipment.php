@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Equipment\Pages;
 
 use App\Filament\Resources\Equipment\EquipmentResource;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -28,12 +29,26 @@ class ViewEquipment extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            EditAction::make()
+                ->label('Edit Equipment')
+                ->icon('heroicon-o-pencil-square')
+                ->color('primary'),
+            EquipmentResource::viewPropertyCardAction(),
             EquipmentResource::openQrLookupAction(),
-            EquipmentResource::openQrCodeFileAction(),
-            EquipmentResource::generateQrCodeAction(),
-            EquipmentResource::recalculateLifecycleAction(),
-            EquipmentResource::createAssetActionRequestAction(),
-            EditAction::make(),
+            ActionGroup::make([
+                EquipmentResource::printPropertyCardAction(),
+                EquipmentResource::downloadPropertyCardAction(),
+                EquipmentResource::openPropertyCardAction(),
+                EquipmentResource::openQrCodeFileAction(),
+                EquipmentResource::generateQrCodeAction(),
+                EquipmentResource::recalculateLifecycleAction(),
+                EquipmentResource::refreshRecommendationsAction(),
+                EquipmentResource::createAssetActionRequestAction(),
+            ])
+                ->label('More Actions')
+                ->icon('heroicon-o-ellipsis-horizontal')
+                ->color('gray')
+                ->button(),
         ];
     }
 }

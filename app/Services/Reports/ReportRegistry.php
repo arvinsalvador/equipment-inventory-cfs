@@ -28,6 +28,7 @@ class ReportRegistry
     {
         return [
             'equipment-inventory' => $this->definition('Equipment Inventory Report', 'Complete equipment register with archive, status, location, and ownership details.', ['csv', 'print'], ['category', 'location', 'condition', 'operational_status', 'archived_status']),
+            'equipment-by-account-code' => $this->definition('Equipment by Account Code', 'Equipment inventory grouped by account code and category with subtotals and grand total.', ['csv', 'print', 'pdf', 'excel'], ['account_code', 'category', 'location', 'date_from', 'date_to', 'condition', 'operational_status', 'archived_status']),
             'equipment-by-category' => $this->definition('Equipment by Category', 'Grouped active, archived, and total equipment counts by category.', ['csv', 'print']),
             'equipment-by-location' => $this->definition('Equipment by Location', 'Grouped active, archived, and total equipment counts by current location.', ['csv', 'print']),
             'equipment-by-condition' => $this->definition('Equipment by Condition', 'Equipment totals grouped by condition.', ['csv', 'print']),
@@ -64,6 +65,7 @@ class ReportRegistry
             'equipment-inventory' => $this->columnsFrom([
                 'equipment_code' => 'Equipment code', 'property_number' => 'Property number', 'equipment_name' => 'Equipment Name / Article', 'account_code' => 'Account Code', 'category' => 'Category', 'location' => 'Current location', 'brand' => 'Brand', 'model' => 'Model', 'serial_number' => 'Serial number', 'condition' => 'Condition', 'operational_status' => 'Operational status', 'custodian' => 'Custodian', 'acquisition_date' => 'Acquisition date', 'acquisition_cost' => 'Acquisition cost', 'warranty_expiration_date' => 'Warranty expiration date', 'archived_status' => 'Archived status',
             ]),
+            'equipment-by-account-code' => $this->columnsFrom(['article' => 'Article', 'description' => 'Description', 'date_acquired' => 'Date Acquired', 'property_number' => 'Property Number', 'unit_value' => 'Unit Value', 'total_value' => 'Total Value', 'remarks' => 'Remarks']),
             'equipment-by-category' => $this->columnsFrom(['account_code' => 'Account Code', 'category' => 'Category', 'active_count' => 'Active equipment count', 'archived_count' => 'Archived equipment count', 'total_count' => 'Total equipment count']),
             'equipment-by-location' => $this->columnsFrom(['location' => 'Location', 'active_count' => 'Active equipment count', 'archived_count' => 'Archived equipment count', 'total_count' => 'Total equipment count']),
             'equipment-by-condition' => $this->columnsFrom(['condition' => 'Condition', 'equipment_count' => 'Equipment count']),
@@ -94,6 +96,7 @@ class ReportRegistry
     {
         return match ($slug) {
             'equipment-inventory' => $this->equipmentInventory($filters),
+            'equipment-by-account-code' => $this->equipmentByAccountCode($filters),
             'equipment-by-category' => $this->equipmentByCategory(),
             'equipment-by-location' => $this->equipmentByLocation(),
             'equipment-by-condition' => $this->equipmentByCondition(),
@@ -121,6 +124,7 @@ class ReportRegistry
     {
         return [
             'equipment' => Equipment::query()->orderBy('equipment_code')->pluck('equipment_name', 'id')->all(),
+            'account_code' => EquipmentCategory::query()->whereNotNull('account_code')->orderBy('account_code')->get()->mapWithKeys(fn (EquipmentCategory $category): array => [$category->account_code => trim($category->account_code.' - '.$category->name)])->all(),
             'category' => EquipmentCategory::query()->orderBy('account_code')->orderBy('name')->get()->mapWithKeys(fn (EquipmentCategory $category): array => [$category->id => $category->display_name])->all(),
             'location' => Location::query()->orderBy('name')->pluck('name', 'id')->all(),
             'from_location' => Location::query()->orderBy('name')->pluck('name', 'id')->all(),
@@ -247,6 +251,53 @@ class ReportRegistry
                 'warranty_expiration_date' => $this->dateValue($equipment->warranty_expiration_date),
                 'archived_status' => $equipment->is_archived ? 'Archived' : 'Active',
             ]);
+    }
+
+    private function equipmentByAccountCode(array $filters): Collection
+    {
+        $query = Equipment::query()
+            ->with(['category', 'currentLocation'])
+            ->leftJoin('equipment_categories', 'equipment_categories.id', '=', 'equipment.equipment_category_id')
+            ->select('equipment.*')
+            ->when($filters['account_code'] ?? null, fn ($query, $value) => $query->where('equipment_categories.account_code', $value))
+            ->when($filters['category'] ?? null, fn ($query, $id) => $query->where('equipment.equipment_category_id', $id))
+            ->when($filters['location'] ?? null, fn ($query, $id) => $query->where('equipment.current_location_id', $id))
+            ->when($filters['condition'] ?? null, fn ($query, $value) => $query->where('equipment.condition', $value))
+            ->when($filters['operational_status'] ?? null, fn ($query, $value) => $query->where('equipment.operational_status', $value))
+            ->when(($filters['archived_status'] ?? null) === 'active', fn ($query) => $query->where('equipment.is_archived', false))
+            ->when(($filters['archived_status'] ?? null) === 'archived', fn ($query) => $query->where('equipment.is_archived', true));
+
+        $this->applyDateRange($query, $filters, 'equipment.acquisition_date');
+
+        return $query
+            ->orderBy('equipment_categories.account_code')
+            ->orderBy('equipment_categories.name')
+            ->orderByRaw("case when equipment.property_number is null or equipment.property_number = '' then 1 else 0 end")
+            ->orderBy('equipment.property_number')
+            ->orderBy('equipment.equipment_name')
+            ->get()
+            ->map(function (Equipment $equipment): array {
+                $unitValue = (float) ($equipment->acquisition_cost ?? 0);
+
+                return [
+                    'account_code' => $equipment->category?->account_code ?: 'Uncoded',
+                    'category' => $equipment->category?->name ?: 'Uncategorized',
+                    'article' => $equipment->equipment_name,
+                    'description' => $equipment->description,
+                    'date_acquired' => $this->dateValue($equipment->acquisition_date),
+                    'property_number' => $equipment->property_number,
+                    'unit_value' => $this->currencyValue($unitValue),
+                    'unit_value_numeric' => $unitValue,
+                    'total_value' => $this->currencyValue($unitValue),
+                    'total_value_numeric' => $unitValue,
+                    'remarks' => $equipment->currentLocation?->name,
+                ];
+            });
+    }
+
+    private function currencyValue(float|int|null $value): string
+    {
+        return 'PHP '.number_format((float) $value, 2);
     }
 
     private function equipmentByCategory(): Collection

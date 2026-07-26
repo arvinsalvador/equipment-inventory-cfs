@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\BrowserPushSubscriptionController;
+use App\Http\Controllers\EquipmentPropertyCardController;
+use App\Http\Controllers\ReportController;
 use App\Models\Equipment;
 use App\Models\MaintenanceRecommendation;
 use Illuminate\Http\Request;
@@ -71,6 +72,12 @@ Route::post('/equipment/scan/manual', function (Request $request) {
 
     return redirect()->route('equipment.lookup', ['qr_identifier' => $value]);
 })->name('equipment.scan.manual');
+
+Route::middleware('auth')->prefix('equipment')->name('equipment.')->group(function (): void {
+    Route::get('/{equipment}/property-card', [EquipmentPropertyCardController::class, 'show'])->name('property-card.show');
+    Route::get('/{equipment}/property-card/print', [EquipmentPropertyCardController::class, 'print'])->name('property-card.print');
+    Route::get('/{equipment}/property-card/pdf', [EquipmentPropertyCardController::class, 'pdf'])->name('property-card.pdf');
+});
 
 Route::middleware('auth')->prefix('reports')->name('reports.')->group(function (): void {
     Route::get('/{report}', [ReportController::class, 'show'])->name('show');
